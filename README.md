@@ -89,11 +89,11 @@ above demonstrates this by setting the `phaseDuration` and `phaseFunction` for b
 ### Notes on Animation Timing
 
 EasyPatterns are designed to loop continuously. They do so with respect to an absolute clock that
-starts the moment the program runs. As such, two instances of the same EasyPattern will run in sync
-with each other regardless of when they were initialized or any other timing conditions.
-
-If you'd like to two of the same EasyPatterns (or two different patterns with the same duration) to
-animate out of phase with each other, adjust the `xPhaseOffset` and `yPhaseOffset` for one of them.
+starts the moment the program runs. _They do not depend on timers._ This approach means that two
+instances of the same EasyPattern will run in sync with each other regardless of when they were
+initialized or any other timing conditions. If you'd like two of the same EasyPatterns (or two
+different patterns with the same duration) to animate out of phase with each other, adjust the
+`xPhaseOffset` and `yPhaseOffset` for one of them.
 
 ## Supported Parameters
 
@@ -254,10 +254,10 @@ signature of `playdate.graphics.setPattern()`. This enables you to pass the resu
 
 #### Returns
 
--   **`patternImage`** A `playdate.graphics.image` containing the 8x8 pattern to be drawn.
--   **`xPhase`** The calculated phase offset for the X asset given the current time and other
+-   **`patternImage`:** A `playdate.graphics.image` containing the 8x8 pattern to be drawn.
+-   **`xPhase`:** The calculated phase offset for the X axis given the current time and other
     animation properties.
--   **`yPhase`** The calculated phase offset for the Y asset given the current time and other
+-   **`yPhase`:** The calculated phase offset for the Y axis given the current time and other
     animation properties.
 
 ### `setPattern(pattern)`
@@ -266,7 +266,7 @@ Sets a new pattern, retaining all animation properties.
 
 #### Params
 
--   **`pattern`** An array of 8 numbers describing the bitmap for each row, with an optional
+-   **`pattern`:** An array of 8 numbers describing the bitmap for each row, with an optional
     additional 8 for a bitmap alpha channel, as would be supplied to
     `playdate.graphics.setPattern()`.
 
@@ -280,8 +280,8 @@ Sets a new dither pattern, retaining all animation properties.
 
 #### Params
 
--   **`alpha`**: A value in the range [0, 1] describing the opacity of the dither effect.
--   **`ditherType`**: A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
+-   **`alpha`:**: A value in the range [0, 1] describing the opacity of the dither effect.
+-   **`ditherType`:**: A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
     `playdate.graphics.image.kDitherTypeVerticalLine`.
 
 ### Returns
