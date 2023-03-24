@@ -211,12 +211,12 @@ function EasyPattern:apply()
     self._pty = ty
 
     -- compute the resulting phase offsets, mod 8 to fit within our pattern texture
-    local xPhase = (self.xPhaseDuration and self.xPhaseFunction)
-        and self.xPhaseFunction(tx, 0, PTTRN_SIZE, self.xPhaseDuration, table.unpack(self.xPhaseArgs)) * self.xScale % PTTRN_SIZE
+    local xPhase = (self.xPhaseDuration > 0 and self.xPhaseFunction)
+        and self.xPhaseFunction(tx, 0, PTTRN_SIZE, self.xPhaseDuration, table.unpack(self.xPhaseArgs)) * self.xScale % PTTRN_SIZE // 1
         or 0
 
-    local yPhase = (self.yPhaseDuration and self.yPhaseFunction)
-        and self.yPhaseFunction(ty, 0, PTTRN_SIZE, self.yPhaseDuration, table.unpack(self.yPhaseArgs)) * self.yScale % PTTRN_SIZE
+    local yPhase = (self.yPhaseDuration > 0 and self.yPhaseFunction)
+        and self.yPhaseFunction(ty, 0, PTTRN_SIZE, self.yPhaseDuration, table.unpack(self.yPhaseArgs)) * self.yScale % PTTRN_SIZE // 1
         or 0
 
     -- flip the output values when in reverse animation mode
