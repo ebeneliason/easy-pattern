@@ -179,7 +179,7 @@ function EasyPattern:setDitherPattern(alpha, ditherType)
 end
 
 function EasyPattern:updatePatternImage()
-    self.patternImage:clear(gfx.kColorWhite)
+    self.patternImage:clear(gfx.kColorClear)
     gfx.pushContext(self.patternImage)
         gfx.setColor(gfx.kColorBlack)
         if self.pattern then
