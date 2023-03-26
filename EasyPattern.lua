@@ -1,6 +1,8 @@
 import "CoreLibs/object"
 import "CoreLibs/graphics"
 
+import "BitPattern"
+
 local gfx <const> = playdate.graphics
 
 local PTTRN_SIZE <const> = 8

@@ -362,25 +362,44 @@ instance, [GFXP](https://dev.playdate.store/tools/gfxp/) provides a library of p
 visual pattern editor, and a tool for viewing patterns on Playdate hardware.
 
 You can specify your patterns in hex as shown in the examples above. Or, for a more direct
-visual representation in your code, you can use a binary encoding as shown below:
+visual representation in your code, you can use a binary encoding as shown below.
 
 ```lua
-local diagonalPattern = {
-    b('11101110'),
-    b('11011101'),
-    b('10111011'),
-    b('01110111'),
-    b('11101110'),
-    b('11011101'),
-    b('10111011'),
-    b('01110111'),
+EasyPattern {
+    pattern = BitPattern {
+        '11110000',
+        '11100001',
+        '11000011',
+        '10000111',
+        '00001111',
+        '00011110',
+        '00111100',
+        '01111000',
+    },
+    -- animation properties…
 }
 ```
 
-To support this, you'll also need to define the following function in your project:
+`BitPattern` is included when you import `EasyPattern` so you can use it at your convenience.
+You can also include an alpha channel for your pattern. `BitPattern` automatically swizzles the
+inputs, enabling you to place the pattern and its alpha channel side by side in a compact and legible
+format, like so:
 
 ```lua
-function b(str) return tonumber(str, 2) end
+EasyPattern {
+    pattern = BitPattern {
+        -- PTTRN        ALPHA
+        '10101010',  '00010000',
+        '01010101',  '00111000',
+        '10101010',  '01111100',
+        '01010101',  '11111110',
+        '10101010',  '01111100',
+        '01010101',  '00111000',
+        '10101010',  '00010000',
+        '01010101',  '00000000',
+    },
+    -- animation properties…
+}
 ```
 
 ## What About Performance?
