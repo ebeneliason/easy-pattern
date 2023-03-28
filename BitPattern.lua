@@ -8,7 +8,7 @@
 
 function BitPattern(binaryRows)
     local hasAlpha = #binaryRows == 16
-    pattern = {}
+    local pattern = {}
     for i, binaryRow in ipairs(binaryRows) do
         if hasAlpha then
             pattern[i//2 + (i % 2 == 0 and 8 or 1)] = tonumber(binaryRow, 2)
