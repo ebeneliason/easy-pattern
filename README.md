@@ -433,6 +433,22 @@ EasyPattern {
 }
 ```
 
+## Troubleshooting
+
+### What if my pattern doesn't appear?
+
+Make sure you've specified either the `pattern` or the `ditherType` parameters properly. More info
+on [defining your patterns](#defining-your-patterns) is provided in the previous section.
+
+### What if my pattern doesn't animate?
+
+1. First, make sure you've properly specified an `xPhaseDuration` and/or `yPhaseDuration`, without
+   which your pattern will remain static.
+2. Ensure that `draw` gets called as necessary to reflect the rendered pattern. If you're using a
+   sprite, you can call `self:markDirty()` from your `update` function. See the
+   [notes on performance](#what-about-performance) to optimize drawing. If you're not using sprites,
+   just be sure to call your draw method as needed each frame.
+
 ## What About Performance?
 
 Playdate is a very capable device, but even relatively simple Lua programs can suffer from
