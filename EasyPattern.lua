@@ -7,6 +7,8 @@ local gfx <const> = playdate.graphics
 
 local PTTRN_SIZE <const> = 8
 
+local CACHE_EXP <const> = 1 / 60 -- max FPS
+
 -- Animated patterns with easing, made easy.
 --
 -- SAMPLE USAGE: 
@@ -218,9 +220,14 @@ function EasyPattern:updatePatternImage()
     gfx.popContext()
 end
 
-function EasyPattern:apply()
+function EasyPattern:calculatePhases()
     -- all patterns animate with respect to absolute time
     local t = playdate.getCurrentTimeMilliseconds() / 1000
+
+    -- use the cached values if they were computed recently enough
+    if t - self._pt < CACHE_EXP then
+        return self._xPhase, self._yPhase, false
+    end
 
     -- calculate the effective time param for each axis accounting for offsets, speed scaling, and looping
     tx = (t * self.xSpeed + self.xPhaseOffset) % self.xPhaseDuration
@@ -239,17 +246,34 @@ function EasyPattern:apply()
 
     -- compute the resulting phase offsets, mod 8 to fit within our pattern texture
     local xPhase = (self.xPhaseDuration > 0 and self.xPhaseFunction)
-        and self.xPhaseFunction(tx, 0, PTTRN_SIZE, self.xPhaseDuration, table.unpack(self.xPhaseArgs)) * self.xScale % PTTRN_SIZE // 1
+        and (self.xPhaseFunction(tx, 0, PTTRN_SIZE, self.xPhaseDuration, table.unpack(self.xPhaseArgs)) * self.xScale % PTTRN_SIZE) // 1
         or 0
 
     local yPhase = (self.yPhaseDuration > 0 and self.yPhaseFunction)
-        and self.yPhaseFunction(ty, 0, PTTRN_SIZE, self.yPhaseDuration, table.unpack(self.yPhaseArgs)) * self.yScale % PTTRN_SIZE // 1
+        and (self.yPhaseFunction(ty, 0, PTTRN_SIZE, self.yPhaseDuration, table.unpack(self.yPhaseArgs)) * self.yScale % PTTRN_SIZE) // 1
         or 0
 
     -- flip the output values when in reverse animation mode
     if self.xReversed then xPhase = PTTRN_SIZE - xPhase end
     if self.yReversed then yPhase = PTTRN_SIZE - yPhase end
 
+    -- determine if we're dirty and cache the computed phase values along with a timestamp
+    dirty = xPhase ~= self._xPhase or yPhase ~= self._yPhase
+    self._xPhase = xPhase
+    self._yPhase = yPhase
+    self._pt = t
+
+    -- return the newly computed phase offsets and indicate whether they have changed
+    return xPhase, yPhase, dirty
+end
+
+function EasyPattern:isDirty()
+    local _, _, dirty = self:calculatePhases()
+    return dirty
+end
+
+function EasyPattern:apply()
+    local xPhase, yPhase = self:calculatePhases()
     -- return a 3-tuple to be used as arguments to `playdate.graphics.setPattern()`
     return self.patternImage, xPhase, yPhase
 end

@@ -72,7 +72,22 @@ playdate.graphics.setPattern(easyCheckerboard:apply())
 -- draw using your pattern here
 ```
 
-That's it! The pattern will automatically animate according to the parameters provided.
+That's it! The pattern will automatically animate according to the parameters provided. The only
+thing left to do is to make sure your sprite has a chance to draw in order to animate the pattern.
+If it isn't naturally marked dirty (by e.g. moving each frame, etc.), you'll need to call
+`markDirty()` yourself each frame.
+
+Depending on the speed of your animation, chances are the pattern won't actually update every
+frame. To improve performance, you can check to see whether the phase values for the pattern have
+changed in order to know when to mark your sprite dirty. You can do this from your sprite's
+`update` function:
+
+```lua
+if myEasyPattern:isDirty() then
+    self:markDirty()
+end
+
+```
 
 ### Notes on Initialization
 
@@ -267,6 +282,15 @@ signature of `playdate.graphics.setPattern()`. This enables you to pass the resu
 -   **`yPhase`:** The calculated phase offset for the Y axis given the current time and other
     animation properties.
 
+### `isDirty()`
+
+Indicates whether the pattern needs to be redrawn based on a change in the phase values since the
+last time `apply` was called.
+
+#### Returns
+
+-   **`dirty`**: A boolean indicating whether the pattern needs to be redrawn.
+
 ### `setPattern(pattern)`
 
 Sets a new pattern, retaining all animation properties.
@@ -412,11 +436,29 @@ EasyPattern {
 ## What About Performance?
 
 Playdate is a very capable device, but even relatively simple Lua programs can suffer from
-performance issues without adequate optimization. EasyPattern is certainly not the best approach
-to animated patterns for performance given the need to calculate phase offsets each frame.
-EasyPattern is fantastically useful for quick prototyping, and should work reliably in moderation
-for most games. However, if you need additional performance you should consider encoding each
-frame of the animated pattern in an `imagetable`.
+performance issues without adequate optimization. EasyPattern should work reliably in moderation
+for most games, and does have some built-in optimizations. Most notably, you can ensure that
+your sprite is only redrawn on frames when the pattern actually updates by checking whether it's
+dirty first:
+
+```lua
+-- only redraw the sprite when the pattern updates
+if myEasyPattern:isDirty() then
+    self:markDirty()
+end
+
+```
+
+When `isDirty` is called, `EasyPattern` will compute the phase offsets for the current time and
+determine whether they have changed since the pattern was last applied. It also caches those
+values so that they can be used when you do call `apply`, avoiding the need to compute them twice
+in a single frame. The caching also ensures that there's no performance hit for calling
+`apply` more than once in a given frame, so you can set the pattern multiple times in your draw
+function as needed, or reuse the same pattern across several sprite instances with no penalty.
+
+With all of that said, EasyPattern is certainly not the _best_ approach to animated patterns for
+performance given the need to calculate phase offsets each frame. If you need maximal performance
+you should consider encoding each frame of the animated pattern in an `imagetable` instead.
 
 If you're using EasyPattern to draw sprites and need more performance, you can also use the
 [Roto](https://github.com/ebeneliason/roto) utility to export the pattern or the final rendered
