@@ -26,8 +26,8 @@ class('EasyPattern').extends(object)
 -- Create a new animated EasyPattern.
 -- @param params            A table containing one or more of the elements listed below.
 --
---                          With the exception of `pattern`, `alpha`, and `ditherType`, any
---                          of these properties may also be set directly on the object at any
+--                          With the exception of `pattern`, `ditherType`, `alpha`, and `color`
+--                          any of these properties may also be set directly on the object at any
 --                          time, e.g. `myEasyPattern.xPhaseDuration = 0.5`. (Use `:setPattern()` or
 --                          `:setDitherPattern()` to change the pattern itself.)
 --
@@ -35,19 +35,27 @@ class('EasyPattern').extends(object)
 --                          values may be set for both axes at once by dropping the `x` or `y` prefix,
 --                          from the parameter name, e.g. `..., scale = 2, reverses = true, ...`
 --
+--
+--
 --        pattern           The pattern to animate, specified as an array of 8 numbers describing the
 --                          bitmap for each row, with an optional additional 8 for a bitmap alpha
 --                          channel, as would be supplied to `playdate.graphics.setPattern()`.
+--
+--        ditherType        A dither type as would be passed to `playdate.graphics.setDitherPattern()`,
+--                          e.g. `playdate.graphics.image.kDitherTypeVerticalLine`. This setting only
+--                          applies when the `pattern` parameter is omitted or `nil`.
+--                          Default: nil.
 --
 --        alpha             An alpha value for a dither pattern, which can either be the default
 --                          Playdate dither effect, or one specified by `ditherType`. This setting only
 --                          applies when the `pattern` parameter is omitted or `nil`.
 --                          Default 0.5.
 --
---        ditherType        A dither type as would be passed to `playdate.graphics.setDitherPattern()`,
---                          e.g. `playdate.graphics.image.kDitherTypeVerticalLine`. This setting only
+--        color             The color to use when rendering the dither pattern. This setting only
 --                          applies when the `pattern` parameter is omitted or `nil`.
---                          Default: nil.
+--                          Default: `playdate.graphics.kColorBlack`
+--
+--
 --
 --        xPhaseFunction    An easing function that defines the animation pattern in the X axis,
 --                          following the signature of the `playdate.easingFunctions`.
@@ -123,6 +131,9 @@ function EasyPattern:init(params)
     -- the dither type to use when `pattern` is `nil`
     self.ditherType = params.ditherType or nil
 
+    -- the color to use for the dither pattern when `pattern` is `nil`
+    self.color = params.color or gfx.kColorBlack
+
 
     -- OBJECT PROPERTY  | SINGLE AXIS SET        | DUAL AXIS FALLBACK    | DEFAULT VALUE
 
@@ -157,14 +168,28 @@ function EasyPattern:init(params)
     self.xScale         = params.xScale         or params.scale         or 1
     self.yScale         = params.yScale         or params.scale         or 1
 
+
     -- the previously computed time values for each axis, used to determine when to reverse animations
     self._ptx = 0
     self._pty = 0
+
+    -- the previous phase calculation timestamp, used for caching computed phase offsets
+    self._pt = 0
+
+    -- cached phase offset values for each axis
+    self._xPhase = 0
+    self._yPhase = 0
+
 
     -- the pattern image to use for drawing, at twice the pattern size to support looping animation
     self.patternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2)
 
     -- pre-render the pattern image
+    self:updatePatternImage()
+end
+
+function setColor(color)
+    self.color = color
     self:updatePatternImage()
 end
 
@@ -183,7 +208,7 @@ end
 function EasyPattern:updatePatternImage()
     self.patternImage:clear(gfx.kColorClear)
     gfx.pushContext(self.patternImage)
-        gfx.setColor(gfx.kColorBlack)
+        gfx.setColor(self.color)
         if self.pattern then
             gfx.setPattern(self.pattern)
         else

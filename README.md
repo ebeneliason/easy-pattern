@@ -116,13 +116,6 @@ an optional additional 8 for a bitmap alpha channel, as would be supplied to
 
 Default: `nil`
 
-### `alpha`
-
-An alpha value for a dither pattern, which can either be the default Playdate dither effect, or one
-specified by `ditherType`. This setting only applies when the `pattern` parameter is omitted or `nil`.
-
-Default `0.5`
-
 ### `ditherType`
 
 A dither type as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
@@ -130,6 +123,20 @@ A dither type as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
 parameter is omitted or `nil`.
 
 Default: `nil`
+
+### `alpha`
+
+An alpha value for a dither pattern, which can either be the default Playdate dither effect, or one
+specified by `ditherType`. This setting only applies when the `pattern` parameter is omitted or `nil`.
+
+Default `0.5`
+
+### `color`
+
+The color in which to draw the provided dither pattern. This setting only applies when the `pattern`
+is omitted or `nil`.
+
+Default: `playdate.graphics.kColorBlack`
 
 ### `xPhaseFunction`
 
@@ -270,10 +277,6 @@ Sets a new pattern, retaining all animation properties.
     additional 8 for a bitmap alpha channel, as would be supplied to
     `playdate.graphics.setPattern()`.
 
-#### Returns
-
-`nil`
-
 ### `setDitherPattern(alpha, ditherType)`
 
 Sets a new dither pattern, retaining all animation properties.
@@ -284,9 +287,13 @@ Sets a new dither pattern, retaining all animation properties.
 -   **`ditherType`:**: A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
     `playdate.graphics.image.kDitherTypeVerticalLine`.
 
-### Returns
+### `setColor(color)`
 
-`nil`
+Sets the color used for drawing the dither pattern.
+
+#### Params
+
+-   **`color`:**: A `playdate.graphics` color value.
 
 ## Examples
 
