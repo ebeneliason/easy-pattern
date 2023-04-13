@@ -254,8 +254,8 @@ function EasyPattern:calculatePhases()
         or 0
 
     -- flip the output values when in reverse animation mode
-    if self.xReversed then xPhase = PTTRN_SIZE - xPhase end
-    if self.yReversed then yPhase = PTTRN_SIZE - yPhase end
+    if self.xReversed then xPhase = PTTRN_SIZE - xPhase - 1 end
+    if self.yReversed then yPhase = PTTRN_SIZE - yPhase - 1 end
 
     -- determine if we're dirty and cache the computed phase values along with a timestamp
     dirty = xPhase ~= self._xPhase or yPhase ~= self._yPhase
