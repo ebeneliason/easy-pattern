@@ -116,8 +116,7 @@ A full list of supported parameters follows below. Technically speaking, none of
 In practice, you'll want to set either `pattern` or `ditherType`, and a `phaseDuration` for at least
 one axis as shown in the example above.
 
-With the exception of `pattern`, `alpha`, and `ditherType`, any listed properties may also be set
-directly on your EasyPattern instance at any time, e.g.
+The animation parameters may also be set directly on your EasyPattern instance at any time, e.g.
 
 ```lua
 easyCheckerboard.xPhaseDuration = 0.5
@@ -154,6 +153,13 @@ The color in which to draw the provided dither pattern. This setting only applie
 parameter is omitted or `nil`.
 
 Default: `playdate.graphics.kColorBlack`
+
+#### `bgColor`
+
+The color to use as a background when rendering a dither pattern or a pattern with an alpha channel.
+Patterns are rendered with transparency by default, but this can be used to make them opaque.
+
+Default: `playdate.graphics.kColorClear`
 
 ### Animation Parameters
 
@@ -330,12 +336,14 @@ These examples demonstrate the range of pattern animations possible with EasyPat
 ### Conveyor Belt
 
 This example utilizes the built-in vertical line dither type to create a simple horizontally
-scrolling conveyor belt effect.
+scrolling conveyor belt effect. Because the dither effect naturally has transparency, a
+`bgColor` is specified so that the resulting belt pattern is fully opaque.
 
 ```lua
 EasyPattern {
     ditherType     = playdate.graphics.image.kDitherTypeVerticalLine,
-    xPhaseDuration = 0.5
+    xPhaseDuration = 0.5,
+    bgColor        = playdate.graphics.kColorWhite
 }
 ```
 

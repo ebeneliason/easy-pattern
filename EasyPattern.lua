@@ -57,6 +57,10 @@ class('EasyPattern').extends(object)
 --                          applies when the `pattern` parameter is omitted or `nil`.
 --                          Default: `playdate.graphics.kColorBlack`
 --
+--        bgColor           The color to use as a background when rendering a dither pattern or a
+--                          pattern with an alpha channel.
+--                          Default: `playdate.graphics.kColorClear`
+--
 --
 --
 --        xPhaseFunction    An easing function that defines the animation pattern in the X axis,
@@ -136,6 +140,9 @@ function EasyPattern:init(params)
     -- the color to use for the dither pattern when `pattern` is `nil`
     self.color = params.color or gfx.kColorBlack
 
+    -- the color to use for a background for a dither pattern or a pattern with an alpha channel
+    self.bgColor = params.bgColor or gfx.kColorClear
+
 
     -- OBJECT PROPERTY  | SINGLE AXIS SET        | DUAL AXIS FALLBACK    | DEFAULT VALUE
 
@@ -195,6 +202,11 @@ function setColor(color)
     self:updatePatternImage()
 end
 
+function setBackgroundColor(color)
+    self.bgColor = color
+    self:updatePatternImage()
+end
+
 function EasyPattern:setPattern(pattern)
     self.pattern = pattern
     self:updatePatternImage()
@@ -208,7 +220,7 @@ function EasyPattern:setDitherPattern(alpha, ditherType)
 end
 
 function EasyPattern:updatePatternImage()
-    self.patternImage:clear(gfx.kColorClear)
+    self.patternImage:clear(self.bgColor)
     gfx.pushContext(self.patternImage)
         gfx.setColor(self.color)
         if self.pattern then
