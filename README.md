@@ -123,7 +123,9 @@ directly on your EasyPattern instance at any time, e.g.
 easyCheckerboard.xPhaseDuration = 0.5
 ```
 
-### `pattern`
+### Pattern Parameters
+
+#### `pattern`
 
 The pattern to animate, specified as an array of 8 numbers describing the bitmap for each row, with
 an optional additional 8 for a bitmap alpha channel, as would be supplied to
@@ -131,7 +133,7 @@ an optional additional 8 for a bitmap alpha channel, as would be supplied to
 
 Default: `nil`
 
-### `ditherType`
+#### `ditherType`
 
 A dither type as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
 `playdate.graphics.image.kDitherTypeVerticalLine`. This setting only applies when the `pattern`
@@ -139,21 +141,23 @@ parameter is omitted or `nil`.
 
 Default: `nil`
 
-### `alpha`
+#### `alpha`
 
 An alpha value for a dither pattern, which can either be the default Playdate dither effect, or one
 specified by `ditherType`. This setting only applies when the `pattern` parameter is omitted or `nil`.
 
 Default `0.5`
 
-### `color`
+#### `color`
 
 The color in which to draw the provided dither pattern. This setting only applies when the `pattern`
-is omitted or `nil`.
+parameter is omitted or `nil`.
 
 Default: `playdate.graphics.kColorBlack`
 
-### `xPhaseFunction`
+### Animation Parameters
+
+#### `xPhaseFunction`
 
 An easing function that defines the animation pattern in the X axis. The function should follow the
 signature of the [`playdate.easingFunctions`](https://sdk.play.date/1.13.2/Inside%20Playdate.html#M-easingFunctions):
@@ -165,101 +169,101 @@ signature of the [`playdate.easingFunctions`](https://sdk.play.date/1.13.2/Insid
 
 Default: `playdate.easingFunctions.linear`
 
-### `yPhaseFunction`
+#### `yPhaseFunction`
 
 An easing function that defines the animation pattern in the Y axis. The function should follow the
 signature of the `playdate.easingFunctions` as described just above.
 
 Default: `playdate.easingFunctions.linear`
 
-### `xPhaseArgs`
+#### `xPhaseArgs`
 
 A list containing any additional arguments to the X axis easing function, e.g. to parameterize
 amplitude, period, overshoot, etc.
 
 Default: `{}`
 
-### `yPhaseArgs`
+#### `yPhaseArgs`
 
 A list containing any additional arguments to the Y axis easing function, e.g. to parameterize
 amplitude, period, overshoot, etc.
 
 Default: `{}`
 
-### `xPhaseDuration`
+#### `xPhaseDuration`
 
 The duration of the animation in the X axis, in seconds. Omit this parameter or set it to 0 to
 prevent animation in this axis.
 
 Default: `0`
 
-### `yPhaseDuration`
+#### `yPhaseDuration`
 
 The duration of the animation in the Y axis, in seconds. Omit this parameter or set it to 0 to
 prevent animation in this axis.
 
 Default: `0`
 
-### `xPhaseOffset`
+#### `xPhaseOffset`
 
 An absolute time offset for the X axis animation (relative to Y), in seconds.
 
 Default: `0`
 
-### `yPhaseOffset`
+#### `yPhaseOffset`
 
 An absolute time offset for the Y axis animation (relative to X), in seconds.
 
 Default: `0`
 
-### `xReverses`
+#### `xReverses`
 
 A boolean indicating whether the X axis animation reverses at each end.
 
 Default: `false`
 
-### `yReverses`
+#### `yReverses`
 
 A boolean indicating whether the Y axis animation reverses at each end.
 
 Default: `false`
 
-### `xReversed`
+#### `xReversed`
 
 A boolean indicating whether the X axis animation is playing in reverse. This may be set manually,
 and also updates automatically when `xReverses` is `true`.
 
 Default: `false`
 
-### `yReversed`
+#### `yReversed`
 
 A boolean indicating whether the Y axis animation is playing in reverse. This may be set manually,
 and also updates automatically when `yReverses` is `true`.
 
 Default: `false`
 
-### `xSpeed`
+#### `xSpeed`
 
 A multiplier for the overall speed of the animation in the X axis, relative to the timings
 specified for its duration and offset.
 
 Default: `1`
 
-### `ySpeed`
+#### `ySpeed`
 
 A multiplier for the overall speed of the animation in the Y axis, relative to the timings
 specified for its duration and offset.
 
 Default: `1`
 
-### `xScale`
+#### `xScale`
 
 A multiplier describing the number of 8px repetitions the pattern moves by per duration cycle in
 the X axis. Non-integer values may result in discontinuity when looping.
 
 Default: `1`
 
-### `yScale`
+#### `yScale`
 
 A multiplier describing the number of 8px repetitions the pattern moves by per duration cycle in
 the Y axis. Non-integer values may result in discontinuity when looping.
@@ -307,8 +311,8 @@ Sets a new dither pattern, retaining all animation properties.
 
 #### Params
 
--   **`alpha`:**: A value in the range [0, 1] describing the opacity of the dither effect.
--   **`ditherType`:**: A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
+-   **`alpha`:** A value in the range [0, 1] describing the opacity of the dither effect.
+-   **`ditherType`:** A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
     `playdate.graphics.image.kDitherTypeVerticalLine`.
 
 ### `setColor(color)`
@@ -317,11 +321,11 @@ Sets the color used for drawing the dither pattern.
 
 #### Params
 
--   **`color`:**: A `playdate.graphics` color value.
+-   **`color`:** A `playdate.graphics` color value.
 
 ## Examples
 
-These examples demonstrate the range of pattern animations possible with EasyPattern
+These examples demonstrate the range of pattern animations possible with EasyPattern.
 
 ### Conveyor Belt
 
@@ -474,9 +478,8 @@ function as needed, or reuse the same pattern across several sprite instances wi
 
 With all of that said, EasyPattern is certainly not the _best_ approach to animated patterns for
 performance given the need to calculate phase offsets each frame. If you need maximal performance
-you should consider encoding each frame of the animated pattern in an `imagetable` instead.
-
-If you're using EasyPattern to draw sprites and need more performance, you can also use the
+you should consider encoding each frame of the animated pattern in an `imagetable` instead. If
+you're using EasyPattern to draw sprites and need more performance, you can also use the
 [Roto](https://github.com/ebeneliason/roto) utility to export the pattern or the final rendered
 sprite(s) as matrix `imagetable` images.
 
