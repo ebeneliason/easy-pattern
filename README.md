@@ -347,6 +347,20 @@ EasyPattern {
 }
 ```
 
+### Marching Ants
+
+This example creates a "marching ants" dotted outline effect, as is often used to indicate
+rectangular selections. To achieve the effect, one would use this pattern in conjunction
+with a call to `drawRect(r)`. Modulate the length of the dashes with the `alpha` parameter.
+
+```lua
+EasyPattern {
+    ditherType     = playdate.graphics.image.kDitherTypeDiagonalLine,
+    xPhaseDuration = 0.25,
+    bgColor        = playdate.graphics.kColorWhite
+}
+```
+
 ### Vertical Bounce
 
 In this example, the pattern appears to fall downward one block at a time, bouncing to a
