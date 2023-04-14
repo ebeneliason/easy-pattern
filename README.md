@@ -128,7 +128,8 @@ easyCheckerboard.xPhaseDuration = 0.5
 
 The pattern to animate, specified as an array of 8 numbers describing the bitmap for each row, with
 an optional additional 8 for a bitmap alpha channel, as would be supplied to
-`playdate.graphics.setPattern()`.
+`playdate.graphics.setPattern()`. See [Defining Your Patterns](#defining-your-patterns) for details
+on how to construct valid arguments for this parameter.
 
 Default: `nil`
 
@@ -156,7 +157,8 @@ Default: `playdate.graphics.kColorBlack`
 
 #### `bgColor`
 
-The color to use as a background when rendering a dither pattern or a pattern with an alpha channel.
+The color to use as a background when rendering a dither pattern (or a pattern with an alpha channel,
+although in that case the background color could be baked into the pattern itself, without alpha).
 Patterns are rendered with transparency by default, but this can be used to make them opaque.
 
 Default: `playdate.graphics.kColorClear`
