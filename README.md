@@ -295,11 +295,26 @@ signature of `playdate.graphics.setPattern()`. This enables you to pass the resu
 ### `isDirty()`
 
 Indicates whether the pattern needs to be redrawn based on a change in the phase values since the
-last time `apply` was called.
+last time `apply` was called. Note that `isDirty` will only return true _once_ when new phase
+values get computed. If you need to check it multiple times per frame, such as when applying the
+same pattern to multiple sprites, you'd need to cache it so all sprites can know whether a redraw
+is required.
 
 #### Returns
 
 -   **`dirty`**: A boolean indicating whether the pattern needs to be redrawn.
+
+### `getPhases()`
+
+Used to introspect the current X and Y phase offsets for the pattern. If the values are stale,
+new values will be computed when calling this function; otherwise, the cached values will be
+returned instead.
+
+#### Returns
+
+-   **`xPhase`**: A number representing the current phase offset for the X axis in the range 0..7.
+-   **`yPhase`**: A number representing the current phase offset for the Y axis in the range 0..7.
+-   **`recomputed`**: A boolean indicating whether the values were newly computed.
 
 ### `setPattern(pattern)`
 

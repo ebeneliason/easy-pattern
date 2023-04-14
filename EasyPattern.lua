@@ -232,7 +232,7 @@ function EasyPattern:updatePatternImage()
     gfx.popContext()
 end
 
-function EasyPattern:calculatePhases()
+function EasyPattern:getPhases()
     -- all patterns animate with respect to absolute time
     local t = playdate.getCurrentTimeMilliseconds() / 1000
 
@@ -280,12 +280,12 @@ function EasyPattern:calculatePhases()
 end
 
 function EasyPattern:isDirty()
-    local _, _, dirty = self:calculatePhases()
+    local _, _, dirty = self:getPhases()
     return dirty
 end
 
 function EasyPattern:apply()
-    local xPhase, yPhase = self:calculatePhases()
+    local xPhase, yPhase = self:getPhases()
     -- return a 3-tuple to be used as arguments to `playdate.graphics.setPattern()`
     return self.patternImage, xPhase, yPhase
 end
