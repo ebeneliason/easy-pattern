@@ -11,7 +11,7 @@ local CACHE_EXP <const> = 1 / 60 -- max FPS
 
 -- Animated patterns with easing, made easy.
 --
--- SAMPLE USAGE: 
+-- SAMPLE USAGE:
 --
 --     local checkerboard = {0xF0F0, 0xF0F0, 0xF0F0, 0xF0F0, 0x0F0F, 0x0F0F, 0x0F0F, 0x0F0F}
 --     local easyCheckerboard = EasyPattern {
@@ -197,12 +197,12 @@ function EasyPattern:init(params)
     self:updatePatternImage()
 end
 
-function setColor(color)
+function EasyPattern:setColor(color)
     self.color = color
     self:updatePatternImage()
 end
 
-function setBackgroundColor(color)
+function EasyPattern:setBackgroundColor(color)
     self.bgColor = color
     self:updatePatternImage()
 end
@@ -242,8 +242,8 @@ function EasyPattern:getPhases()
     end
 
     -- calculate the effective time param for each axis accounting for offsets, speed scaling, and looping
-    tx = (t * self.xSpeed + self.xPhaseOffset) % self.xPhaseDuration
-    ty = (t * self.ySpeed + self.yPhaseOffset) % self.yPhaseDuration
+    local tx = (t * self.xSpeed + self.xPhaseOffset) % self.xPhaseDuration
+    local ty = (t * self.ySpeed + self.yPhaseOffset) % self.yPhaseDuration
 
     -- handle animation reversal when crossing the animation duration bounds
     if self.xReverses and self._ptx > tx then
@@ -270,7 +270,7 @@ function EasyPattern:getPhases()
     if self.yReversed then yPhase = PTTRN_SIZE - yPhase - 1 end
 
     -- determine if we're dirty and cache the computed phase values along with a timestamp
-    dirty = xPhase ~= self._xPhase or yPhase ~= self._yPhase
+    local dirty = xPhase ~= self._xPhase or yPhase ~= self._yPhase
     self._xPhase = xPhase
     self._yPhase = yPhase
     self._pt = t
