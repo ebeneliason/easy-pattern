@@ -1,5 +1,6 @@
 import "CoreLibs/object"
 import "CoreLibs/graphics"
+import "CoreLibs/easing"
 
 import "BitPattern"
 
@@ -225,16 +226,23 @@ function EasyPattern:updatePatternImage()
         gfx.setColor(self.color)
         if self.pattern then
             gfx.setPattern(self.pattern)
-        else
+        elseif self.ditherType then
             gfx.setDitherPattern(self.alpha, self.ditherType)
+        else
+            gfx.setDitherPattern(self.alpha)
         end
         gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
     gfx.popContext()
 end
 
+-- this exists primarily to enable mocking in tests
+function EasyPattern:_getTime()
+    return playdate.getCurrentTimeMilliseconds() / 1000
+end
+
 function EasyPattern:getPhases()
     -- all patterns animate with respect to absolute time
-    local t = playdate.getCurrentTimeMilliseconds() / 1000
+    local t = self:_getTime()
 
     -- use the cached values if they were computed recently enough
     if t - self._pt < CACHE_EXP then
