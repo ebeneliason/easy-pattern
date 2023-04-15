@@ -23,4 +23,4 @@ local returnValue = luaunit.LuaUnit.run(table.unpack(luaunit_args))
 
 gfx.fillRect(0, 106, 400, 24)
 gfx.setImageDrawMode(playdate.graphics.kDrawModeInverted)
-gfx.drawTextAligned(returnValue and "*SUCCESS*" or "*FAIL*", 200, 110, cnt)
+gfx.drawTextAligned(returnValue == 0 and "*SUCCESS*" or "*FAIL*", 200, 110, cnt)
