@@ -58,9 +58,9 @@ Define your pattern:
 ```lua
 local checkerboard = { 0xF0F0, 0xF0F0, 0xF0F0, 0xF0F0, 0x0F0F, 0x0F0F, 0x0F0F, 0x0F0F }
 local easyCheckerboard = EasyPattern {
-    pattern       = checkerboard,
-    phaseDuration = 1.0,
-    phaseFunction = playdate.easingFunctions.inOutCubic,
+    pattern  = checkerboard,
+    duration = 1.0,
+    ease     = playdate.easingFunctions.inOutCubic,
     -- <additional animation params here>
 }
 ```
@@ -96,10 +96,10 @@ animation properties. (This is also why no parentheses are required when definin
 instead enabling use of `{` and `}` by themselves.)
 
 Most parameters come in pairs to enable setting independent values for the X and Y axes. For
-example, `xPhaseDuration` and `yPhaseDuration`. However, when initializing a new `EasyPattern`, any
+example, `xDuration` and `yDuration`. However, when initializing a new `EasyPattern`, any
 of the axis-specific values may be set for both axes at once by dropping the `x` or `y` prefix
 from the parameter name, e.g. `..., scale = 2, reverses = true, ...` and so on. The usage example
-above demonstrates this by setting the `phaseDuration` and `phaseFunction` for both axes at once.
+above demonstrates this by setting the `duration` and `ease` for both axes at once.
 
 ### Notes on Animation Timing
 
@@ -108,18 +108,18 @@ starts the moment the program runs. _They do not depend on timers._ This approac
 instances of the same EasyPattern will run in sync with each other regardless of when they were
 initialized or any other timing conditions. If you'd like two of the same EasyPatterns (or two
 different patterns with the same duration) to animate out of phase with each other, adjust the
-`xPhaseOffset` and `yPhaseOffset` for one of them.
+`xOffset` and `yOffset` for one of them.
 
 ## Supported Parameters
 
 A full list of supported parameters follows below. Technically speaking, none of these are required.
-In practice, you'll want to set either `pattern` or `ditherType`, and a `phaseDuration` for at least
+In practice, you'll want to set either `pattern` or `ditherType`, and a `duration` for at least
 one axis as shown in the example above.
 
 The animation parameters may also be set directly on your EasyPattern instance at any time, e.g.
 
 ```lua
-easyCheckerboard.xPhaseDuration = 0.5
+easyCheckerboard.xDuration = 0.5
 ```
 
 ### Pattern Parameters
@@ -165,60 +165,60 @@ Default: `playdate.graphics.kColorClear`
 
 ### Animation Parameters
 
-#### `xPhaseFunction`
+#### `xEase`
 
 An easing function that defines the animation pattern in the X axis. The function should follow the
 signature of the [`playdate.easingFunctions`](https://sdk.play.date/1.13.2/Inside%20Playdate.html#M-easingFunctions):
 
--   **`t`**: elapsed time, in the range [0, `phaseDuration`]
+-   **`t`**: elapsed time, in the range [0, `duration`]
 -   **`b`**: the beginning value (always 0)
 -   **`c`**: the change in value (always 8 — the size of the pattern)
--   **`d`**: the duration (`phaseDuration`)
+-   **`d`**: the duration (`duration`)
 
 Default: `playdate.easingFunctions.linear`
 
-#### `yPhaseFunction`
+#### `yEase`
 
 An easing function that defines the animation pattern in the Y axis. The function should follow the
 signature of the `playdate.easingFunctions` as described just above.
 
 Default: `playdate.easingFunctions.linear`
 
-#### `xPhaseArgs`
+#### `xEaseArgs`
 
 A list containing any additional arguments to the X axis easing function, e.g. to parameterize
 amplitude, period, overshoot, etc.
 
 Default: `{}`
 
-#### `yPhaseArgs`
+#### `yEaseArgs`
 
 A list containing any additional arguments to the Y axis easing function, e.g. to parameterize
 amplitude, period, overshoot, etc.
 
 Default: `{}`
 
-#### `xPhaseDuration`
+#### `xDuration`
 
 The duration of the animation in the X axis, in seconds. Omit this parameter or set it to 0 to
 prevent animation in this axis.
 
 Default: `0`
 
-#### `yPhaseDuration`
+#### `yDuration`
 
 The duration of the animation in the Y axis, in seconds. Omit this parameter or set it to 0 to
 prevent animation in this axis.
 
 Default: `0`
 
-#### `xPhaseOffset`
+#### `xOffset`
 
 An absolute time offset for the X axis animation (relative to Y), in seconds.
 
 Default: `0`
 
-#### `yPhaseOffset`
+#### `yOffset`
 
 An absolute time offset for the Y axis animation (relative to X), in seconds.
 
@@ -358,9 +358,9 @@ scrolling conveyor belt effect. Because the dither effect naturally has transpar
 
 ```lua
 EasyPattern {
-    ditherType     = playdate.graphics.image.kDitherTypeVerticalLine,
-    xPhaseDuration = 0.5,
-    bgColor        = playdate.graphics.kColorWhite
+    ditherType = playdate.graphics.image.kDitherTypeVerticalLine,
+    xDuration  = 0.5,
+    bgColor    = playdate.graphics.kColorWhite
 }
 ```
 
@@ -372,9 +372,9 @@ with a call to `drawRect(r)`. Modulate the length of the dashes with the `alpha`
 
 ```lua
 EasyPattern {
-    ditherType     = playdate.graphics.image.kDitherTypeDiagonalLine,
-    xPhaseDuration = 0.25,
-    bgColor        = playdate.graphics.kColorWhite
+    ditherType = playdate.graphics.image.kDitherTypeDiagonalLine,
+    xDuration  = 0.25,
+    bgColor    = playdate.graphics.kColorWhite
 }
 ```
 
@@ -385,27 +385,27 @@ settled state before the next row drops out.
 
 ```lua
 EasyPattern {
-    pattern        = checkerboard,
-    yPhaseDuration = 1.0,
-    yPhaseFunction = playdate.easingFunctions.outBounce,
-    yReversed      = true,
-    scale          = 2
+    pattern   = checkerboard,
+    yDuration = 1.0,
+    yEase     = playdate.easingFunctions.outBounce,
+    yReversed = true,
+    scale     = 2
 }
 ```
 
 ### Circular Pan
 
-This example makes use of built-in sine functions and an `xPhaseOffset` to create a continuous
+This example makes use of built-in sine functions and an `xOffset` to create a continuous
 circular panning movement.
 
 ```lua
 EasyPattern {
-    pattern        = checkerboard,
-    phaseDuration  = 0.5,
-    phaseFunction  = playdate.easingFunctions.inOutSine,
-    xPhaseOffset   = 0.25, -- half the duration
-    reverses       = true,
-    scale          = 2
+    pattern   = checkerboard,
+    duration  = 0.5,
+    ease      = playdate.easingFunctions.inOutSine,
+    xOffset   = 0.25, -- half the duration
+    reverses  = true,
+    scale     = 2
 }
 ```
 
@@ -420,12 +420,12 @@ type of custom function you like to design behaviors unique to your application.
 
 ```lua
 EasyPattern {
-    pattern        = checkerboard,
-    xPhaseDuration = 3,
-    yPhaseDuration = 2,
-    xPhaseFunction = function(t, b, c, d) return b + playdate.graphics.perlin(t / d, 2, 3, 4, d, 0.75) * c end,
-    yPhaseFunction = function(t, b, c, d) return b + playdate.graphics.perlin(t / d, 5, 6, 7, d, 0.75) * c end,
-    scale          = 10
+    pattern   = checkerboard,
+    xDuration = 3,
+    yDuration = 2,
+    xEase     = function(t, b, c, d) return b + playdate.graphics.perlin(t / d, 2, 3, 4, d, 0.75) * c end,
+    yEase     = function(t, b, c, d) return b + playdate.graphics.perlin(t / d, 5, 6, 7, d, 0.75) * c end,
+    scale     = 10
     }
 ```
 
@@ -485,7 +485,7 @@ on [defining your patterns](#defining-your-patterns) is provided in the previous
 
 ### What if my pattern doesn't animate?
 
-1. First, make sure you've properly specified an `xPhaseDuration` and/or `yPhaseDuration`, without
+1. First, make sure you've properly specified an `xDuration` and/or `yDuration`, without
    which your pattern will remain static.
 2. Ensure that `draw` gets called as necessary to reflect the rendered pattern. If you're using a
    sprite, you can call `self:markDirty()` from your `update` function. See the

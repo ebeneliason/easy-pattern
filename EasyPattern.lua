@@ -16,9 +16,9 @@ local CACHE_EXP <const> = 1 / 60 -- max FPS
 --
 --     local checkerboard = {0xF0F0, 0xF0F0, 0xF0F0, 0xF0F0, 0x0F0F, 0x0F0F, 0x0F0F, 0x0F0F}
 --     local easyCheckerboard = EasyPattern {
---         pattern       = checkerboard,
---         phaseDuration = 1.0,
---         phaseFunction = playdate.easingFunctions.inOutCubic,
+--         pattern  = checkerboard,
+--         duration = 1.0,
+--         ease     = playdate.easingFunctions.inOutCubic,
 --         -- <list any additional animation params here>
 --     }
 --
@@ -64,34 +64,34 @@ class('EasyPattern').extends(Object)
 --
 --
 --
---        xPhaseFunction    An easing function that defines the animation pattern in the X axis,
+--        xEase             An easing function that defines the animation pattern in the X axis,
 --                          following the signature of the `playdate.easingFunctions`.
 --                          Default: `playdate.easingFunctions.linear`
 --
---        yPhaseFunction    An easing function that defines the animation pattern in the Y axis,
+--        yEase             An easing function that defines the animation pattern in the Y axis,
 --                          following the signature of the `playdate.easingFunctions`.
 --                          Default: `playdate.easingFunctions.linear`
 --
---        xPhaseArgs        A list containing any additional args to the X axis easing function, e.g.
+--        xEaseArgs         A list containing any additional args to the X axis easing function, e.g.
 --                          to parameterize amplitude, period, overshoot, etc.
 --                          Default: {}
 --
---        yPhaseArgs        A list containing any additional args to the Y axis easing function, e.g.
+--        yEaseArgs         A list containing any additional args to the Y axis easing function, e.g.
 --                          to parameterize amplitude, period, overshoot, etc.
 --                          Default: {}
 --
---        xPhaseDuration    The duration of the animation in the X axis, in seconds. Omit this param
+--        xDuration         The duration of the animation in the X axis, in seconds. Omit this param
 --                          or set it to 0 to prevent animation in this axis.
 --                          Default: 0.
 --
---        yPhaseDuration    The duration of the animation in the Y axis, in seconds. Omit this param
+--        yDuration         The duration of the animation in the Y axis, in seconds. Omit this param
 --                          or set it to 0 to prevent animation in this axis.
 --                          Default: 0.
 --
---        xPhaseOffset      An asbolute time offset for the X axis animation (relative to Y), in seconds.
+--        xOffset           An asbolute time offset for the X axis animation, in seconds.
 --                          Default: 0.
 --
---        xPhaseOffset      An asbolute time offset for the Y axis animation (relative to X), in seconds.
+--        xOffset           An asbolute time offset for the Y axis animation, in seconds.
 --                          Default: 0.
 --
 --        xReverses         A boolean indicating whether the X axis animation reverses at each end.
@@ -148,19 +148,34 @@ function EasyPattern:init(params)
     -- OBJECT PROPERTY  | SINGLE AXIS SET        | DUAL AXIS FALLBACK    | DEFAULT VALUE
 
     -- governs animation duration in both x nd y axes in sseconds (1 second yields 8FPS, negative numbers reverse)
-    self.xPhaseDuration = params.xPhaseDuration or params.phaseDuration or 0
-    self.yPhaseDuration = params.yPhaseDuration or params.phaseDuration or 0
+    self.xDuration      = params.xDuration      or params.duration      or 0
+    self.yDuration      = params.yDuration      or params.duration      or 0
+
+    -- legacy duration params
+    self.xDuration      = params.xPhaseDuration or params.phaseDuration or self.xDuration
+    self.yDuration      = params.yPhaseDuration or params.phaseDuration or self.yDuration
 
     -- offsets that adjust the relative x and y phases, in seconds; when omitted, both run in the same phase
-    self.xPhaseOffset   = params.xPhaseOffset   or params.phaseOffset   or 0
-    self.yPhaseOffset   = params.yPhaseOffset   or params.phaseOffset   or 0
+    self.xOffset        = params.xOffset        or params.offset        or 0
+    self.yOffset        = params.yOffset        or params.offset        or 0
+
+    -- legacy offset params
+    self.xOffset        = params.xPhaseOffset   or params.phaseOffset   or self.xOffset
+    self.yOffset        = params.yPhaseOffset   or params.phaseOffset   or self.yOffset
 
     -- by default, a linear animation is used; any playdate easing (or API-compatible) function is supported
-    self.xPhaseFunction = params.xPhaseFunction or params.phaseFunction or playdate.easingFunctions.linear
-    self.yPhaseFunction = params.yPhaseFunction or params.phaseFunction or playdate.easingFunctions.linear
+    self.xEase          = params.xEase          or params.ease          or playdate.easingFunctions.linear
+    self.yEase          = params.yEase          or params.ease          or playdate.easingFunctions.linear
 
-    self.xPhaseArgs     = params.xPhaseArgs     or params.phaseArgs     or {}
-    self.yPhaseArgs     = params.yPhaseArgs     or params.phaseArgs     or {}
+    self.xEaseArgs      = params.xEaseArgs      or params.easeArgs      or {}
+    self.yEaseArgs      = params.yEaseArgs      or params.easeArgs      or {}
+
+    -- legacy function params
+    self.xEase          = params.xPhaseFunction or params.phaseFunction or self.xEase
+    self.yEase          = params.yPhaseFunction or params.phaseFunction or self.yEase
+
+    self.xEaseArgs      = params.xPhaseArgs     or params.phaseArgs     or self.xEaseArgs
+    self.yEaseArgs      = params.yPhaseArgs     or params.phaseArgs     or self.yEaseArgs
 
     -- indicates whether the animation reverses when reaching either end
     self.xReverses      = params.xReverses      or params.reverses      or false
@@ -250,8 +265,8 @@ function EasyPattern:getPhases()
     end
 
     -- calculate the effective time param for each axis accounting for offsets, speed scaling, and looping
-    local tx = (t * self.xSpeed + self.xPhaseOffset) % self.xPhaseDuration
-    local ty = (t * self.ySpeed + self.yPhaseOffset) % self.yPhaseDuration
+    local tx = (t * self.xSpeed + self.xOffset) % self.xDuration
+    local ty = (t * self.ySpeed + self.yOffset) % self.yDuration
 
     -- handle animation reversal when crossing the animation duration bounds
     if self.xReverses and self._ptx > tx then
@@ -265,13 +280,13 @@ function EasyPattern:getPhases()
     self._pty = ty
 
     -- compute the resulting phase offsets, mod 8 to fit within our pattern texture
-    local xPhase = (self.xPhaseDuration > 0 and self.xPhaseFunction)
-        and self.xPhaseFunction(tx, 0, PTTRN_SIZE, self.xPhaseDuration, table.unpack(self.xPhaseArgs))
+    local xPhase = (self.xDuration > 0 and self.xEase)
+        and self.xEase(tx, 0, PTTRN_SIZE, self.xDuration, table.unpack(self.xEaseArgs))
                 * self.xScale % PTTRN_SIZE // 1
         or 0
 
-    local yPhase = (self.yPhaseDuration > 0 and self.yPhaseFunction)
-        and self.yPhaseFunction(ty, 0, PTTRN_SIZE, self.yPhaseDuration, table.unpack(self.yPhaseArgs))
+    local yPhase = (self.yDuration > 0 and self.yEase)
+        and self.yEase(ty, 0, PTTRN_SIZE, self.yDuration, table.unpack(self.yEaseArgs))
                 * self.yScale % PTTRN_SIZE // 1
         or 0
 

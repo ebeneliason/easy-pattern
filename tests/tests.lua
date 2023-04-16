@@ -2,8 +2,8 @@ import "../EasyPattern.lua"
 
 
 local gfx <const> = playdate.graphics
-local efn <const> = playdate.easingFunctions
-local lu  <const> = luaunit
+local ease <const> = playdate.easingFunctions
+local lu <const> = luaunit
 
 -- a list of random numbers
 local rnd = {}
@@ -63,14 +63,14 @@ function TestInit:testDefaults()
     lu.assertEquals(p.ditherType, nil)
     lu.assertEquals(p.color, gfx.kColorBlack)
     lu.assertEquals(p.bgColor, gfx.kColorClear)
-    lu.assertEquals(p.xPhaseDuration, 0)
-    lu.assertEquals(p.yPhaseDuration, 0)
-    lu.assertEquals(p.xPhaseOffset, 0)
-    lu.assertEquals(p.yPhaseOffset, 0)
-    lu.assertEquals(p.xPhaseFunction, efn.linear)
-    lu.assertEquals(p.yPhaseFunction, efn.linear)
-    lu.assertEquals(p.xPhaseArgs, {})
-    lu.assertEquals(p.yPhaseArgs, {})
+    lu.assertEquals(p.xDuration, 0)
+    lu.assertEquals(p.yDuration, 0)
+    lu.assertEquals(p.xOffset, 0)
+    lu.assertEquals(p.yOffset, 0)
+    lu.assertEquals(p.xEase, ease.linear)
+    lu.assertEquals(p.yEase, ease.linear)
+    lu.assertEquals(p.xEaseArgs, {})
+    lu.assertEquals(p.yEaseArgs, {})
     lu.assertEquals(p.xReverses, false)
     lu.assertEquals(p.yReverses, false)
     lu.assertEquals(p.xReversed, false)
@@ -89,23 +89,23 @@ end
 
 function TestInit:testFallbacks()
     local p = EasyPattern {
-        phaseDuration = rnd[1],
-        phaseOffset = rnd[2],
-        phaseFunction = playdate.easingFunctions.inOutCubic,
-        phaseArgs = { rnd[3], rnd[4] },
+        duration = rnd[1],
+        offset = rnd[2],
+        ease = ease.inOutCubic,
+        easeArgs = { rnd[3], rnd[4] },
         reverses = true,
         reversed = true,
         speed = rnd[5],
         scale = rnd[6],
     }
-    lu.assertEquals(p.xPhaseDuration, rnd[1])
-    lu.assertEquals(p.yPhaseDuration, rnd[1])
-    lu.assertEquals(p.xPhaseOffset, rnd[2])
-    lu.assertEquals(p.yPhaseOffset, rnd[2])
-    lu.assertEquals(p.xPhaseFunction, efn.inOutCubic)
-    lu.assertEquals(p.yPhaseFunction, efn.inOutCubic)
-    lu.assertEquals(p.xPhaseArgs, { rnd[3], rnd[4] })
-    lu.assertEquals(p.yPhaseArgs, { rnd[3], rnd[4] })
+    lu.assertEquals(p.xDuration, rnd[1])
+    lu.assertEquals(p.yDuration, rnd[1])
+    lu.assertEquals(p.xOffset, rnd[2])
+    lu.assertEquals(p.yOffset, rnd[2])
+    lu.assertEquals(p.xEase, ease.inOutCubic)
+    lu.assertEquals(p.yEase, ease.inOutCubic)
+    lu.assertEquals(p.xEaseArgs, { rnd[3], rnd[4] })
+    lu.assertEquals(p.yEaseArgs, { rnd[3], rnd[4] })
     lu.assertEquals(p.xReverses, true)
     lu.assertEquals(p.yReverses, true)
     lu.assertEquals(p.xReversed, true)
@@ -116,25 +116,46 @@ function TestInit:testFallbacks()
     lu.assertEquals(p.yScale, rnd[6])
 end
 
-function TestInit:testXParams()
+function TestInit:testLegacyParams()
     local p = EasyPattern {
         xPhaseDuration = rnd[1],
-        xPhaseOffset = rnd[2],
-        xPhaseFunction = efn.inOutCubic,
-        xPhaseArgs = { rnd[3], rnd[4] },
+        yPhaseDuration = rnd[2],
+        xPhaseOffset = rnd[3],
+        yPhaseOffset = rnd[4],
+        xPhaseFunction = ease.inOutCubic,
+        yPhaseFunction = ease.inOutSine,
+        xPhaseArgs = { rnd[5], rnd[6] },
+        yPhaseArgs = { rnd[7], rnd[8] },
+    }
+    lu.assertEquals(p.xDuration, rnd[1])
+    lu.assertEquals(p.yDuration, rnd[2])
+    lu.assertEquals(p.xOffset, rnd[3])
+    lu.assertEquals(p.yOffset, rnd[4])
+    lu.assertEquals(p.xEase, ease.inOutCubic)
+    lu.assertEquals(p.yEase, ease.inOutSine)
+    lu.assertEquals(p.xEaseArgs, { rnd[5], rnd[6] })
+    lu.assertEquals(p.yEaseArgs, { rnd[7], rnd[8] })
+end
+
+function TestInit:testXParams()
+    local p = EasyPattern {
+        xDuration = rnd[1],
+        xOffset = rnd[2],
+        xEase = ease.inOutCubic,
+        xEaseArgs = { rnd[3], rnd[4] },
         xReverses = true,
         xReversed = true,
         xSpeed = rnd[5],
         xScale = rnd[6],
     }
-    lu.assertEquals(p.xPhaseDuration, rnd[1])
-    lu.assertEquals(p.yPhaseDuration, 0)
-    lu.assertEquals(p.xPhaseOffset, rnd[2])
-    lu.assertEquals(p.yPhaseOffset, 0)
-    lu.assertEquals(p.xPhaseFunction, efn.inOutCubic)
-    lu.assertEquals(p.yPhaseFunction, efn.linear)
-    lu.assertEquals(p.xPhaseArgs, { rnd[3], rnd[4] })
-    lu.assertEquals(p.yPhaseArgs, {})
+    lu.assertEquals(p.xDuration, rnd[1])
+    lu.assertEquals(p.yDuration, 0)
+    lu.assertEquals(p.xOffset, rnd[2])
+    lu.assertEquals(p.yOffset, 0)
+    lu.assertEquals(p.xEase, ease.inOutCubic)
+    lu.assertEquals(p.yEase, ease.linear)
+    lu.assertEquals(p.xEaseArgs, { rnd[3], rnd[4] })
+    lu.assertEquals(p.yEaseArgs, {})
     lu.assertEquals(p.xReverses, true)
     lu.assertEquals(p.yReverses, false)
     lu.assertEquals(p.xReversed, true)
@@ -147,23 +168,23 @@ end
 
 function TestInit:testYParams()
     local p = EasyPattern {
-        yPhaseDuration = rnd[1],
-        yPhaseOffset = rnd[2],
-        yPhaseFunction = efn.inOutCubic,
-        yPhaseArgs = { rnd[3], rnd[4] },
+        yDuration = rnd[1],
+        yOffset = rnd[2],
+        yEase = ease.inOutCubic,
+        yEaseArgs = { rnd[3], rnd[4] },
         yReverses = true,
         yReversed = true,
         ySpeed = rnd[5],
         yScale = rnd[6],
     }
-    lu.assertEquals(p.yPhaseDuration, rnd[1])
-    lu.assertEquals(p.xPhaseDuration, 0)
-    lu.assertEquals(p.yPhaseOffset, rnd[2])
-    lu.assertEquals(p.xPhaseOffset, 0)
-    lu.assertEquals(p.yPhaseFunction, efn.inOutCubic)
-    lu.assertEquals(p.xPhaseFunction, efn.linear)
-    lu.assertEquals(p.yPhaseArgs, { rnd[3], rnd[4] })
-    lu.assertEquals(p.xPhaseArgs, {})
+    lu.assertEquals(p.yDuration, rnd[1])
+    lu.assertEquals(p.xDuration, 0)
+    lu.assertEquals(p.yOffset, rnd[2])
+    lu.assertEquals(p.xOffset, 0)
+    lu.assertEquals(p.yEase, ease.inOutCubic)
+    lu.assertEquals(p.xEase, ease.linear)
+    lu.assertEquals(p.yEaseArgs, { rnd[3], rnd[4] })
+    lu.assertEquals(p.xEaseArgs, {})
     lu.assertEquals(p.yReverses, true)
     lu.assertEquals(p.xReverses, false)
     lu.assertEquals(p.yReversed, true)
@@ -476,8 +497,8 @@ end
 
 function TestPhases:testOffset()
     p = self.p
-    p.xPhaseOffset = 0.5
-    p.yPhaseOffset = 0.5
+    p.xOffset = 0.5
+    p.yOffset = 0.5
     local x, y
 
     p.mockTime = 4/8
