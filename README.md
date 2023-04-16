@@ -328,14 +328,14 @@ Sets a new pattern, retaining all animation properties.
     additional 8 for a bitmap alpha channel, as would be supplied to
     `playdate.graphics.setPattern()`.
 
-### `setDitherPattern(alpha, ditherType)`
+### `setDitherPattern(alpha, [ditherType])`
 
 Sets a new dither pattern, retaining all animation properties.
 
 #### Params
 
 -   **`alpha`:** A value in the range [0, 1] describing the opacity of the dither effect.
--   **`ditherType`:** A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
+-   **`ditherType`:** (_optional_) A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
     `playdate.graphics.image.kDitherTypeVerticalLine`.
 
 ### `setColor(color)`
