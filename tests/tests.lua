@@ -12,7 +12,19 @@ for i = 1, 9 do
 end
 
 -- a simple pattern
-local checkerboard <const> = { 0xF0F0, 0xF0F0, 0xF0F0, 0xF0F0, 0x0F0F, 0x0F0F, 0x0F0F, 0x0F0F }
+local checkerboard <const> = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }
+
+-- the same pattern using BitPattern
+local bitCheckerboard <const> = BitPattern {
+    "11110000",
+    "11110000",
+    "11110000",
+    "11110000",
+    "00001111",
+    "00001111",
+    "00001111",
+    "00001111",
+}
 
 -- a bit pattern
 local zigzag <const> = BitPattern {
@@ -554,4 +566,31 @@ function TestPhases:testScale()
     _, x, y = p:apply()
     lu.assertEquals(x, 4)
     lu.assertEquals(y, 4)
+end
+
+
+TestBitPattern = {}
+
+function TestBitPattern:testWithoutAlpha()
+    lu.assertEquals(bitCheckerboard, checkerboard)
+end
+
+function TestBitPattern:testWithAlpha()
+    local bitCheckerboardHorizontalDither = BitPattern {
+        -- pttrn --  -- alpha --
+        "11110000",  "11111111",
+        "11110000",  "00000000",
+        "11110000",  "11111111",
+        "11110000",  "00000000",
+        "00001111",  "11111111",
+        "00001111",  "00000000",
+        "00001111",  "11111111",
+        "00001111",  "00000000",
+    }
+
+    local expected <const> = {
+        0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F, -- pttrn
+        0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00  -- alpha
+    }
+    lu.assertEquals(bitCheckerboardHorizontalDither, expected)
 end

@@ -11,7 +11,7 @@ local CACHE_EXP <const> = 1 / 60 -- max FPS
 --
 -- SAMPLE USAGE:
 --
---     local checkerboard = {0xF0F0, 0xF0F0, 0xF0F0, 0xF0F0, 0x0F0F, 0x0F0F, 0x0F0F, 0x0F0F}
+--     local checkerboard <const> = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }
 --     local easyCheckerboard = EasyPattern {
 --         pattern  = checkerboard,
 --         duration = 1.0,
