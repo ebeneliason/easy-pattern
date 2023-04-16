@@ -2,12 +2,9 @@ import "CoreLibs/object"
 import "CoreLibs/graphics"
 import "CoreLibs/easing"
 
-import "BitPattern"
-
 local gfx <const> = playdate.graphics
 
 local PTTRN_SIZE <const> = 8
-
 local CACHE_EXP <const> = 1 / 60 -- max FPS
 
 -- Animated patterns with easing, made easy.
@@ -313,4 +310,25 @@ function EasyPattern:apply()
     local xPhase, yPhase = self:getPhases()
     -- return a 3-tuple to be used as arguments to `playdate.graphics.setPattern()`
     return self.patternImage, xPhase, yPhase
+end
+
+
+-- This masquerades as a companion class to EasyPattern, but in reality it's just a convenience
+-- function which returns a table of numbers converted from their binary string representations.
+-- Use it to craft patterns to pass to EasyPattern or to `playdate.graphics.setPattern`.
+--
+-- When including an alpha channel, its rows should be interleaved with the pattern rows, such
+-- that the pattern and alpha channel representations appear side-by-side in the file.
+
+function BitPattern(binaryRows)
+    local hasAlpha = #binaryRows == 16
+    local pattern = {}
+    for i, binaryRow in ipairs(binaryRows) do
+        if hasAlpha then
+            pattern[i//2 + (i % 2 == 0 and 8 or 1)] = tonumber(binaryRow, 2)
+        else
+            pattern[i] = tonumber(binaryRow, 2)
+        end
+    end
+    return pattern
 end
