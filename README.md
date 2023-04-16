@@ -393,6 +393,23 @@ EasyPattern {
 }
 ```
 
+### Waves
+
+This example uses a sinusoidal ease in the vertical axis to create a simple wave motion, paired
+with a linear ease in the horizontal axis to illustrate directional flow. You can combine
+different easing functions and even different timing values for each axis to acheive more nuanced
+effects.
+
+```lua
+EasyPattern {
+    pattern   = checkerboard,
+    xDuration = 0.5,
+    yDuration = 1.0,
+    yEase     = playdate.easingFunctions.inOutSine,
+    yReverses = true,
+}
+```
+
 ### Circular Pan
 
 This example makes use of built-in sine functions and an `xOffset` to create a continuous
