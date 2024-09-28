@@ -20,6 +20,7 @@ local CACHE_EXP <const> = 1 / 60 -- max FPS
 --     }
 --
 --     playdate.graphics.setPattern(easyCheckerboard:apply()) -- in `draw`
+--     -- <perform drawing using pattern here>
 
 class('EasyPattern').extends(Object)
 
@@ -31,7 +32,7 @@ class('EasyPattern').extends(Object)
 --                          time, e.g. `myEasyPattern.xPhaseDuration = 0.5`. (Use `:setPattern()` or
 --                          `:setDitherPattern()` to change the pattern itself.)
 --
---                          Additionally, when initilizing an `EasyPattern`, any of the axis-specific
+--                          Additionally, when initializing an `EasyPattern`, any of the axis-specific
 --                          values may be set for both axes at once by dropping the `x` or `y` prefix,
 --                          from the parameter name, e.g. `..., scale = 2, reverses = true, ...`
 --
@@ -85,10 +86,10 @@ class('EasyPattern').extends(Object)
 --                          or set it to 0 to prevent animation in this axis.
 --                          Default: 0.
 --
---        xOffset           An asbolute time offset for the X axis animation, in seconds.
+--        xOffset           An absolute time offset for the X axis animation, in seconds.
 --                          Default: 0.
 --
---        xOffset           An asbolute time offset for the Y axis animation, in seconds.
+--        xOffset           An absolute time offset for the Y axis animation, in seconds.
 --                          Default: 0.
 --
 --        xReverses         A boolean indicating whether the X axis animation reverses at each end.
@@ -144,7 +145,7 @@ function EasyPattern:init(params)
 
     -- OBJECT PROPERTY  | SINGLE AXIS SET        | DUAL AXIS FALLBACK    | DEFAULT VALUE
 
-    -- governs animation duration in both x nd y axes in sseconds (1 second yields 8FPS, negative numbers reverse)
+    -- governs animation duration in both x and y axes in seconds (1 second yields 8FPS, negative numbers reverse)
     self.xDuration      = params.xDuration      or params.duration      or 0
     self.yDuration      = params.yDuration      or params.duration      or 0
 
@@ -182,11 +183,11 @@ function EasyPattern:init(params)
     self.xReversed      = params.xReversed      or params.reversed      or false
     self.yReversed      = params.yReversed      or params.reversed      or false
 
-    -- a speed mutlipler which affects overall speed relative to the specified phase durations
+    -- a speed multiplier which affects overall speed relative to the specified phase durations
     self.xSpeed         = params.xSpeed         or params.speed         or 1
     self.ySpeed         = params.ySpeed         or params.speed         or 1
 
-    -- a scale mutlipler which affects how many 8px texture repetitions are moved by per animation cycle
+    -- a scale multiplier which affects how many 8px texture repetitions are moved by per animation cycle
     self.xScale         = params.xScale         or params.scale         or 1
     self.yScale         = params.yScale         or params.scale         or 1
 
