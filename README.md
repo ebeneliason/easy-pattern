@@ -364,7 +364,15 @@ Sets the color used for drawing the dither pattern.
 
 #### Params
 
--   **`color`:** A `playdate.graphics` color value.
+- **`color`:** A `playdate.graphics` color value.
+
+### `setBackgroundColor(color)`
+
+Sets the background color used for drawing the dither pattern.
+
+#### Params
+
+- **`color`:** A `playdate.graphics` color value.
 
 ## Examples
 
