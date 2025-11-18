@@ -1,5 +1,8 @@
 -- EasyPattern globals
 --
+-- To validate, install luacheck and then run it from the root of this repo:
+-- $ luacheck *.lua
+--
 -- This file can also be used with toyboxpy (https://toyboxpy.io):
 --
 -- 1. Add this to your project's .luacheckrc:
@@ -24,11 +27,15 @@ return {
                 setBackgroundColor = {},
                 setPattern = {},
                 setDitherPattern = {},
-                updatePatternImage = {},
+                _updatePatternImage = {},
+                _getTime = {},
                 getPhases = {},
+                setPhases = {},
+                shiftPhasesBy = {},
                 isDirty = {},
                 apply = {}
             }
         },
+        BitPattern = {},
     }
 }

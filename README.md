@@ -318,6 +318,25 @@ returned instead.
 -   **`yPhase`**: A number representing the current phase offset for the Y axis in the range 0..7.
 -   **`recomputed`**: A boolean indicating whether the values were newly computed.
 
+### `setPhases(xPhase, [yPhase])`
+
+Explicitly sets the X and Y phase values. If `yPhase` is omitted, both X and Y phases are set to the same
+value. This can be used to enable dynamic pattern behaviors driven by external game logic, such as a
+conveyor belt pattern which shifts according to crank speed.
+
+#### Returns
+
+- **`dirty`**: A boolean indicating whether the set caused the phase values to update.
+
+### `shiftPhasesBy(xPhaseOffset, [yPhaseOffset])`
+
+A convenience function that sets the phases by offsetting them by the specified amount from their current
+values. If `yPhaseOffset` is omitted, both X and Y phases are shifted the same amount.
+
+#### Returns
+
+- **`dirty`**: A boolean indicating whether the set caused the phase values to update.
+
 ### `setPattern(pattern)`
 
 Sets a new pattern, retaining all animation properties.

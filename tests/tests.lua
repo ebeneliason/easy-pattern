@@ -404,6 +404,84 @@ function TestPhases:testGetPhases()
     end
 end
 
+function TestPatterns:testSetPhases()
+    local p = EasyPattern {
+        pattern = checkerboard
+    }
+
+    local x, y, dirty
+    -- initial condition
+    x, y = p:getPhases()
+    lu.assertEquals(x, 0)
+    lu.assertEquals(y, 0)
+
+    -- shift distinct amounts
+    p:setPhases(2, 3)
+    x, y = p:getPhases()
+    lu.assertEquals(x, 2)
+    lu.assertEquals(y, 3)
+
+    -- shift same amount
+    p:setPhases(7)
+    x, y = p:getPhases()
+    lu.assertEquals(x, 7)
+    lu.assertEquals(y, 7)
+
+    -- overflow in both directions
+    p:setPhases(12, -2)
+    x, y = p:getPhases()
+    lu.assertEquals(x, 4)
+    lu.assertEquals(y, 6)
+
+    -- dirty (5 ~= 6)
+    dirty = p:setPhases(4, 5)
+    lu.assertEquals(dirty, true)
+
+    -- not dirty (12 wraps to 4)
+    dirty = p:setPhases(12, 5)
+    lu.assertEquals(dirty, false)
+end
+
+function TestPatterns:testShiftPhasesBy()
+    local p = EasyPattern {
+        pattern = checkerboard
+    }
+
+    local x, y, dirty
+    -- shift distinct amounts
+    p:setPhases(2, 3)
+    x, y = p:getPhases()
+    lu.assertEquals(x, 2)
+    lu.assertEquals(y, 3)
+
+    -- shift same amount
+    p:shiftPhasesBy(1)
+    x, y = p:getPhases()
+    lu.assertEquals(x, 3)
+    lu.assertEquals(y, 4)
+
+    -- shift to boundary
+    p:shiftPhasesBy(4)
+    x, y = p:getPhases()
+    lu.assertEquals(x, 7)
+    lu.assertEquals(y, 0)
+
+    -- shift negative
+    p:shiftPhasesBy(-3)
+    x, y = p:getPhases()
+    lu.assertEquals(x, 4)
+    lu.assertEquals(y, 5)
+
+    -- dirty
+    dirty = p:shiftPhasesBy(1, 1)
+    lu.assertEquals(dirty, true)
+
+    -- not dirty
+    dirty = p:shiftPhasesBy(0, 8)
+    lu.assertEquals(dirty, false)
+
+end
+
 function TestPhases:testCachedValues()
     p = self.p
 

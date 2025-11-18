@@ -7,6 +7,8 @@ local gfx <const> = playdate.graphics
 local PTTRN_SIZE <const> = 8
 local CACHE_EXP <const> = 1 / 60 -- max FPS
 
+-- luacheck: ignore 214 (ignore use of variables beginning with underscore)
+
 -- Animated patterns with easing, made easy.
 --
 -- SAMPLE USAGE:
@@ -208,32 +210,32 @@ function EasyPattern:init(params)
     self.patternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2)
 
     -- pre-render the pattern image
-    self:updatePatternImage()
+    self:_updatePatternImage()
 end
 
 function EasyPattern:setColor(color)
     self.color = color
-    self:updatePatternImage()
+    self:_updatePatternImage()
 end
 
 function EasyPattern:setBackgroundColor(color)
     self.bgColor = color
-    self:updatePatternImage()
+    self:_updatePatternImage()
 end
 
 function EasyPattern:setPattern(pattern)
     self.pattern = pattern
-    self:updatePatternImage()
+    self:_updatePatternImage()
 end
 
 function EasyPattern:setDitherPattern(alpha, ditherType)
     self.alpha = alpha
     self.ditherType = ditherType
     self.pattern = nil
-    self:updatePatternImage()
+    self:_updatePatternImage()
 end
 
-function EasyPattern:updatePatternImage()
+function EasyPattern:_updatePatternImage()
     self.patternImage:clear(self.bgColor)
     gfx.pushContext(self.patternImage)
         gfx.setColor(self.color)
@@ -249,7 +251,7 @@ function EasyPattern:updatePatternImage()
 end
 
 -- this exists primarily to enable mocking in tests
-function EasyPattern:_getTime()
+function EasyPattern:_getTime() -- luacheck: ignore
     return playdate.getCurrentTimeMilliseconds() / 1000
 end
 
@@ -300,6 +302,22 @@ function EasyPattern:getPhases()
 
     -- return the newly computed phase offsets and indicate whether they have changed
     return xPhase, yPhase, dirty
+end
+
+-- allow manual override of the phases to enable dynamic pattern behaviors
+function EasyPattern:setPhases(xPhase, _yPhase)
+    xPhase = xPhase % 8
+    local yPhase = (_yPhase or xPhase) % 8
+    local dirty = xPhase ~= self._xPhase or yPhase ~= self._yPhase
+    self._xPhase = xPhase
+    self._yPhase = yPhase
+    self._pt = self:_getTime()
+    return dirty
+end
+
+-- a convenience function for adjusting the phases by the specified offset from current values
+function EasyPattern:shiftPhasesBy(xPhaseOffset, _yPhaseOffset)
+    return self:setPhases(self._xPhase + xPhaseOffset, self._yPhase + (_yPhaseOffset or xPhaseOffset))
 end
 
 function EasyPattern:isDirty()
