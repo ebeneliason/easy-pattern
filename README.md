@@ -170,10 +170,10 @@ Default: `playdate.graphics.kColorClear`
 An easing function that defines the animation pattern in the X axis. The function should follow the
 signature of the [`playdate.easingFunctions`](https://sdk.play.date/1.13.2/Inside%20Playdate.html#M-easingFunctions):
 
--   **`t`**: elapsed time, in the range [0, `duration`]
--   **`b`**: the beginning value (always 0)
--   **`c`**: the change in value (always 8 — the size of the pattern)
--   **`d`**: the duration (`duration`)
+- **`t`**: elapsed time, in the range [0, `duration`]
+- **`b`**: the beginning value (always 0)
+- **`c`**: the change in value (always 8 — the size of the pattern)
+- **`d`**: the duration (`duration`)
 
 Default: `playdate.easingFunctions.linear`
 
@@ -288,11 +288,11 @@ signature of `playdate.graphics.setPattern()`. This enables you to pass the resu
 
 #### Returns
 
--   **`patternImage`:** A `playdate.graphics.image` containing the 8x8 pattern to be drawn.
--   **`xPhase`:** The calculated phase offset for the X axis given the current time and other
-    animation properties.
--   **`yPhase`:** The calculated phase offset for the Y axis given the current time and other
-    animation properties.
+- **`patternImage`:** A `playdate.graphics.image` containing the 8x8 pattern to be drawn.
+- **`xPhase`:** The calculated phase offset for the X axis given the current time and other
+  animation properties.
+- **`yPhase`:** The calculated phase offset for the Y axis given the current time and other
+  animation properties.
 
 ### `isDirty()`
 
@@ -304,7 +304,7 @@ is required.
 
 #### Returns
 
--   **`dirty`**: A boolean indicating whether the pattern needs to be redrawn.
+- **`dirty`**: A boolean indicating whether the pattern needs to be redrawn.
 
 ### `getPhases()`
 
@@ -314,9 +314,9 @@ returned instead.
 
 #### Returns
 
--   **`xPhase`**: A number representing the current phase offset for the X axis in the range 0..7.
--   **`yPhase`**: A number representing the current phase offset for the Y axis in the range 0..7.
--   **`recomputed`**: A boolean indicating whether the values were newly computed.
+- **`xPhase`**: A number representing the current phase offset for the X axis in the range 0..7.
+- **`yPhase`**: A number representing the current phase offset for the Y axis in the range 0..7.
+- **`recomputed`**: A boolean indicating whether the values were newly computed.
 
 ### `setPhases(xPhase, [yPhase])`
 
@@ -343,19 +343,20 @@ Sets a new pattern, retaining all animation properties.
 
 #### Params
 
--   **`pattern`:** An array of 8 numbers describing the bitmap for each row, with an optional
-    additional 8 for a bitmap alpha channel, as would be supplied to
-    `playdate.graphics.setPattern()`.
+- **`pattern`:** An array of 8 numbers describing the bitmap for each row, with an optional
+  additional 8 for a bitmap alpha channel, as would be supplied to
+  `playdate.graphics.setPattern()`.
 
 ### `setDitherPattern(alpha, [ditherType])`
 
-Sets a new dither pattern, retaining all animation properties.
+Sets a new dither pattern, retaining all animation properties. Calling this function will
+implicitly set `pattern` to `nil`.
 
 #### Params
 
--   **`alpha`:** A value in the range [0, 1] describing the opacity of the dither effect.
--   **`ditherType`:** (_optional_) A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
-    `playdate.graphics.image.kDitherTypeVerticalLine`.
+- **`alpha`:** A value in the range [0, 1] describing the opacity of the dither effect.
+- **`ditherType`:** (_optional_) A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
+  `playdate.graphics.image.kDitherTypeVerticalLine`.
 
 ### `setColor(color)`
 
