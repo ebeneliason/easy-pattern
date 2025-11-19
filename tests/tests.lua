@@ -243,7 +243,7 @@ end
 TestPatterns = {}
 
 function TestPatterns:testSetColor()
-    p = EasyPattern {
+    local p = EasyPattern {
         ditherType = gfx.image.kDitherTypeVerticalLine
     }
 
@@ -262,7 +262,7 @@ function TestPatterns:testSetColor()
 end
 
 function TestPatterns:testSetBackgroundColor()
-    p = EasyPattern {
+    local p = EasyPattern {
         ditherType = gfx.image.kDitherTypeVerticalLine
     }
 
@@ -281,7 +281,7 @@ function TestPatterns:testSetBackgroundColor()
 end
 
 function TestPatterns:testSetDitherAlpha()
-    p = EasyPattern {
+    local p = EasyPattern {
         alpha = 1
     }
 
@@ -295,7 +295,7 @@ function TestPatterns:testSetDitherAlpha()
 end
 
 function TestPatterns:testSetDitherType()
-    p = EasyPattern {
+    local p = EasyPattern {
         ditherType = gfx.image.kDitherTypeVerticalLine
     }
 
@@ -327,7 +327,7 @@ function TestPatterns:testSetDitherType()
 end
 
 function TestPatterns:testReflectionHorizontal()
-    p = EasyPattern {
+    local p = EasyPattern {
         pattern = zigzag
     }
 
@@ -355,7 +355,7 @@ function TestPatterns:testReflectionHorizontal()
 end
 
 function TestPatterns:testReflectionVertical()
-    p = EasyPattern {
+    local p = EasyPattern {
         pattern = zigzag
     }
 
@@ -383,7 +383,7 @@ function TestPatterns:testReflectionVertical()
 end
 
 function TestPatterns:testRotation()
-    p = EasyPattern {
+    local p = EasyPattern {
         pattern = zigzag
     }
 
@@ -411,7 +411,7 @@ function TestPatterns:testRotation()
 end
 
 function TestPatterns:testSetPattern()
-    p = EasyPattern {
+    local p = EasyPattern {
         pattern = checkerboard
     }
 
@@ -443,7 +443,7 @@ function TestPatterns:testSetPattern()
 end
 
 function TestPatterns:testSetPatternWithAlpha()
-    p = EasyPattern {
+    local p = EasyPattern {
         pattern = checkerboard
     }
 
@@ -485,12 +485,13 @@ function TestPhases:setUp()
     }
 
     -- mock our timer
-    self.p._getTime = function() return p.mockTime end
+    self.p._getTime = function() return self.p.mockTime end
     self.p.mockTime = 0.5
 end
 
 function TestPhases:testGetPhases()
-    p = self.p
+    local p = self.p
+    p.mockTime = 0
 
     for i = 0, 16 do
         p.mockTime = i/8
@@ -579,7 +580,7 @@ function TestPatterns:testShiftPhasesBy()
 end
 
 function TestPhases:testCachedValues()
-    p = self.p
+    local p = self.p
 
     -- compute the values once
     local x1, y1, dirty = p:getPhases()
@@ -593,7 +594,7 @@ function TestPhases:testCachedValues()
 end
 
 function TestPhases:testCacheExpiration()
-    p = self.p
+    local p = self.p
 
     -- compute the values once
     local x1, y1, dirty
@@ -618,7 +619,7 @@ function TestPhases:testCacheExpiration()
 end
 
 function TestPhases:testIsDirty()
-    p = self.p
+    local p = self.p
     local dirty
 
     p.mockTime = 1/8
@@ -637,7 +638,7 @@ function TestPhases:testIsDirty()
 end
 
 function TestPhases:testApply()
-    p = self.p
+    local p = self.p
     local x, y, dirty
 
     p.mockTime = 1/8
@@ -652,7 +653,7 @@ function TestPhases:testApply()
 end
 
 function TestPhases:testReverses()
-    p = self.p
+    local p = self.p
     p.xReverses = true
     local x, y
 
@@ -682,7 +683,7 @@ function TestPhases:testReverses()
 end
 
 function TestPhases:testOffset()
-    p = self.p
+    local p = self.p
     p.xOffset = 0.5
     p.yOffset = 0.5
     local x, y
@@ -709,7 +710,7 @@ function TestPhases:testOffset()
 end
 
 function TestPhases:testSpeed()
-    p = self.p
+    local p = self.p
     p.xSpeed = 2
     p.ySpeed = 2
     local x, y
@@ -726,7 +727,7 @@ function TestPhases:testSpeed()
 end
 
 function TestPhases:testScale()
-    p = self.p
+    local p = self.p
     p.xScale = 2
     p.yScale = 2
     local x, y
@@ -743,7 +744,7 @@ function TestPhases:testScale()
 end
 
 function TestPhases:testReflection()
-    p = self.p
+    local p = self.p
     p:setReflected(true)
 
     local x, y
@@ -766,7 +767,7 @@ function TestPhases:testReflection()
 end
 
 function TestPhases:testRotation()
-    p = self.p
+    local p = self.p
     p.xDuration = 0
     p:setRotated(true)
 
