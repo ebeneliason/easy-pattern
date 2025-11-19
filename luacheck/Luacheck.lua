@@ -27,6 +27,8 @@ return {
                 setBackgroundColor = {},
                 setPattern = {},
                 setDitherPattern = {},
+                setRotated = {},
+                setReflected = {},
                 _updatePatternImage = {},
                 _getTime = {},
                 getPhases = {},
