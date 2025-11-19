@@ -278,6 +278,18 @@ the Y axis. Non-integer values may result in discontinuity when looping.
 
 Default: `1`
 
+#### `xShift`
+
+The number of pixels to shift the final pattern phase by in the X axis.
+
+Default: `0`
+
+#### `yShift`
+
+The number of pixels to shift the final pattern phase by in the Y axis.
+
+Default: `0`
+
 #### `xReflected`
 
 A boolean indicating whether the entire pattern should be reflected across the vertical (Y) axis.
@@ -337,20 +349,34 @@ returned instead.
 - **`yPhase`**: A number representing the current phase offset for the Y axis in the range 0..7.
 - **`recomputed`**: A boolean indicating whether the values were newly computed.
 
-### `setPhases(xPhase, [yPhase])`
+### `setPhaseShifts(xShift, [yShift])`
 
-Explicitly sets the X and Y phase values. If `yPhase` is omitted, both X and Y phases are set to the same
-value. This can be used to enable dynamic pattern behaviors driven by external game logic, such as a
-conveyor belt pattern which shifts according to crank speed.
+Explicitly sets the X and Y phase shift values. If `yShift` is omitted, both X and Y phases are set to the
+same value. This can be used to enable dynamic pattern behaviors driven by external game logic. Here are
+a few examples:
+
+1. A conveyor belt pattern which animates according to the crank speed
+2. A landscape pattern (e.g. platforms, trees) that's shifted a bit for each instance to help them appear
+   as distinct entities even though they share the same pattern
+3. A parallax effect, which shifts the animated pattern laterally as the player moves left and right
+
+The image below illustrates one such application. The phases of the `EasyPattern` applied to the ball
+are shifted dynamically based on the ball's velocity. This creates the illusion that the ball is rolling
+and spinning as it travels down the lane.
+
+![Driftpin Example](images/driftpin.png)
+
+Note that this method is provided solely for convenience. You may also set the `xShift` and `yShift`
+properties directly.
 
 #### Returns
 
 - **`dirty`**: A boolean indicating whether the set caused the phase values to update.
 
-### `shiftPhasesBy(xPhaseOffset, [yPhaseOffset])`
+### `shiftPhasesBy(xShift, [yShift])`
 
-A convenience function that sets the phases by offsetting them by the specified amount from their current
-values. If `yPhaseOffset` is omitted, both X and Y phases are shifted the same amount.
+A convenience function that sets the phase shifts by offsetting them by the specified amount from their
+current values. If `yShift` is omitted, both X and Y phases are shifted the same amount.
 
 #### Returns
 

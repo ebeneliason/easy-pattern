@@ -125,6 +125,12 @@ class('EasyPattern').extends(Object)
 --                          per cycle in the Y axis. Non-integer values result in discontinuity when looping.
 --                          Default: 1.
 --
+--        xShift            The number of pixels to shift the final pattern phase by in the X axis.
+--                          Default: 0.
+--
+--        yShift            The number of pixels to shift the final pattern phase by in the Y axis.
+--                          Default: 0.
+--
 --        xReflected        A boolean indicating whether the entire pattern should be reflected across the
 --                          vertical (Y) axis.
 --                          Default: false.
@@ -205,6 +211,10 @@ function EasyPattern:init(params)
     -- a scale multiplier which affects how many 8px texture repetitions are moved by per animation cycle
     self.xScale         = params.xScale         or params.scale         or 1
     self.yScale         = params.yScale         or params.scale         or 1
+
+    -- the number of pixels to shift the final pattern phases by
+    self.xShift         = params.xShift         or params.shift         or 0
+    self.yShift         = params.yShift         or params.shift         or 0
 
     -- indicates whether the entire pattern is reflected across the vertical or horizontal axis
     self.xReflected     = params.xReflected     or params.reflected     or false
@@ -293,6 +303,20 @@ function EasyPattern:_updatePatternImage()
     end
 end
 
+-- set phase shifts which offset the pattern
+function EasyPattern:setPhaseShifts(xShift, _yShift)
+    self.xShift = xShift
+    self.yShift = _yShift or xShift
+    self._pt = 0 -- invalidate cache
+end
+
+-- a convenience function for adjusting the phases by the specified offset from current values
+function EasyPattern:shiftPhasesBy(xShift, _yShift)
+    self.xShift += xShift
+    self.yShift += _yShift or xShift
+    self._pt = 0 -- invalidate cache
+end
+
 -- this exists primarily to enable mocking in tests
 function EasyPattern:_getTime() -- luacheck: ignore
     return playdate.getCurrentTimeMilliseconds() / 1000
@@ -337,7 +361,15 @@ function EasyPattern:getPhases()
     if self.xReversed then xPhase = PTTRN_SIZE - xPhase - 1 end
     if self.yReversed then yPhase = PTTRN_SIZE - yPhase - 1 end
 
-    -- apply any transformations to our animation
+    -- apply any phase shifts
+    if self.xShift ~= 0 then
+        xPhase = (xPhase + self.xShift) % PTTRN_SIZE
+    end
+    if self.yShift ~= 0 then
+        yPhase = (yPhase + self.yShift) % PTTRN_SIZE
+    end
+
+    -- apply any transformations
     if self.rotated then
         xPhase, yPhase = yPhase, xPhase
     end
@@ -356,22 +388,6 @@ function EasyPattern:getPhases()
 
     -- return the newly computed phase offsets and indicate whether they have changed
     return xPhase, yPhase, dirty
-end
-
--- allow manual override of the phases to enable dynamic pattern behaviors
-function EasyPattern:setPhases(xPhase, _yPhase)
-    xPhase = xPhase % 8
-    local yPhase = (_yPhase or xPhase) % 8
-    local dirty = xPhase ~= self._xPhase or yPhase ~= self._yPhase
-    self._xPhase = xPhase
-    self._yPhase = yPhase
-    self._pt = self:_getTime()
-    return dirty
-end
-
--- a convenience function for adjusting the phases by the specified offset from current values
-function EasyPattern:shiftPhasesBy(xPhaseOffset, _yPhaseOffset)
-    return self:setPhases(self._xPhase + xPhaseOffset, self._yPhase + (_yPhaseOffset or xPhaseOffset))
 end
 
 function EasyPattern:isDirty()

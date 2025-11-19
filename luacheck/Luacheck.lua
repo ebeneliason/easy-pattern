@@ -32,7 +32,7 @@ return {
                 _updatePatternImage = {},
                 _getTime = {},
                 getPhases = {},
-                setPhases = {},
+                setPhaseShifts = {},
                 shiftPhasesBy = {},
                 isDirty = {},
                 apply = {}

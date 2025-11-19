@@ -91,6 +91,8 @@ function TestInit:testDefaults()
     lu.assertEquals(p.ySpeed, 1)
     lu.assertEquals(p.xScale, 1)
     lu.assertEquals(p.yScale, 1)
+    lu.assertEquals(p.xShift, 0)
+    lu.assertEquals(p.yShift, 0)
     lu.assertEquals(p.xReflected, false)
     lu.assertEquals(p.yReflected, false)
     lu.assertEquals(p.rotated, false)
@@ -112,6 +114,7 @@ function TestInit:testFallbacks()
         reversed = true,
         speed = rnd[5],
         scale = rnd[6],
+        shift = rnd[7],
         reflected = true,
     }
     lu.assertEquals(p.xDuration, rnd[1])
@@ -130,6 +133,8 @@ function TestInit:testFallbacks()
     lu.assertEquals(p.ySpeed, rnd[5])
     lu.assertEquals(p.xScale, rnd[6])
     lu.assertEquals(p.yScale, rnd[6])
+    lu.assertEquals(p.xShift, rnd[7])
+    lu.assertEquals(p.yShift, rnd[7])
     lu.assertEquals(p.xReflected, true)
     lu.assertEquals(p.yReflected, true)
 end
@@ -165,6 +170,7 @@ function TestInit:testXParams()
         xReversed = true,
         xSpeed = rnd[5],
         xScale = rnd[6],
+        xShift = rnd[7],
         xReflected = true,
     }
     lu.assertEquals(p.xDuration, rnd[1])
@@ -183,6 +189,8 @@ function TestInit:testXParams()
     lu.assertEquals(p.ySpeed, 1)
     lu.assertEquals(p.xScale, rnd[6])
     lu.assertEquals(p.yScale, 1)
+    lu.assertEquals(p.xShift, rnd[7])
+    lu.assertEquals(p.yShift, 0)
     lu.assertEquals(p.xReflected, true)
     lu.assertEquals(p.yReflected, false)
 end
@@ -197,6 +205,7 @@ function TestInit:testYParams()
         yReversed = true,
         ySpeed = rnd[5],
         yScale = rnd[6],
+        yShift = rnd[7],
         yReflected = true,
     }
     lu.assertEquals(p.yDuration, rnd[1])
@@ -215,6 +224,8 @@ function TestInit:testYParams()
     lu.assertEquals(p.xSpeed, 1)
     lu.assertEquals(p.yScale, rnd[6])
     lu.assertEquals(p.xScale, 1)
+    lu.assertEquals(p.yShift, rnd[7])
+    lu.assertEquals(p.xShift, 0)
     lu.assertEquals(p.xReflected, false)
     lu.assertEquals(p.yReflected, true)
 end
@@ -501,81 +512,75 @@ function TestPhases:testGetPhases()
     end
 end
 
-function TestPatterns:testSetPhases()
-    local p = EasyPattern {
-        pattern = checkerboard
-    }
+function TestPhases:testSetPhaseShifts()
+    local p = self.p
 
-    local x, y, dirty
+    local x, y
     -- initial condition
     x, y = p:getPhases()
-    lu.assertEquals(x, 0)
-    lu.assertEquals(y, 0)
+    lu.assertEquals(x, 4 + 0)
+    lu.assertEquals(y, 4 + 0)
 
     -- shift distinct amounts
-    p:setPhases(2, 3)
+    p:setPhaseShifts(2, 3)
+    lu.assertEquals(p.xShift, 2)
+    lu.assertEquals(p.yShift, 3)
     x, y = p:getPhases()
-    lu.assertEquals(x, 2)
-    lu.assertEquals(y, 3)
+    lu.assertEquals(x, 4 + 2)
+    lu.assertEquals(y, 4 + 3)
 
     -- shift same amount
-    p:setPhases(7)
+    p:setPhaseShifts(7)
     x, y = p:getPhases()
-    lu.assertEquals(x, 7)
-    lu.assertEquals(y, 7)
+    lu.assertEquals(x, (4 + 7) % 8)
+    lu.assertEquals(y, (4 + 7) % 8)
 
     -- overflow in both directions
-    p:setPhases(12, -2)
+    p:setPhaseShifts(12, -2)
     x, y = p:getPhases()
-    lu.assertEquals(x, 4)
-    lu.assertEquals(y, 6)
-
-    -- dirty (5 ~= 6)
-    dirty = p:setPhases(4, 5)
-    lu.assertEquals(dirty, true)
-
-    -- not dirty (12 wraps to 4)
-    dirty = p:setPhases(12, 5)
-    lu.assertEquals(dirty, false)
+    lu.assertEquals(x, (4 + 12) % 8)
+    lu.assertEquals(y, 4 - 2)
 end
 
-function TestPatterns:testShiftPhasesBy()
-    local p = EasyPattern {
-        pattern = checkerboard
-    }
+function TestPhases:testShiftPhasesBy()
+    local p = self.p
 
-    local x, y, dirty
-    -- shift distinct amounts
-    p:setPhases(2, 3)
+    local x, y
+    -- initial condition
     x, y = p:getPhases()
-    lu.assertEquals(x, 2)
-    lu.assertEquals(y, 3)
+    lu.assertEquals(x, 4 + 0)
+    lu.assertEquals(y, 4 + 0)
+
+    -- shift distinct amounts
+    p:setPhaseShifts(1, 2)
+    lu.assertEquals(p.xShift, 1)
+    lu.assertEquals(p.yShift, 2)
+    x, y = p:getPhases()
+    lu.assertEquals(x, 4 + 1)
+    lu.assertEquals(y, 4 + 2)
 
     -- shift same amount
     p:shiftPhasesBy(1)
+    lu.assertEquals(p.xShift, 2)
+    lu.assertEquals(p.yShift, 3)
     x, y = p:getPhases()
-    lu.assertEquals(x, 3)
-    lu.assertEquals(y, 4)
-
-    -- shift to boundary
-    p:shiftPhasesBy(4)
-    x, y = p:getPhases()
-    lu.assertEquals(x, 7)
-    lu.assertEquals(y, 0)
+    lu.assertEquals(x, 4 + 2)
+    lu.assertEquals(y, 4 + 3)
 
     -- shift negative
-    p:shiftPhasesBy(-3)
+    p:shiftPhasesBy(-2)
+    lu.assertEquals(p.xShift, 0)
+    lu.assertEquals(p.yShift, 1)
     x, y = p:getPhases()
-    lu.assertEquals(x, 4)
-    lu.assertEquals(y, 5)
+    lu.assertEquals(x, 4 + 0)
+    lu.assertEquals(y, 4 + 1)
 
-    -- dirty
-    dirty = p:shiftPhasesBy(1, 1)
-    lu.assertEquals(dirty, true)
 
-    -- not dirty
-    dirty = p:shiftPhasesBy(0, 8)
-    lu.assertEquals(dirty, false)
+    -- shift to boundary
+    p:shiftPhasesBy(3)
+    x, y = p:getPhases()
+    lu.assertEquals(x, 4 + 3)
+    lu.assertEquals(y, 0) -- wrap
 
 end
 
