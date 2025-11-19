@@ -364,7 +364,7 @@ The image below illustrates one such application. The phases of the `EasyPattern
 are shifted dynamically based on the ball's velocity. This creates the illusion that the ball is rolling
 and spinning as it travels down the lane.
 
-![Driftpin Example](images/driftpin.png)
+![Driftpin Example](images/driftpin.gif)
 
 Note that this method is provided solely for convenience. You may also set the `xShift` and `yShift`
 properties directly.
