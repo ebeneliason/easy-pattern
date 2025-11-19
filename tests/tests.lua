@@ -91,6 +91,9 @@ function TestInit:testDefaults()
     lu.assertEquals(p.ySpeed, 1)
     lu.assertEquals(p.xScale, 1)
     lu.assertEquals(p.yScale, 1)
+    lu.assertEquals(p.xReflected, false)
+    lu.assertEquals(p.yReflected, false)
+    lu.assertEquals(p.rotated, false)
     lu.assertEquals(p._pt, 0)
     lu.assertEquals(p._xPhase, 0)
     lu.assertEquals(p._yPhase, 0)
@@ -109,6 +112,7 @@ function TestInit:testFallbacks()
         reversed = true,
         speed = rnd[5],
         scale = rnd[6],
+        reflected = true,
     }
     lu.assertEquals(p.xDuration, rnd[1])
     lu.assertEquals(p.yDuration, rnd[1])
@@ -126,6 +130,8 @@ function TestInit:testFallbacks()
     lu.assertEquals(p.ySpeed, rnd[5])
     lu.assertEquals(p.xScale, rnd[6])
     lu.assertEquals(p.yScale, rnd[6])
+    lu.assertEquals(p.xReflected, true)
+    lu.assertEquals(p.yReflected, true)
 end
 
 function TestInit:testLegacyParams()
@@ -159,6 +165,7 @@ function TestInit:testXParams()
         xReversed = true,
         xSpeed = rnd[5],
         xScale = rnd[6],
+        xReflected = true,
     }
     lu.assertEquals(p.xDuration, rnd[1])
     lu.assertEquals(p.yDuration, 0)
@@ -176,6 +183,8 @@ function TestInit:testXParams()
     lu.assertEquals(p.ySpeed, 1)
     lu.assertEquals(p.xScale, rnd[6])
     lu.assertEquals(p.yScale, 1)
+    lu.assertEquals(p.xReflected, true)
+    lu.assertEquals(p.yReflected, false)
 end
 
 function TestInit:testYParams()
@@ -188,6 +197,7 @@ function TestInit:testYParams()
         yReversed = true,
         ySpeed = rnd[5],
         yScale = rnd[6],
+        yReflected = true,
     }
     lu.assertEquals(p.yDuration, rnd[1])
     lu.assertEquals(p.xDuration, 0)
@@ -205,6 +215,8 @@ function TestInit:testYParams()
     lu.assertEquals(p.xSpeed, 1)
     lu.assertEquals(p.yScale, rnd[6])
     lu.assertEquals(p.xScale, 1)
+    lu.assertEquals(p.xReflected, false)
+    lu.assertEquals(p.yReflected, true)
 end
 
 function TestInit:testPatternParams()
@@ -311,6 +323,90 @@ function TestPatterns:testSetDitherType()
     p:setDitherPattern(0.5, gfx.image.kDitherTypeHorizontalLine)
 
     local after = sampleImage(p.patternImage, 6)
+    lu.assertEquals(after, expectedAfter)
+end
+
+function TestPatterns:testReflectionHorizontal()
+    p = EasyPattern {
+        pattern = zigzag
+    }
+
+    local expectedBefore = {
+        W, B, B, B,
+        W, W, B, W,
+        B, W, W, W,
+        B, B, W, B,
+    }
+
+    local expectedAfter = {
+        B, B, B, W,
+        W, B, W, W,
+        W, W, W, B,
+        B, W, B, B,
+    }
+
+    local before = sampleImage(p.patternImage, 4)
+    lu.assertEquals(before, expectedBefore)
+
+    p:setReflected(true, false)
+
+    local after = sampleImage(p.patternImage, 4)
+    lu.assertEquals(after, expectedAfter)
+end
+
+function TestPatterns:testReflectionVertical()
+    p = EasyPattern {
+        pattern = zigzag
+    }
+
+    local expectedBefore = {
+        W, B, B, B,
+        W, W, B, W,
+        B, W, W, W,
+        B, B, W, B,
+    }
+
+    local expectedAfter = {
+        B, B, W, B,
+        B, W, W, W,
+        W, W, B, W,
+        W, B, B, B,
+    }
+
+    local before = sampleImage(p.patternImage, 4)
+    lu.assertEquals(before, expectedBefore)
+
+    p:setReflected(false, true)
+
+    local after = sampleImage(p.patternImage, 4)
+    lu.assertEquals(after, expectedAfter)
+end
+
+function TestPatterns:testRotation()
+    p = EasyPattern {
+        pattern = zigzag
+    }
+
+    local expectedBefore = {
+        W, B, B, B,
+        W, W, B, W,
+        B, W, W, W,
+        B, B, W, B,
+    }
+
+    local expectedAfter = {
+        B, B, W, W,
+        B, W, W, B,
+        W, W, B, B,
+        B, W, W, B,
+    }
+
+    local before = sampleImage(p.patternImage, 4)
+    lu.assertEquals(before, expectedBefore)
+
+    p:setRotated(true)
+
+    local after = sampleImage(p.patternImage, 4)
     lu.assertEquals(after, expectedAfter)
 end
 
@@ -644,6 +740,41 @@ function TestPhases:testScale()
     _, x, y = p:apply()
     lu.assertEquals(x, 4)
     lu.assertEquals(y, 4)
+end
+
+function TestPhases:testReflection()
+    p = self.p
+    p:setReflected(true)
+
+    local x, y
+    p.mockTime = 1/8
+    _, x, y = p:apply()
+    lu.assertEquals(x, 6)
+    lu.assertEquals(y, 6)
+
+    p:setReflected(true, false)
+    p._pt = 0 -- invalidate cache
+    _, x, y = p:apply()
+    lu.assertEquals(x, 6)
+    lu.assertEquals(y, 1)
+
+    p:setReflected(false, true)
+    p._pt = 0 -- invalidate cache
+    _, x, y = p:apply()
+    lu.assertEquals(x, 1)
+    lu.assertEquals(y, 6)
+end
+
+function TestPhases:testRotation()
+    p = self.p
+    p.xDuration = 0
+    p:setRotated(true)
+
+    local x, y
+    p.mockTime = 1/8
+    _, x, y = p:apply()
+    lu.assertEquals(x, 1)
+    lu.assertEquals(y, 0)
 end
 
 

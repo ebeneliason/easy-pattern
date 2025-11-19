@@ -278,6 +278,25 @@ the Y axis. Non-integer values may result in discontinuity when looping.
 
 Default: `1`
 
+#### `xReflected`
+
+A boolean indicating whether the entire pattern should be reflected across the vertical (Y) axis.
+
+Default: `false`
+
+#### `yReflected`
+
+A boolean indicating whether the entire pattern should be reflected across the horizontal (X) axis.
+
+Default: `false`
+
+#### `rotated`
+
+A boolean indicating whether the entire pattern should be rotated 90º, producing an orthogonal result.
+Rotation is applied following any reflections.
+
+Default: `false`
+
 ## Functions
 
 ### `apply()`
@@ -351,6 +370,16 @@ Sets a new pattern, retaining all animation properties.
 
 Sets a new dither pattern, retaining all animation properties. Calling this function will
 implicitly set `pattern` to `nil`.
+
+### `setReflected(horizontal, [vertical])`
+
+Sets the `xReflected` and `yReflected` properties indicating in which axes the pattern should be inverted.
+If the second argument is omitted, both axes are set to the same value.
+
+### `setRotated(flag)`
+
+Sets the `rotated` property, indicating whether the pattern should be rotated 90º to produce an
+orthogonal result.
 
 #### Params
 

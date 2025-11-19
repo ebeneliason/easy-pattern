@@ -10,7 +10,7 @@ these steps to run the tests:
 2. Double-click the resulting `test.pdx` binary inside the `tests` folder to run it in the
    Playdate Simulator.
 
-3. Open the console (`⌘⇧D`) to view test results. A sucess or failure message will also appear
+3. Open the console (`⌘⇧D`) to view test results. A success or failure message will also appear
    on the Playdate screen.
 
 4. Optionally upload and run the binary to connected Playdate hardware (`⌘U`).

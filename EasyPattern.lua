@@ -3,6 +3,7 @@ import "CoreLibs/graphics"
 import "CoreLibs/easing"
 
 local gfx <const> = playdate.graphics
+local geom <const> = playdate.geometry
 
 local PTTRN_SIZE <const> = 8
 local CACHE_EXP <const> = 1 / 60 -- max FPS
@@ -124,6 +125,18 @@ class('EasyPattern').extends(Object)
 --                          per cycle in the Y axis. Non-integer values result in discontinuity when looping.
 --                          Default: 1.
 --
+--        xReflected        A boolean indicating whether the entire pattern should be reflected across the
+--                          vertical (Y) axis.
+--                          Default: false.
+--
+--        yReflected        A boolean indicating whether the entire pattern should be reflected across the
+--                          horizontal (X) axis.
+--                          Default: false.
+--
+--        rotated           A boolean indicating whether the entire pattern should be rotated 90º, producing an
+--                          orthogonal result. Rotation is applied following any reflections.
+--                          Default: false.
+--
 
 
 function EasyPattern:init(params)
@@ -193,6 +206,13 @@ function EasyPattern:init(params)
     self.xScale         = params.xScale         or params.scale         or 1
     self.yScale         = params.yScale         or params.scale         or 1
 
+    -- indicates whether the entire pattern is reflected across the vertical or horizontal axis
+    self.xReflected     = params.xReflected     or params.reflected     or false
+    self.yReflected     = params.yReflected     or params.reflected     or false
+
+    -- indicates whether the entire pattern is rotated by 90º producing an orthogonal result
+    self.rotated        = params.rotated                                or false
+
 
     -- the previously computed time values for each axis, used to determine when to reverse animations
     self._ptx = 0
@@ -235,8 +255,22 @@ function EasyPattern:setDitherPattern(alpha, ditherType)
     self:_updatePatternImage()
 end
 
+function EasyPattern:setRotated(flag)
+    self.rotated = flag
+    self:_updatePatternImage()
+end
+
+function EasyPattern:setReflected(horizontal, vertical)
+    if vertical == nil then vertical = horizontal end
+    self.xReflected = horizontal
+    self.yReflected = vertical
+    self:_updatePatternImage()
+end
+
 function EasyPattern:_updatePatternImage()
     self.patternImage:clear(self.bgColor)
+
+    -- draw the pattern image
     gfx.pushContext(self.patternImage)
         gfx.setColor(self.color)
         if self.pattern then
@@ -248,6 +282,15 @@ function EasyPattern:_updatePatternImage()
         end
         gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
     gfx.popContext()
+
+    -- apply any transformations to our pattern image
+    if self.rotated or self.xReflected or self.yReflected then
+        local xform = geom.affineTransform.new()
+        if self.xReflected then xform:scale(-1, 1) end
+        if self.yReflected then xform:scale(1, -1) end
+        if self.rotated then xform:rotate(90) end
+        self.patternImage = self.patternImage:transformedImage(xform)
+    end
 end
 
 -- this exists primarily to enable mocking in tests
@@ -293,6 +336,17 @@ function EasyPattern:getPhases()
     -- flip the output values when in reverse animation mode
     if self.xReversed then xPhase = PTTRN_SIZE - xPhase - 1 end
     if self.yReversed then yPhase = PTTRN_SIZE - yPhase - 1 end
+
+    -- apply any transformations to our animation
+    if self.rotated then
+        xPhase, yPhase = yPhase, xPhase
+    end
+    if self.xReflected then
+        xPhase = PTTRN_SIZE - xPhase - 1
+    end
+    if self.yReflected then
+        yPhase = PTTRN_SIZE - yPhase - 1
+    end
 
     -- determine if we're dirty and cache the computed phase values along with a timestamp
     local dirty = xPhase ~= self._xPhase or yPhase ~= self._yPhase
