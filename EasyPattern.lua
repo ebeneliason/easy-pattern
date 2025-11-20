@@ -12,7 +12,7 @@ local CACHE_EXP <const> = 1 / 60 -- max FPS
 
 -- Animated patterns with easing, made easy.
 --
--- SAMPLE USAGE:
+--! SAMPLE USAGE
 --
 --     local checkerboard <const> = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }
 --     local easyCheckerboard = EasyPattern {
@@ -26,6 +26,8 @@ local CACHE_EXP <const> = 1 / 60 -- max FPS
 --     -- <perform drawing using pattern here>
 
 class('EasyPattern').extends(Object)
+
+--! PARAMETERS
 
 -- Create a new animated EasyPattern.
 -- @param params            A table containing one or more of the elements listed below.
@@ -144,6 +146,7 @@ class('EasyPattern').extends(Object)
 --                          Default: false.
 --
 
+--! INIT
 
 function EasyPattern:init(params)
     EasyPattern.super.init(self)
@@ -243,6 +246,8 @@ function EasyPattern:init(params)
     self:_updatePatternImage()
 end
 
+--! SETTERS
+
 function EasyPattern:setColor(color)
     self.color = color
     self:_updatePatternImage()
@@ -321,6 +326,8 @@ end
 function EasyPattern:_getTime() -- luacheck: ignore
     return playdate.getCurrentTimeMilliseconds() / 1000
 end
+
+--! PHASE COMPUTATION
 
 function EasyPattern:getPhases()
     -- all patterns animate with respect to absolute time
@@ -401,6 +408,7 @@ function EasyPattern:apply()
     return self.patternImage, xPhase, yPhase
 end
 
+--! BIT PATTERN
 
 -- This masquerades as a companion class to EasyPattern, but in reality it's just a convenience
 -- function which returns a table of numbers converted from their binary string representations.
