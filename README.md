@@ -576,6 +576,28 @@ EasyPattern {
 }
 ```
 
+For additional convenience, BitPattern also accepts ASCII representations of these strings:
+
+- Use `0`, `.`, or `_` for black/transparent pixels
+- Use `1`, `X`, or any other non-black-pixel character for white/opaque pixels
+- Add spaces between pixels to aid legibility, if desired.
+
+Here's the same pattern shown above in a more legible form:
+
+```lua
+BitPattern {
+    -- PTTRN ----------   -- ALPHA ---------
+    ' X . X . X . X . ',  ' . . . X . . . .',
+    ' . X . X . X . X ',  ' . . X X X . . .',
+    ' X . X . X . X . ',  ' . X X X X X . .',
+    ' . X . X . X . X ',  ' X X X X X X X .',
+    ' X . X . X . X . ',  ' . X X X X X . .',
+    ' . X . X . X . X ',  ' . . X X X . . .',
+    ' X . X . X . X . ',  ' . . . X . . . .',
+    ' . X . X . X . X ',  ' . . . . . . . .',
+}
+```
+
 ## Troubleshooting
 
 ### What if my pattern doesn't appear?

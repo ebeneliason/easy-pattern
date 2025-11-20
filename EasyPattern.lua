@@ -405,16 +405,62 @@ end
 -- This masquerades as a companion class to EasyPattern, but in reality it's just a convenience
 -- function which returns a table of numbers converted from their binary string representations.
 -- Use it to craft patterns to pass to EasyPattern or to `playdate.graphics.setPattern`.
+-- Represent black pixels with a 0, a period (.), or an underscore (_); represent white pixels
+-- with any other character, such as a 1 or an X. Any spaces within the string are ignored.
 --
--- When including an alpha channel, its rows should be interleaved with the pattern rows, such
--- that the pattern and alpha channel representations appear side-by-side in the file.
+-- For example, here's how to define an opaque BitPattern in binary:
+
+-- checker = BitPattern {
+--     '11110000',
+--     '11110000',
+--     '11110000',
+--     '11110000',
+--     '00001111',
+--     '00001111',
+--     '00001111',
+--     '00001111',
+-- }
+
+-- And here's that same pattern in ASCII:
+--
+-- checker = BitPattern {
+--     ' X X X X . . . . ',
+--     ' X X X X . . . . ',
+--     ' X X X X . . . . ',
+--     ' X X X X . . . . ',
+--     ' . . . . X X X X ',
+--     ' . . . . X X X X ',
+--     ' . . . . X X X X ',
+--     ' . . . . X X X X ',
+-- }
+--
+-- When including an alpha channel, interleave its rows with the pattern rows such that the
+-- pattern and alpha channel representations appear side-by-side in the file, like so:
+--
+-- ditheredDiamond = BitPattern {
+--     -- PTTRN ----------   -- ALPHA ---------
+--     ' X . X . X . X . ',  ' . . . X . . . . ',
+--     ' . X . X . X . X ',  ' . . X X X . . . ',
+--     ' X . X . X . X . ',  ' . X X X X X . . ',
+--     ' . X . X . X . X ',  ' X X X X X X X . ',
+--     ' X . X . X . X . ',  ' . X X X X X . . ',
+--     ' . X . X . X . X ',  ' . . X X X . . . ',
+--     ' X . X . X . X . ',  ' . . . X . . . . ',
+--     ' . X . X . X . X ',  ' . . . . . . . . ',
+-- }
 
 function BitPattern(binaryRows)
     local hasAlpha = #binaryRows == 16
     local pattern = {}
     for i, binaryRow in ipairs(binaryRows) do
+        binaryRow = binaryRow:gsub(".", function(c)
+            if c == " " then return ""                               -- strip spaces
+            elseif c == "0" or c == "." or c == "_" then return "0"  -- black pixels
+            else return "1"                                          -- white pixels (any other char)
+            end
+        end)
         if hasAlpha then
-            pattern[i//2 + (i % 2 == 0 and 8 or 1)] = tonumber(binaryRow, 2)
+            pattern[i//2 + (i % 2 == 0 and 8 or 1)] = tonumber(binaryRow, 2) -- de-interlace alpha
         else
             pattern[i] = tonumber(binaryRow, 2)
         end
