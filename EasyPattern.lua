@@ -279,7 +279,9 @@ function EasyPattern:setReflected(horizontal, vertical)
     if vertical == nil then vertical = horizontal end
     self.xReflected = horizontal
     self.yReflected = vertical
+    self._pt = 0 -- invalidate cache
     self:_updatePatternImage()
+    self:getPhases()
 end
 
 function EasyPattern:_updatePatternImage()

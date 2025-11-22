@@ -750,25 +750,24 @@ end
 
 function TestPhases:testReflection()
     local p = self.p
+    p.mockTime = 1/8
     p:setReflected(true)
 
     local x, y
-    p.mockTime = 1/8
     _, x, y = p:apply()
-    lu.assertEquals(x, 6)
-    lu.assertEquals(y, 6)
+    lu.assertEquals(x, 7 - 1)
+    lu.assertEquals(y, 7 - 1)
 
     p:setReflected(true, false)
-    p._pt = 0 -- invalidate cache
     _, x, y = p:apply()
-    lu.assertEquals(x, 6)
+    lu.assertEquals(x, 7 - 1)
     lu.assertEquals(y, 1)
 
     p:setReflected(false, true)
     p._pt = 0 -- invalidate cache
     _, x, y = p:apply()
     lu.assertEquals(x, 1)
-    lu.assertEquals(y, 6)
+    lu.assertEquals(y, 7 - 1)
 end
 
 function TestPhases:testRotation()
