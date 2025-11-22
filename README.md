@@ -432,7 +432,7 @@ is shown with a standard checkerboard pattern to compare the easing effect, and 
 pattern intended to illustrate a potential application.
 
 You can try these examples yourself using the included [EasyPatternDemoSwatch](EasyPatternDemoSwatch.lua).
-[See below](#demo-swatch) for instructions.
+[See below](#demo-swatch) for instructions, as well as docs for [BitPattern](#defining-your-patterns) which enables the ASCII pattern representations seen in these examples.
 
 ### Conveyor Belt
 
@@ -444,7 +444,9 @@ moving in different directions by either:
 1. Specifying the horizontal dither type and `reversed` as needed
 2. Using a combination of `reflected` and `rotated` to reorient the pattern
 
-![Conveyor Checkerboard Example](images/conveyor-checker.gif) ![Conveyor Example](images/conveyor.gif)
+![Conveyor Checkerboard Example](images/conveyor-checker.gif)
+![Conveyor Example](images/conveyor.gif)
+
 ![Conveyor Example Zoomed](images/conveyor@3x.gif)
 
 **Demo Swatch ID:** `conveyor`
@@ -462,7 +464,9 @@ EasyPattern {
 This example utilizes the built-in horizontal line dither, including transparency, to create a simple
 scanline effect. This could be used atop an image or rendered scene to simulate an old monitor.
 
-![Scanline Checkerboard Example](images/scanline-checker.gif) ![Scanline Example](images/scanline.gif) ![Scanline Over Image Example](images/scanline-over-image.gif)
+![Scanline Checkerboard Example](images/scanline-checker.gif)
+![Scanline Over Image Example](images/scanline-over-image.gif)
+![Scanline Example](images/scanline.gif)
 
 ![Scanline Over Image Example Zoomed](images/scanline-over-image@3x.gif)
 
@@ -512,7 +516,9 @@ This example creates a "marching ants" dotted outline effect, as is often used t
 rectangular selections. To achieve the effect, use this pattern in conjunction with a call
 to `drawRect(r)`. Modulate the length of the dashes with the `alpha` parameter.
 
-![Marching Ants Checkerboard Example](images/ants-checker.gif) ![Marching Ants Example](images/ants.gif) ![Marching Ants Over Image Example](images/ants-over-image.gif)
+![Marching Ants Checkerboard Example](images/ants-checker.gif)
+![Marching Ants Example](images/ants.gif)
+![Marching Ants Over Image Example](images/ants-over-image.gif)
 
 ![Marching Ants Over Image Example Zoomed](images/ants-over-image@3x.gif)
 
@@ -532,7 +538,8 @@ In this example, the pattern appears to fall downward one block at a time, bounc
 settled state before the next row drops out. The `scale` parameter is used to exaggerate
 the effect, causing it to fall by multiple rows per cycle.
 
-![Bounce Checkerboard Example](images/bounce-checker.gif) ![Bounce Example](images/bounce.gif)
+![Bounce Checkerboard Example](images/bounce-checker.gif)
+![Bounce Example](images/bounce.gif)
 
 ![Bounce Example Zoomed](images/bounce@3x.gif)
 
@@ -564,7 +571,8 @@ with a linear ease in the horizontal axis to illustrate directional flow. You ca
 different easing functions and even different timing values for each axis to achieve more nuanced
 effects.
 
-![Waves Checkerboard Example](images/waves-checker.gif) ![Waves Example](images/waves.gif)
+![Waves Checkerboard Example](images/waves-checker.gif)
+![Waves Example](images/waves.gif)
 
 ![Waves Example Zoomed](images/waves@3x.gif)
 
@@ -594,7 +602,8 @@ EasyPattern {
 This example makes use of built-in sine functions and an `xOffset` to create a continuous
 circular panning movement.
 
-![Circular Pan Checkerboard Example](images/circle-checker.gif) ![Circular Pan Example](images/circle.gif)
+![Circular Pan Checkerboard Example](images/circle-checker.gif)
+![Circular Pan Example](images/circle.gif)
 
 ![Circular Pan Example Zoomed](images/circle@3x.gif)
 
@@ -625,7 +634,8 @@ EasyPattern {
 This example shows how changing a few parameters can create substantially different effects.
 Subtle adjustments to the above example yield a gentle swaying motion.
 
-![Sway Checkerboard Example](images/sway-checker.gif) ![Sway Example](images/sway.gif)
+![Sway Checkerboard Example](images/sway-checker.gif)
+![Sway Example](images/sway.gif)
 
 ![Sway Example Zoomed](images/sway@3x.gif)
 
@@ -660,7 +670,8 @@ offset value. This yields a jittery vibration effect evocative of high energy or
 
 You can create any type of custom function you like to design behaviors unique to your application.
 
-![Vibrate Checkerboard Example](images/vibrate-checker.gif) ![Vibrate Example](images/vibrate.gif)
+![Vibrate Checkerboard Example](images/vibrate-checker.gif)
+![Vibrate Example](images/vibrate.gif)
 
 ![Vibrate Example Zoomed](images/vibrate@3x.gif)
 
@@ -690,7 +701,8 @@ This example extends the concept introduced above, using Perlin noise to generat
 cause the texture to animate smoothly in a seemingly random way. You could use this to create
 organic effects such as rustling leaves.
 
-![Perlin Checkerboard Example](images/perlin-checker.gif) ![Perlin Example](images/perlin.gif)
+![Perlin Checkerboard Example](images/perlin-checker.gif)
+![Perlin Example](images/perlin.gif)
 
 ![Perlin Example Zoomed](images/perlin@3x.gif)
 
@@ -722,7 +734,8 @@ Here's one more example showcasing a custom easing function. This foregoes the c
 easing functions for a stepwise shift between the start and end values. Adjust the constant (`4` by default)
 in the easing function to change the number of steps per loop.
 
-![Dot Matrix Checkerboard Example](images/dot-matrix-checker.gif) ![Dot Matrix Example](images/dot-matrix.gif)
+![Dot Matrix Checkerboard Example](images/dot-matrix-checker.gif)
+![Dot Matrix Example](images/dot-matrix.gif)
 
 ![Dot Matrix Example Zoomed](images/dot-matrix@3x.gif)
 
@@ -750,7 +763,9 @@ EasyPattern {
 This example reintroduces an alpha channel with a custom pattern. The use of adjacent white and black opaque
 pixels in the pattern enables it to read against either black or white background elements.
 
-![Steam Checkerboard Example](images/steam-checker.gif) ![Steam Example](images/steam.gif) ![Steam Over Image Example](images/steam-over-image.gif)
+![Steam Checkerboard Example](images/steam-checker.gif)
+![Steam Example](images/steam.gif)
+![Steam Over Image Example](images/steam-over-image.gif)
 
 ![Steam Over Image Example Zoomed](images/steam-over-image@3x.gif)
 
@@ -784,7 +799,8 @@ vertically, or both. This saves the hassle of having to adjust every animation p
 achieve the same effect. (The same convenience is also provided by the `rotated` flag, which rotates the
 pattern orthogonally.)
 
-![Reflected Checkerboard Example](images/reflected-checker.gif) ![Reflected Example](images/reflected.gif)
+![Reflected Checkerboard Example](images/reflected-checker.gif)
+![Reflected Example](images/reflected.gif)
 
 ![Reflected Example Zoomed](images/reflected@3x.gif)
 
@@ -808,10 +824,13 @@ independent animation effects. The pattern shown below is a transparent variatio
 can be drawn atop an image to add a subtle effect, or atop "ooze" to create a richer, more textured
 animation.
 
-![Ooze Overlay Checkerboard Example](images/ooze-overlay-checker.gif) ![Ooze Overlay Standalone Example](images/ooze-overlay.gif)
-![Ooze Overlay Atop Ooze Example](images/ooze-over-ooze.gif) ![Ooze Overlay Atop Image Example](images/ooze-over-image.gif)
+![Ooze Overlay Checkerboard Example](images/ooze-overlay-checker.gif)
+![Ooze Overlay Standalone Example](images/ooze-overlay.gif)
+![Ooze Overlay Atop Ooze Example](images/ooze-over-ooze.gif)
+![Ooze Overlay Atop Image Example](images/ooze-over-image.gif)
 
-![Ooze Overlay Atop Ooze Example Zoomed](images/ooze-over-ooze@3x.gif) ![Ooze Overlay Atop Image Example Zoomed](images/ooze-over-image@3x.gif)
+![Ooze Overlay Atop Ooze Example Zoomed](images/ooze-over-ooze@3x.gif)
+![Ooze Overlay Atop Image Example Zoomed](images/ooze-over-image@3x.gif)
 
 Consider how this could be used in conjunction with the provided ["waves"](waves) example, or any patterns
 you create yourself.
