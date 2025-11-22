@@ -512,6 +512,29 @@ function TestPhases:testGetPhases()
     end
 end
 
+function TestPhases:testDirty()
+    local p = self.p
+    p.mockTime = 1/8
+
+    local x, y, dirty = p:getPhases()
+    lu.assertEquals(x, 1)
+    lu.assertEquals(y, 1)
+    -- should be dirty after calculating phases
+    lu.assertEquals(dirty, true)
+    dirty = p:isDirty()
+    -- should remain dirty on subsequent checks
+    lu.assertEquals(dirty, true)
+    dirty = p:isDirty()
+    lu.assertEquals(dirty, true)
+    -- should not be dirty following apply
+    p:apply()
+    dirty = p:isDirty()
+    -- should be dirty again as time advances
+    p.mockTime = 2/8
+    dirty = p:isDirty()
+    lu.assertEquals(dirty, true)
+end
+
 function TestPhases:testSetPhaseShifts()
     local p = self.p
 

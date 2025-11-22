@@ -234,6 +234,9 @@ function EasyPattern:init(params)
     -- the previous phase calculation timestamp, used for caching computed phase offsets
     self._pt = 0
 
+    -- a flag indicating whether the pattern is dirty and needs to be redrawn
+    self._dirty = false
+
     -- cached phase offset values for each axis
     self._xPhase = 0
     self._yPhase = 0
@@ -390,22 +393,24 @@ function EasyPattern:getPhases()
     end
 
     -- determine if we're dirty and cache the computed phase values along with a timestamp
-    local dirty = xPhase ~= self._xPhase or yPhase ~= self._yPhase
+    self._isDirty = xPhase ~= self._xPhase or yPhase ~= self._yPhase
     self._xPhase = xPhase
     self._yPhase = yPhase
     self._pt = t
 
     -- return the newly computed phase offsets and indicate whether they have changed
-    return xPhase, yPhase, dirty
+    return xPhase, yPhase, self._isDirty
 end
 
 function EasyPattern:isDirty()
     local _, _, dirty = self:getPhases()
-    return dirty
+    self._isDirty = self._isDirty or dirty
+    return self._isDirty
 end
 
 function EasyPattern:apply()
     local xPhase, yPhase = self:getPhases()
+    self._isDirty = false
     -- return a 3-tuple to be used as arguments to `playdate.graphics.setPattern()`
     return self.patternImage, xPhase, yPhase
 end
