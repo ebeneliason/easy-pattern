@@ -39,5 +39,20 @@ return {
             }
         },
         BitPattern = {},
+        EasyPatternDemoSwatch = {
+            fields = {
+                super = {
+                    fields = {
+                        className = {},
+                        init = {}
+                    }
+                },
+                className = {},
+                init = {},
+                draw = {},
+                update = {},
+                tile = {},
+            }
+        }
     }
 }

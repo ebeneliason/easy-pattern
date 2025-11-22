@@ -1,8 +1,10 @@
-# EasyPattern for Playdate
+# EasyPattern
 
 [![MIT License](https://img.shields.io/github/license/ebeneliason/easy-pattern)](LICENSE) [![Toybox Compatible](https://img.shields.io/badge/toybox.py-compatible-brightgreen)](https://toyboxpy.io) [![Latest Version](https://img.shields.io/github/v/tag/ebeneliason/easy-pattern)](https://github.com/ebeneliason/easy-pattern/tags)
 
 _Easy animated patterns for Playdate._
+
+![Easy Pattern Demo Animation](images/easy-pattern-demo.gif)
 
 ## What is EasyPattern?
 
@@ -425,27 +427,96 @@ Sets the background color used for drawing the dither pattern.
 
 ## Examples
 
-These examples demonstrate the range of pattern animations possible with EasyPattern.
+These examples demonstrate the range of pattern animations possible with EasyPattern. Each
+is shown with a standard checkerboard pattern to compare the easing effect, and with a custom
+pattern intended to illustrate a potential application.
+
+You can try these examples yourself using the included [EasyPatternDemoSwatch](EasyPatternDemoSwatch.lua).
+[See below](#demo-swatch) for instructions.
 
 ### Conveyor Belt
 
 This example utilizes the built-in vertical line dither type to create a simple horizontally
 scrolling conveyor belt effect. Because the dither effect naturally has transparency, a
-`bgColor` is specified so that the resulting belt pattern is fully opaque.
+`bgColor` is specified so that the resulting belt pattern is fully opaque. Achieve belt effects
+moving in different directions by either:
+
+1. Specifying the horizontal dither type and `reversed` as needed
+2. Using a combination of `reflected` and `rotated` to reorient the pattern
+
+![Conveyor Checkerboard Example](images/conveyor-checker.gif) ![Conveyor Example](images/conveyor.gif)
+![Conveyor Example Zoomed](images/conveyor@3x.gif)
+
+**Demo Swatch ID:** `conveyor`
 
 ```lua
 EasyPattern {
     ditherType = playdate.graphics.image.kDitherTypeVerticalLine,
-    xDuration  = 0.5,
+    duration   = 0.5,
     bgColor    = playdate.graphics.kColorWhite
 }
+```
+
+### Scanline
+
+This example utilizes the built-in horizontal line dither, including transparency, to create a simple
+scanline effect. This could be used atop an image or rendered scene to simulate an old monitor.
+
+![Scanline Checkerboard Example](images/scanline-checker.gif) ![Scanline Example](images/scanline.gif) ![Scanline Over Image Example](images/scanline-over-image.gif)
+
+![Scanline Over Image Example Zoomed](images/scanline-over-image@3x.gif)
+
+**Demo Swatch ID:** `scanline`
+
+```lua
+EasyPattern {
+    ditherType = playdate.graphics.image.kDitherTypeHorizontalLine,
+    color      = gfx.kColorWhite,
+    alpha      = 0.8,
+    duration   = 0.5,
+    yReversed  = true,
+}
+```
+
+### Ooze
+
+Adding a custom pattern to a default linear ease in the vertical axis produces imagery
+that evokes landscapes such as a waterfall, sand dunes, lava, or gooey ooze.
+
+![Ooze Checkerboard Example](images/ooze-checker.gif) ![Ooze Example](images/ooze.gif)
+
+![Ooze Example Zoomed](images/ooze@3x.gif)
+
+**Demo Swatch ID:** `ooze`
+
+```lua
+ooze = EasyPattern {
+    pattern = BitPattern {
+        ' X X X X X X X X ',
+        ' X X X X X X X X ',
+        ' X X X X X X X X ',
+        ' . . X X X X X . ',
+        ' X . . X X X . . ',
+        ' X X . . . . . X ',
+        ' X X X X X X X X ',
+        ' X X X X X X X X ',
+    },
+    yDuration = 1,
+    yReversed = true,
+},
 ```
 
 ### Marching Ants
 
 This example creates a "marching ants" dotted outline effect, as is often used to indicate
-rectangular selections. To achieve the effect, one would use this pattern in conjunction
-with a call to `drawRect(r)`. Modulate the length of the dashes with the `alpha` parameter.
+rectangular selections. To achieve the effect, use this pattern in conjunction with a call
+to `drawRect(r)`. Modulate the length of the dashes with the `alpha` parameter.
+
+![Marching Ants Checkerboard Example](images/ants-checker.gif) ![Marching Ants Example](images/ants.gif) ![Marching Ants Over Image Example](images/ants-over-image.gif)
+
+![Marching Ants Over Image Example Zoomed](images/ants-over-image@3x.gif)
+
+**Demo Swatch ID:** `ants`
 
 ```lua
 EasyPattern {
@@ -458,15 +529,31 @@ EasyPattern {
 ### Vertical Bounce
 
 In this example, the pattern appears to fall downward one block at a time, bouncing to a
-settled state before the next row drops out.
+settled state before the next row drops out. The `scale` parameter is used to exaggerate
+the effect, causing it to fall by multiple rows per cycle.
+
+![Bounce Checkerboard Example](images/bounce-checker.gif) ![Bounce Example](images/bounce.gif)
+
+![Bounce Example Zoomed](images/bounce@3x.gif)
+
+**Demo Swatch ID:** `bounce`
 
 ```lua
 EasyPattern {
-    pattern   = checkerboard,
-    yDuration = 1.0,
+    pattern = BitPattern {
+        ' . . . . . . . . ',
+        ' X X X . X X X X ',
+        ' X X X . X X X X ',
+        ' X X X . X X X X ',
+        ' . . . . . . . . ',
+        ' X X X X X X X . ',
+        ' X X X X X X X . ',
+        ' X X X X X X X . ',
+    },
+    yDuration = 1,
     yEase     = playdate.easingFunctions.outBounce,
     yReversed = true,
-    scale     = 2
+    scale     = 2,
 }
 ```
 
@@ -474,12 +561,27 @@ EasyPattern {
 
 This example uses a sinusoidal ease in the vertical axis to create a simple wave motion, paired
 with a linear ease in the horizontal axis to illustrate directional flow. You can combine
-different easing functions and even different timing values for each axis to acheive more nuanced
+different easing functions and even different timing values for each axis to achieve more nuanced
 effects.
+
+![Waves Checkerboard Example](images/waves-checker.gif) ![Waves Example](images/waves.gif)
+
+![Waves Example Zoomed](images/waves@3x.gif)
+
+**Demo Swatch ID:** `waves`
 
 ```lua
 EasyPattern {
-    pattern   = checkerboard,
+    pattern = BitPattern {
+        ' . . . . . . . . ',
+        ' . X . . . . . X ',
+        ' . . . X . X . . ',
+        ' . . . . . . . . ',
+        ' . . . . . . . . ',
+        ' X X X X . . . . ',
+        ' . . . . X X X X ',
+        ' . . . . . . . . ',
+    },
     xDuration = 0.5,
     yDuration = 1.0,
     yEase     = playdate.easingFunctions.inOutSine,
@@ -492,35 +594,265 @@ EasyPattern {
 This example makes use of built-in sine functions and an `xOffset` to create a continuous
 circular panning movement.
 
+![Circular Pan Checkerboard Example](images/circle-checker.gif) ![Circular Pan Example](images/circle.gif)
+
+![Circular Pan Example Zoomed](images/circle@3x.gif)
+
+**Demo Swatch ID:** `circle`
+
 ```lua
 EasyPattern {
-    pattern   = checkerboard,
-    duration  = 0.5,
+    pattern = BitPattern {
+        ' X X X X X X X X ',
+        ' X X . . . X X X ',
+        ' X . X X X . X X ',
+        ' X . X X X . X X ',
+        ' X . X X X . X X ',
+        ' X X . . . X X X ',
+        ' X X X X X X X X ',
+        ' X X X X X X X X ',
+    },
+    duration  = 1,
     ease      = playdate.easingFunctions.inOutSine,
-    xOffset   = 0.25, -- half the duration
+    xOffset   = 0.5, -- half the duration
     reverses  = true,
-    scale     = 2
+    scale     = 3,
+}
+```
+
+### Sway
+
+This example shows how changing a few parameters can create substantially different effects.
+Subtle adjustments to the above example yield a gentle swaying motion.
+
+![Sway Checkerboard Example](images/sway-checker.gif) ![Sway Example](images/sway.gif)
+
+![Sway Example Zoomed](images/sway@3x.gif)
+
+**Demo Swatch ID:** `sway`
+
+```lua
+EasyPattern {
+    pattern = BitPattern {
+        ' X X X X X X X X ',
+        ' X X X X X X X X ',
+        ' X X X X . X X X ',
+        ' . X X X X X X X ',
+        ' . . X X X X X . ',
+        ' . X . X X X . X ',
+        ' X . X . . . X . ',
+        ' X X . X . X . X ',
+    },
+    xDuration = 2,
+    yDuration = 1, -- half the x duration
+    ease      = playdate.easingFunctions.inOutSine,
+    reverses  = true,
+    yReversed = true,
+    xScale    = 3,
+}
+```
+
+### Vibrate
+
+This example introduces a custom easing function for more complex behavior. Technically, it's
+not an _easing_ function at all. It ignores the easing parameters in favor of returning a random
+offset value. This yields a jittery vibration effect evocative of high energy or volatility.
+
+You can create any type of custom function you like to design behaviors unique to your application.
+
+![Vibrate Checkerboard Example](images/vibrate-checker.gif) ![Vibrate Example](images/vibrate.gif)
+
+![Vibrate Example Zoomed](images/vibrate@3x.gif)
+
+**Demo Swatch ID:** `vibrate`
+
+```lua
+EasyPattern {
+    pattern = BitPattern {
+        ' . . . . . . . . ',
+        ' . . . . . . . . ',
+        ' . . . X . . . . ',
+        ' . . . X X . . . ',
+        ' . X X X X X . . ',
+        ' . . X X . . . . ',
+        ' . . . X . . . . ',
+        ' . . . . . . . . ',
+    },
+    duration = 1, -- must be non-zero to trigger easing function, but value doesn't matter
+    scale    = 2, -- adjust to change the amplitude of vibration
+    ease     = function(t, b, c, d) return math.random(0, 5) / 5 end,
 }
 ```
 
 ### Perlin Noise
 
-This example introduces a custom easing function for more complex behavior. Technically, it's
-not an _easing_ function at all, as it uses Perlin noise generation to return values in the
-desired range, causing the texture to appear to move about smoothly in a seemingly random way.
+This example extends the concept introduced above, using Perlin noise to generate values which
+cause the texture to animate smoothly in a seemingly random way. You could use this to create
+organic effects such as rustling leaves.
 
-You could use this to create organic effects such as rustling leaves. You can create any
-type of custom function you like to design behaviors unique to your application.
+![Perlin Checkerboard Example](images/perlin-checker.gif) ![Perlin Example](images/perlin.gif)
+
+![Perlin Example Zoomed](images/perlin@3x.gif)
+
+**Demo Swatch ID:** `perlin`
 
 ```lua
 EasyPattern {
-    pattern   = checkerboard,
+    pattern = BitPattern {
+        ' . . . . . . . . ',
+        ' . X . . . X . . ',
+        ' . . . X . . . . ',
+        ' . . . . . . . X ',
+        ' . . . . . X . . ',
+        ' . X . . . . . . ',
+        ' . . . . . . . . ',
+        ' . . . X . . . X ',
+    },
     xDuration = 3,
-    yDuration = 2,
-    xEase     = function(t, b, c, d) return b + playdate.graphics.perlin(t / d, 2, 3, 4, d, 0.75) * c end,
-    yEase     = function(t, b, c, d) return b + playdate.graphics.perlin(t / d, 5, 6, 7, d, 0.75) * c end,
-    scale     = 10
-    }
+    yDuration = 2, -- non-equal durations extend the total loop time, increasing apparent randomness
+    xEase     = function(t, b, c, d) return b + playdate.graphics.perlin(t / d, 2, 6, 8, d, 0.75) * c end,
+    yEase     = function(t, b, c, d) return b + playdate.graphics.perlin(t / d, 5, 9, 9, d, 0.75) * c end,
+    scale     = 10, -- values are in the range [0,1], so we need to magnify to see the effect
+}
+```
+
+### Dot Matrix
+
+Here's one more example showcasing a custom easing function. This foregoes the continuous motion of common
+easing functions for a stepwise shift between the start and end values. Adjust the constant (`4` by default)
+in the easing function to change the number of steps per loop.
+
+![Dot Matrix Checkerboard Example](images/dot-matrix-checker.gif) ![Dot Matrix Example](images/dot-matrix.gif)
+
+![Dot Matrix Example Zoomed](images/dot-matrix@3x.gif)
+
+**Demo Swatch ID:** `dotmatrix`
+
+```lua
+EasyPattern {
+    pattern = BitPattern {
+        ' X X X X X X X X ',
+        ' X X X X X X X X ',
+        ' X X X X X X X X ',
+        ' X X X . . X X X ',
+        ' X X X . . X X X ',
+        ' X X X X X X X X ',
+        ' X X X X X X X X ',
+        ' X X X X X X X X ',
+    },
+    yDuration = 1,
+    yEase     = function(t, b, c, d) return playdate.easingFunctions.linear(math.floor(t*4)/4, b, c, d) end,
+}
+```
+
+### Steam
+
+This example reintroduces an alpha channel with a custom pattern. The use of adjacent white and black opaque
+pixels in the pattern enables it to read against either black or white background elements.
+
+![Steam Checkerboard Example](images/steam-checker.gif) ![Steam Example](images/steam.gif) ![Steam Over Image Example](images/steam-over-image.gif)
+
+![Steam Over Image Example Zoomed](images/steam-over-image@3x.gif)
+
+**Demo Swatch ID:** `steam`
+
+```lua
+EasyPattern {
+    pattern = BitPattern {
+        -- pattern --------     -- alpha ----------
+        ' . . X . . X . . ',    ' . . X . X X . . ',
+        ' . X . . . . . . ',    ' . X X . . . . . ',
+        ' . X . . . . . . ',    ' . X X . . . . . ',
+        ' . . X . . . . . ',    ' . . X X . . . . ',
+        ' . . . . . . . . ',    ' . . . . . . . . ',
+        ' . . . . . X . . ',    ' . . . . . X . . ',
+        ' . . . . . . X . ',    ' . . . . . X X . ',
+        ' . . . . . . X . ',    ' . . . . . X X . ',
+    },
+    duration  = 1,
+    ease      = playdate.easingFunctions.inOutSine,
+    yOffset   = 0.5, -- half the duration
+    xReverses = true,
+}
+```
+
+### Reflected Patterns
+
+You can easily create a reflection of any pattern you've already created by setting `reflected` to true
+in your pattern declaration, or on the resulting pattern once instantiated. You can reflect horizontally,
+vertically, or both. This saves the hassle of having to adjust every animation parameter accordingly to
+achieve the same effect. (The same convenience is also provided by the `rotated` flag, which rotates the
+pattern orthogonally.)
+
+![Reflected Checkerboard Example](images/reflected-checker.gif) ![Reflected Example](images/reflected.gif)
+
+![Reflected Example Zoomed](images/reflected@3x.gif)
+
+**Demo Swatch ID:** `reflected`
+
+```lua
+EasyPattern {
+    ditherType = playdate.graphics.image.kDitherTypeDiagonalLine,
+    bgColor    = gfx.kColorWhite,
+    alpha      = 0.2,
+    xDuration  = 1,
+    xReflected = true, -- reflect in any axis; try drawing next to an unreflected version
+}
+```
+
+### Composite Patterns
+
+Lastly, because all patterns support transparency, you can overlay them to create more complex effects.
+You can overlay an animated pattern on a static background or, as shown here, overlay two patterns with
+independent animation effects. The pattern shown below is a transparent variation on ["ooze"](#ooze). It
+can be drawn atop an image to add a subtle effect, or atop "ooze" to create a richer, more textured
+animation.
+
+![Ooze Overlay Checkerboard Example](images/ooze-overlay-checker.gif) ![Ooze Overlay Standalone Example](images/ooze-overlay.gif)
+![Ooze Overlay Atop Ooze Example](images/ooze-over-ooze.gif) ![Ooze Overlay Atop Image Example](images/ooze-over-image.gif)
+
+![Ooze Overlay Atop Ooze Example Zoomed](images/ooze-over-ooze@3x.gif) ![Ooze Overlay Atop Image Example Zoomed](images/ooze-over-image@3x.gif)
+
+Consider how this could be used in conjunction with the provided ["waves"](waves) example, or any patterns
+you create yourself.
+
+**Demo Swatch Name:** `oozeOverlay`
+
+```lua
+EasyPattern {
+    pattern = BitPattern {
+        -- pattern --------     -- alpha ----------
+        ' X X X X X X X X ',    ' . . . . . . . . ',
+        ' X X X X X X X X ',    ' . . . . . . . . ',
+        ' X X X X X X X X ',    ' . . . . . . . . ',
+        ' . . X X X X X . ',    ' . . . . . . . . ',
+        ' X . . X X X . . ',    ' . X . . . . . X ',
+        ' X X . . . . . X ',    ' . . X . X . X . ',
+        ' X X X X X X X X ',    ' . . . . . . . . ',
+        ' X X X X X X X X ',    ' . . . . . . . . ',
+    },
+    yEase     = playdate.easingFunctions.inOutSine,
+    yDuration = 0.5,
+    yReversed = true,
+    xDuration = 1,
+    shift     = 3,
+},
+```
+
+## Demo Swatch
+
+The included [EasyPatternDemoSwatch.lua](EasyPatternDemoSwatch.lua) provides a quick way to try a
+demo of `EasyPattern` in your own project. Just drop the file into your project next to `EasyPattern.lua`,
+include it in `main.lua`, and create an instance by specifying the ID of the pattern as listed above.
+
+```lua
+local swatch = EasyPatternDemoSwatch("waves")
+```
+
+Alternatively, you can quickly tile the full set of examples on screen:
+
+```lua
+EasyPatternDemoSwatch.tile()
 ```
 
 ## Defining Your Patterns
@@ -630,6 +962,13 @@ values so that they can be used when you do call `apply`, avoiding the need to c
 in a single frame. The caching also ensures that there's no performance hit for calling
 `apply` more than once in a given frame, so you can set the pattern multiple times in your draw
 function as needed, or reuse the same pattern across several sprite instances with no penalty.
+
+This demonstration illustrates how patterns update only as needed. The orange flashes indicate the
+regions of the screen that are redrawn each frame (toggle in the Simulator under the **View** menu).
+Note how each pattern updates on different intervals (even non-regular ones) as needed when the
+rendered phase of the pattern changes.
+
+![Pattern Update Visualization](images/easy-pattern-screen-updates.gif)
 
 With all of that said, EasyPattern is certainly not the _best_ approach to animated patterns for
 performance given the need to calculate phase offsets each frame. If you need maximal performance
