@@ -323,10 +323,9 @@ signature of `playdate.graphics.setPattern()`. This enables you to pass the resu
 ### `isDirty()`
 
 Indicates whether the pattern needs to be redrawn based on a change in the phase values since the
-last time `apply` was called. Note that `isDirty` will only return true _once_ when new phase
-values get computed. If you need to check it multiple times per frame, such as when applying the
-same pattern to multiple sprites, you'd need to cache it so all sprites can know whether a redraw
-is required.
+last time `apply` was called. In practice, this means you can check to see if the pattern is dirty
+in `update` and call `markDirty()` on your sprite to ensure `draw` gets called that frame. This
+will work no matter how many sprites use the same pattern for drawing.
 
 #### Returns
 
