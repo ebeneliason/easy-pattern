@@ -41,7 +41,7 @@ class('EasyPattern').extends(Object)
 --                          values may be set for both axes at once by dropping the `x` or `y` prefix,
 --                          from the parameter name, e.g. `..., scale = 2, reverses = true, ...`
 --
---
+--  PATTERN PROPERTIES
 --
 --        pattern           The pattern to animate, specified as an array of 8 numbers describing the
 --                          bitmap for each row, with an optional additional 8 for a bitmap alpha
@@ -65,7 +65,7 @@ class('EasyPattern').extends(Object)
 --                          pattern with an alpha channel.
 --                          Default: `playdate.graphics.kColorClear`
 --
---
+--  ANIMATION PROPERTIES
 --
 --        xEase             An easing function that defines the animation pattern in the X axis,
 --                          following the signature of the `playdate.easingFunctions`.
@@ -126,6 +126,8 @@ class('EasyPattern').extends(Object)
 --        yScale            A multiplier describing the number of 8px repetitions the pattern moves by
 --                          per cycle in the Y axis. Non-integer values result in discontinuity when looping.
 --                          Default: 1.
+--
+--  TRANSFORMATIONS
 --
 --        xShift            The number of pixels to shift the final pattern phase by in the X axis.
 --                          Default: 0.
