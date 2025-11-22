@@ -382,14 +382,14 @@ function EasyPattern:getPhases()
     end
 
     -- apply any transformations
-    if self.rotated then
-        xPhase, yPhase = yPhase, xPhase
-    end
     if self.xReflected then
         xPhase = PTTRN_SIZE - xPhase - 1
     end
     if self.yReflected then
         yPhase = PTTRN_SIZE - yPhase - 1
+    end
+    if self.rotated then
+        xPhase, yPhase = yPhase, xPhase
     end
 
     -- determine if we're dirty and cache the computed phase values along with a timestamp
