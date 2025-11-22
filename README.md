@@ -27,23 +27,18 @@ _Playdate is a registered trademark of [Panic](https://panic.com)._
     import "EasyPattern"
     ```
 
-### Using [`toybox.py`](https://toyboxpy.io/)
+### Installing with Toybox
 
-1.  If you haven't already, download and install [`toybox.py`](https://toyboxpy.io/).
-2.  Navigate to your project folder in a Terminal window.
+1.  If you haven't already, download and install [`toybox.py`](https://code.malenfant.net/didier/toybox.py).
 
-    ```console
-    cd "/path/to/myProject"
-    ```
-
-3.  Add EasyPattern to your project
+2.  Add EasyPattern to your project directory:
 
     ```console
     toybox add ebeneliason/easy-pattern
     toybox update
     ```
 
-4.  Then, if your code is in the `source` directory, import it as follows:
+3.  Then, if your code is in the `source` directory, import it as follows:
 
     ```lua
     import '../toyboxes/toyboxes.lua'
