@@ -15,15 +15,15 @@ local patterns
 --! USAGE
 --
 -- Create an instance of this class to view `EasyPattern` examples. Place this file next to `EasyPattern.lua`
--- in your project and include it in `main.lua`. Create an instance and optionally specify a pattern ID (see
--- the list of example patterns below). You can cycle through the available patterns using the d-pad.
+-- in your project and include it in `main.lua`. Create an instance and specify a pattern ID (see the list of
+-- example patterns below).
 --
 -- local swatch = EasyPatternDemoSwatch("waves")
 --
 -- Alternatively, call `EasyPatternDemoSwatch.tile()` to tile all of the example patterns randomly on screen.
 -- As an interesting experiment, try turning on `Highlight Screen Updates` in the Simulator's `View` menu while
--- tiling. Assuming you aren't using other sprites or drawing APIs underneath, this will make clear how each
--- swatch redraws only in frames when the pattern changes.
+-- tiling. Assuming you aren't using other sprites or drawing APIs underneath, this will illustrate how each
+-- swatch redraws only on frames when the pattern changes.
 --
 -- NOTE: This demo uses sprites: make sure to call `playdate.graphics.sprite.update()` each frame.
 
@@ -84,9 +84,8 @@ end
 
 --! PATTERNS
 --
--- This is the list of example patterns, which may be passed by ID to `init`. You can extend this list with
--- patterns of your own by editing this file, or by calling `EasyPatternDemoSwatch.add(id, pattern)`. See the
--- bottom of this file for more details.
+-- This is the list of example patterns, which may be passed by ID to `init`. Extend this list with
+-- patterns of your own for quick and easy experimentation.
 
 patterns = {
     checker = EasyPattern {
