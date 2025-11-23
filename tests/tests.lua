@@ -492,7 +492,7 @@ function TestPhases:setUp()
     -- animate in both axes
     self.CACHE_EXP = 1/60
     self.p = EasyPattern {
-        phaseDuration = 1
+        duration = 1
     }
 
     -- mock our timer
@@ -796,12 +796,24 @@ end
 function TestPhases:testRotation()
     local p = self.p
     p.xDuration = 0
-    p:setRotated(true)
-
-    local x, y
     p.mockTime = 1/8
+
+    -- base case, animating in Y axis only
+    local x, y
+    _, x, y = p:apply()
+    lu.assertEquals(x, 0)
+    lu.assertEquals(y, 1)
+
+    -- animating in X axis only after rotation
+    p:setRotated(true)
     _, x, y = p:apply()
     lu.assertEquals(x, 1)
+    lu.assertEquals(y, 0)
+
+    -- animation continues in new axis
+    p.mockTime = 2/8
+    _, x, y = p:apply()
+    lu.assertEquals(x, 2)
     lu.assertEquals(y, 0)
 end
 
