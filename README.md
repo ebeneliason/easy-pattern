@@ -987,7 +987,7 @@ regions of the screen that are redrawn each frame (toggle in the Simulator under
 Note how each pattern updates on different intervals (even non-regular ones) as needed when the
 rendered phase of the pattern changes.
 
-![Pattern Update Visualization](images/easy-pattern-screen-updates.mp4)
+![Pattern Update Visualization](images/easy-pattern-screen-updates.gif)
 
 With all of that said, EasyPattern is certainly not the _best_ approach to animated patterns for
 performance given the need to calculate phase offsets each frame. If you need maximal performance
