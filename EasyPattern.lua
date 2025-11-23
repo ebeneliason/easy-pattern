@@ -427,7 +427,7 @@ end
 --
 -- For example, here's how to define an opaque BitPattern in binary:
 
--- checker = BitPattern {
+-- local checker = BitPattern {
 --     '11110000',
 --     '11110000',
 --     '11110000',
@@ -440,7 +440,7 @@ end
 
 -- And here's that same pattern in ASCII:
 --
--- checker = BitPattern {
+-- local checker = BitPattern {
 --     ' X X X X . . . . ',
 --     ' X X X X . . . . ',
 --     ' X X X X . . . . ',
@@ -454,7 +454,7 @@ end
 -- When including an alpha channel, interleave its rows with the pattern rows such that the
 -- pattern and alpha channel representations appear side-by-side in the file, like so:
 --
--- ditheredDiamond = BitPattern {
+-- local ditheredDiamond = BitPattern {
 --     -- PTTRN ----------   -- ALPHA ---------
 --     ' X . X . X . X . ',  ' . . . X . . . . ',
 --     ' . X . X . X . X ',  ' . . X X X . . . ',
