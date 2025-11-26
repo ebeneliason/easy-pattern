@@ -897,3 +897,23 @@ function TestBitPattern:testWithAlpha()
     }
     lu.assertEquals(bitCheckerboardHorizontalDither, expected)
 end
+
+function TestBitPattern:testWithASCII()
+    local bitCheckerboardHorizontalDither = BitPattern {
+        -- pttrn ----------   -- alpha ----------
+        " X X X X . . . . ",  " X X X X X X X X ",
+        " X X X X . . . . ",  " . . . . . . . . ",
+        " X X X X . . . . ",  " X X X X X X X X ",
+        " X X X X . . . . ",  " . . . . . . . . ",
+        " . . . . X X X X ",  " X X X X X X X X ",
+        " . . . . X X X X ",  " . . . . . . . . ",
+        " . . . . X X X X ",  " X X X X X X X X ",
+        " . . . . X X X X ",  " . . . . . . . . ",
+    }
+
+    local expected <const> = {
+        0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F, -- pttrn
+        0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00  -- alpha
+    }
+    lu.assertEquals(bitCheckerboardHorizontalDither, expected)
+end
