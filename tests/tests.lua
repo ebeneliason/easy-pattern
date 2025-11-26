@@ -267,6 +267,22 @@ function TestInit:testRotatedParam()
     lu.assertEquals(p.rotated, true)
 end
 
+function TestInit:testCallbackParams()
+    local l, x, y
+    local f1 = function() l = true end
+    local f2 = function() x = true end
+    local f3 = function() y = true end
+    local p = EasyPattern {
+        loopCallback = f1,
+        xLoopCallback = f2,
+        yLoopCallback = f3
+    }
+
+    lu.assertEquals(p.loopCallback, f1)
+    lu.assertEquals(p.xLoopCallback, f2)
+    lu.assertEquals(p.yLoopCallback, f3)
+end
+
 
 TestPatterns = {}
 
