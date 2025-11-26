@@ -140,27 +140,6 @@ function TestInit:testFallbacks()
     lu.assertEquals(p.yReflected, true)
 end
 
-function TestInit:testLegacyParams()
-    local p = EasyPattern {
-        xPhaseDuration = rnd[1],
-        yPhaseDuration = rnd[2],
-        xPhaseOffset = rnd[3],
-        yPhaseOffset = rnd[4],
-        xPhaseFunction = ease.inOutCubic,
-        yPhaseFunction = ease.inOutSine,
-        xPhaseArgs = { rnd[5], rnd[6] },
-        yPhaseArgs = { rnd[7], rnd[8] },
-    }
-    lu.assertEquals(p.xDuration, rnd[1])
-    lu.assertEquals(p.yDuration, rnd[2])
-    lu.assertEquals(p.xOffset, rnd[3])
-    lu.assertEquals(p.yOffset, rnd[4])
-    lu.assertEquals(p.xEase, ease.inOutCubic)
-    lu.assertEquals(p.yEase, ease.inOutSine)
-    lu.assertEquals(p.xEaseArgs, { rnd[5], rnd[6] })
-    lu.assertEquals(p.yEaseArgs, { rnd[7], rnd[8] })
-end
-
 function TestInit:testXParams()
     local p = EasyPattern {
         xDuration = rnd[1],

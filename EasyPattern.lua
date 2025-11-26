@@ -32,10 +32,10 @@ class('EasyPattern').extends(Object)
 -- Create a new animated EasyPattern.
 -- @param params            A table containing one or more of the elements listed below.
 --
---                          With the exception of `pattern`, `ditherType`, `alpha`, and `color`
---                          any of these properties may also be set directly on the object at any
---                          time, e.g. `myEasyPattern.xPhaseDuration = 0.5`. (Use `:setPattern()` or
---                          `:setDitherPattern()` to change the pattern itself.)
+--                          With the exception of the pattern properties, these properties may also be
+--                          set directly on an `EasyPattern` instance at any time, e.g.
+--                          `myEasyPattern.xDuration = 0.5`. (Use `:setPattern()` or `:setDitherPattern()`
+--                          to change the pattern itself.)
 --
 --                          Additionally, when initializing an `EasyPattern`, any of the axis-specific
 --                          values may be set for both axes at once by dropping the `x` or `y` prefix,
@@ -130,7 +130,7 @@ class('EasyPattern').extends(Object)
 --                          per cycle in the Y axis. Non-integer values result in discontinuity when looping.
 --                          Default: 1.
 --
---  TRANSFORMATIONS
+--  TRANSFORMATION PROPERTIES
 --
 --        xShift            The number of pixels to shift the final pattern phase by in the X axis.
 --                          Default: 0.
@@ -195,17 +195,9 @@ function EasyPattern:init(params)
     self.xDuration      = params.xDuration      or params.duration      or 0
     self.yDuration      = params.yDuration      or params.duration      or 0
 
-    -- legacy duration params
-    self.xDuration      = params.xPhaseDuration or params.phaseDuration or self.xDuration
-    self.yDuration      = params.yPhaseDuration or params.phaseDuration or self.yDuration
-
     -- offsets that adjust the relative x and y phases, in seconds; when omitted, both run in the same phase
     self.xOffset        = params.xOffset        or params.offset        or 0
     self.yOffset        = params.yOffset        or params.offset        or 0
-
-    -- legacy offset params
-    self.xOffset        = params.xPhaseOffset   or params.phaseOffset   or self.xOffset
-    self.yOffset        = params.yPhaseOffset   or params.phaseOffset   or self.yOffset
 
     -- by default, a linear animation is used; any playdate easing (or API-compatible) function is supported
     self.xEase          = params.xEase          or params.ease          or playdate.easingFunctions.linear
@@ -213,13 +205,6 @@ function EasyPattern:init(params)
 
     self.xEaseArgs      = params.xEaseArgs      or params.easeArgs      or {}
     self.yEaseArgs      = params.yEaseArgs      or params.easeArgs      or {}
-
-    -- legacy function params
-    self.xEase          = params.xPhaseFunction or params.phaseFunction or self.xEase
-    self.yEase          = params.yPhaseFunction or params.phaseFunction or self.yEase
-
-    self.xEaseArgs      = params.xPhaseArgs     or params.phaseArgs     or self.xEaseArgs
-    self.yEaseArgs      = params.yPhaseArgs     or params.phaseArgs     or self.yEaseArgs
 
     -- indicates whether the animation reverses when reaching either end
     self.xReverses      = params.xReverses      or params.reverses      or false
