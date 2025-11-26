@@ -160,6 +160,13 @@ Patterns are rendered with transparency by default, but this can be used to make
 
 Default: `playdate.graphics.kColorClear`
 
+#### `inverted`
+
+A boolean indicating whether the pattern is inverted, with any white pixels appearing black, and any black
+pixels appearing white. Inverting the pattern does not affect the alpha channel.
+
+Default: `false`
+
 ### Animation Parameters
 
 #### `xEase`
@@ -393,21 +400,28 @@ Sets a new pattern, retaining all animation properties.
 Sets a new dither pattern, retaining all animation properties. Calling this function will
 implicitly set `pattern` to `nil`.
 
+#### Params
+
+- **`alpha`:** A value in the range [0, 1] describing the opacity of the dither effect.
+- **`ditherType`:** (_optional_) A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
+  `playdate.graphics.image.kDitherTypeVerticalLine`.
+
 ### `setReflected(horizontal, [vertical])`
 
 Sets the `xReflected` and `yReflected` properties indicating in which axes the pattern should be inverted.
 If the second argument is omitted, both axes are set to the same value.
+
+#### Params
+
+- **`horizontal`:** A `boolean` indicating whether the pattern is reflected horizontally across the Y axis.
+- **`horizontal`:** A `boolean` indicating whether the pattern is reflected vertically across the X axis.
 
 ### `setRotated(flag)`
 
 Sets the `rotated` property, indicating whether the pattern should be rotated 90º to produce an
 orthogonal result.
 
-#### Params
-
-- **`alpha`:** A value in the range [0, 1] describing the opacity of the dither effect.
-- **`ditherType`:** (_optional_) A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
-  `playdate.graphics.image.kDitherTypeVerticalLine`.
+- **`flag`:** A boolean indicating whether the pattern is rotated.
 
 ### `setColor(color)`
 
@@ -424,6 +438,15 @@ Sets the background color used for drawing the dither pattern.
 #### Params
 
 - **`color`:** A `playdate.graphics` color value.
+
+### `setInverted(flag)`
+
+Inverts the resulting pattern, causing any white pixels to appear black and any black pixels to appear white.
+The alpha channel is not affected.
+
+#### Params
+
+- **`flag`:** A `boolean` indicating whether the pattern is inverted.
 
 ## Examples
 

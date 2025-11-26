@@ -96,6 +96,7 @@ function TestInit:testDefaults()
     lu.assertEquals(p.xReflected, false)
     lu.assertEquals(p.yReflected, false)
     lu.assertEquals(p.rotated, false)
+    lu.assertEquals(p.inverted, false)
     lu.assertEquals(p._pt, 0)
     lu.assertEquals(p._xPhase, 0)
     lu.assertEquals(p._yPhase, 0)
@@ -248,6 +249,22 @@ function TestInit:testDitherPatternParams()
     lu.assertEquals(p.alpha, rnd[1])
     lu.assertEquals(p.color, gfx.kColorWhite)
     lu.assertEquals(p.bgColor, gfx.kColorBlack)
+end
+
+function TestInit:testInvertedParam()
+    local p = EasyPattern {
+        inverted = true
+    }
+
+    lu.assertEquals(p.inverted, true)
+end
+
+function TestInit:testRotatedParam()
+    local p = EasyPattern {
+        rotated = true
+    }
+
+    lu.assertEquals(p.rotated, true)
 end
 
 
@@ -483,6 +500,43 @@ function TestPatterns:testSetPatternWithAlpha()
 
     local after = sampleImage(p.patternImage, 6)
     lu.assertEquals(after, expectedAfter)
+end
+
+function TestPatterns:testInverted()
+    local p = EasyPattern {
+        pattern = checkerboard,
+        inverted = true,
+    }
+
+    local default = {
+        W, W, W, W, B, B,
+        W, W, W, W, B, B,
+        W, W, W, W, B, B,
+        W, W, W, W, B, B,
+        B, B, B, B, W, W,
+        B, B, B, B, W, W,
+    }
+
+    local inverted = {
+        B, B, B, B, W, W,
+        B, B, B, B, W, W,
+        B, B, B, B, W, W,
+        B, B, B, B, W, W,
+        W, W, W, W, B, B,
+        W, W, W, W, B, B,
+    }
+
+    local sample = sampleImage(p.patternImage, 6)
+    lu.assertEquals(sample, inverted)
+
+    p:setInverted(false)
+
+    sample = sampleImage(p.patternImage, 6)
+    lu.assertEquals(sample, default)
+
+    p:setInverted(true)
+    sample = sampleImage(p.patternImage, 6)
+    lu.assertEquals(sample, inverted)
 end
 
 

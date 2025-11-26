@@ -29,6 +29,7 @@ return {
                 setDitherPattern = {},
                 setRotated = {},
                 setReflected = {},
+                setInverted = {},
                 _updatePatternImage = {},
                 _getTime = {},
                 getPhases = {},

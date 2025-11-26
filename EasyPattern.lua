@@ -65,6 +65,9 @@ class('EasyPattern').extends(Object)
 --                          pattern with an alpha channel.
 --                          Default: `playdate.graphics.kColorClear`
 --
+--        inverted          A boolean indicating whether the pattern is inverted, with white pixels appearing
+--                          as black and black pixels appearing as white. The alpha channel is not affected.
+--
 --  ANIMATION PROPERTIES
 --
 --        xEase             An easing function that defines the animation pattern in the X axis,
@@ -168,6 +171,8 @@ function EasyPattern:init(params)
     -- the color to use for a background for a dither pattern or a pattern with an alpha channel
     self.bgColor = params.bgColor or gfx.kColorClear
 
+    -- a boolean indicating whether the pattern is drawn with black and white pixels inverted
+    self.inverted = params.inverted or false
 
     -- OBJECT PROPERTY  | SINGLE AXIS SET        | DUAL AXIS FALLBACK    | DEFAULT VALUE
 
@@ -275,6 +280,11 @@ function EasyPattern:setDitherPattern(alpha, ditherType)
     self:_updatePatternImage()
 end
 
+function EasyPattern:setInverted(inverted)
+    self.inverted = inverted
+    self:_updatePatternImage()
+end
+
 function EasyPattern:setRotated(flag)
     self.rotated = flag
     self._pt = 0 -- invalidate cache
@@ -306,6 +316,14 @@ function EasyPattern:_updatePatternImage()
         end
         gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
     gfx.popContext()
+
+    -- invert as needed
+    if self.inverted then
+        gfx.pushContext(self.patternImage)
+            gfx.setImageDrawMode(gfx.kDrawModeInverted)
+            self.patternImage:draw(0, 0)
+        gfx.popContext()
+    end
 
     -- apply any transformations to our pattern image
     if self.rotated or self.xReflected or self.yReflected then
