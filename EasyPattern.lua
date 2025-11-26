@@ -65,6 +65,9 @@ class('EasyPattern').extends(Object)
 --                          pattern with an alpha channel.
 --                          Default: `playdate.graphics.kColorClear`
 --
+--        bgPattern         A pattern to render behind the this one. This may be a static pattern as may be
+--                          passed for the `pattern` parameter, or another EasyPattern instance.
+--
 --        inverted          A boolean indicating whether the pattern is inverted, with white pixels appearing
 --                          as black and black pixels appearing as white. The alpha channel is not affected.
 --
@@ -153,8 +156,9 @@ class('EasyPattern').extends(Object)
 --  CALLBACKS
 --
 --        loopCallback      A function to be called when the pattern loops, taking into account the effective
---                          duration of the animation in each axis including speed and reversal. The `EasyPattern`
---                          and total loop count are passed as parameters to the function.
+--                          duration of the animation in each axis including speed and reversal, as well as any
+--                          background pattern animations. The `EasyPattern` and total loop count are passed as
+--                          parameters to the function.
 --                          Default: nil.
 --
 --        xLoopCallback     A function to be called when the pattern loops in the X axis, taking into account all
@@ -185,6 +189,9 @@ function EasyPattern:init(params)
 
     -- the color to use for a background for a dither pattern or a pattern with an alpha channel
     self.bgColor = params.bgColor or gfx.kColorClear
+
+    -- a pattern to draw behind this one, which can be static or an EasyPattern instance
+    self.bgPattern = params.bgPattern or nil
 
     -- a boolean indicating whether the pattern is drawn with black and white pixels inverted
     self.inverted = params.inverted or false
@@ -277,6 +284,11 @@ function EasyPattern:setBackgroundColor(color)
     self:_updatePatternImage()
 end
 
+function EasyPattern:setBackgroundPattern(pattern)
+    self.bgPattern = pattern
+    self:_updatePatternImage()
+end
+
 function EasyPattern:setPattern(pattern)
     self.pattern = pattern
     self:_updatePatternImage()
@@ -315,6 +327,17 @@ function EasyPattern:_updatePatternImage()
 
     -- draw the pattern image
     gfx.pushContext(self.patternImage)
+        -- draw the background pattern first
+        if self.bgPattern then
+            if self.bgPattern.apply then
+                self.bgPattern:setPhaseShifts(-self._xPhase, -self._yPhase) -- must subtract our own phase!
+                gfx.setPattern(self.bgPattern:apply())
+            else
+                gfx.setPattern(self.bgPattern, -self._xPhase, -self._yPhase)
+            end
+            gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
+        end
+        -- draw our own pattern second
         gfx.setColor(self.color)
         if self.pattern then
             gfx.setPattern(self.pattern)
@@ -379,16 +402,30 @@ local function lcm(a, b)
     return math.abs(a * b) / gcd(a, b)
 end
 
+--! GETTERS
+
 function EasyPattern:getLoopDuration()
-    return lcm(self:getXLoopDuration(), self:getYLoopDuration())
+    -- compute our own total duration
+    local duration = lcm(self:getXLoopDuration(), self:getYLoopDuration())
+    -- consider any background pattern duration
+    local bgDuration = (self.bgPattern and self.bgPattern.getLoopDuration) and self.bgPattern:getLoopDuration() or 0
+    return lcm(duration, bgDuration)
 end
 
 function EasyPattern:getXLoopDuration()
-    return self.xDuration * (self.xReverses and 2 or 1) / self.xSpeed
+    -- compute our own X duration
+    local duration = self.xDuration * (self.xReverses and 2 or 1) / self.xSpeed
+    -- consider any background pattern X duration
+    local bgDuration = (self.bgPattern and self.bgPattern.getXLoopDuration) and self.bgPattern:getXLoopDuration() or 0
+    return lcm(duration, bgDuration)
 end
 
 function EasyPattern:getYLoopDuration()
-    return self.yDuration * (self.yReverses and 2 or 1) / self.ySpeed
+    -- compute our own total duration
+    local duration = self.yDuration * (self.yReverses and 2 or 1) / self.ySpeed
+    -- consider any background pattern Y duration
+    local bgDuration = (self.bgPattern and self.bgPattern.getYLoopDuration) and self.bgPattern:getYLoopDuration() or 0
+    return lcm(duration, bgDuration)
 end
 
 --! PHASE COMPUTATION

@@ -95,6 +95,36 @@ initialized or any other timing conditions. If you'd like two of the same EasyPa
 different patterns with the same duration) to animate out of phase with each other, adjust the
 `xOffset` and `yOffset` for one of them.
 
+## Pattern Composition
+
+EasyPatterns support several parameters representing distinct layers—all of which support transparency—
+that get composited to create the final pattern. This list describes their order. Because the `bgPattern`
+property may be set to another `EasyPattern` instance, it's possible to create recursive stacks which
+composite several patterns together as one.
+
+**↑ TOP**
+
+```mermaid
+block-beta
+columns 8
+  A["pattern (or dither)"]:8
+  X["bgPattern"]:2
+  block:bgPattern:6
+    columns 1
+    B["pattern (or dither)"]
+    I["bgPattern…"]
+    D["bgColor"]
+  end
+  F["bgColor"]:8
+```
+
+**↓ BOTTOM**
+
+> [!NOTE]
+> The current fully-composited pattern image is accessible via the `patternImage` property. Note that this image
+> represents the raw pattern, before any phase shifts have been applied. However, you should rarely need to access
+> this—it's easiest to draw with your pattern by calling [`apply()`](#apply).
+
 ## Supported Parameters
 
 A full list of supported parameters follows below. Pass a single table containing one or more of these
@@ -158,6 +188,13 @@ although in that case the background color could be baked into the pattern itsel
 Patterns are rendered with transparency by default, but this can be used to make them opaque.
 
 Default: `playdate.graphics.kColorClear`
+
+#### `bgPattern`
+
+A pattern to render behind the this one. This may be a static pattern of the type provided for the `pattern`
+parameter, or another `EasyPattern` instance.
+
+Default: `nil`
 
 #### `inverted`
 
@@ -319,22 +356,22 @@ Default: `false`
 #### `loopCallback`
 
 A function to be called when the pattern loops, taking into account the effective duration of the animation
-in each axis including speed and reversal. The `EasyPattern` and total loop count are passed as parameters
-to the function.
+in each axis including speed and reversal, as well as any animated background pattern. The `EasyPattern` and
+total loop count are passed as parameters to the function.
 
 Default: `nil`
 
 #### `xLoopCallback`
 
-A function to be called when the pattern loops in the X axis, taking into account speed and reversal.
-The `EasyPattern` and X loop count are passed as parameters to the function.
+A function to be called when the pattern loops in the X axis, taking into account speed and reversal, as
+well as any background pattern. The `EasyPattern` and X loop count are passed as parameters to the function.
 
 Default: `nil`
 
 #### `yLoopCallback`
 
-A function to be called when the pattern loops in the Y axis, taking into account speed and reversal.
-The `EasyPattern` and Y loop count are passed as parameters to the function.
+A function to be called when the pattern loops in the Y axis, taking into account speed and reversal, as
+well as any background pattern. The `EasyPattern` and Y loop count are passed as parameters to the function.
 
 Default: `nil`
 
@@ -349,13 +386,27 @@ a new instance, instead enabling use of `{` and `}` by themselves.)
 Most parameters come in pairs to enable setting independent values for the X and Y axes. For
 example, `xDuration` and `yDuration`. However, when initializing a new `EasyPattern`, any
 of the axis-specific values may be set for both axes at once by dropping the `x` or `y` prefix
-from the parameter name, e.g. `duration = 1, scale = 2, reverses = true, ...` and so on.
+from the parameter name, e.g. `duration = 1, scale = 2, reverses = true, ...` and so on. For example:
+
+```lua
+local myEasyPattern = EasyPattern {
+  pattern   = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }, -- checkerboard
+  duration  = 1,
+  yEase     = playdate.easingFunctions.inOutSine,
+  yReverses = true,
+}
+```
 
 ### `apply()`
 
 _This is where the magic happens._ `apply` takes no arguments and returns a 3-tuple matching the
 signature of `playdate.graphics.setPattern()`. This enables you to pass the result of a call to
-`apply` directly to the `setPattern` function without intermediate storage in a local variable.
+`apply` directly to the `setPattern` function without intermediate storage in a local variable:
+
+```lua
+gfx.setPattern(myPattern:apply())
+-- draw using your pattern…
+```
 
 #### Returns
 
@@ -371,6 +422,13 @@ Indicates whether the pattern needs to be redrawn based on a change in the phase
 last time `apply` was called. In practice, this means you can check to see if the pattern is dirty
 in `update` and call `markDirty()` on your sprite to ensure `draw` gets called that frame. This
 will work no matter how many sprites use the same pattern for drawing.
+
+```lua
+-- e.g. in `sprite:update()`
+if myPattern:isDirty() then
+  self:markDirty()
+end
+```
 
 #### Returns
 
@@ -491,6 +549,21 @@ Sets the background color used for drawing the dither pattern.
 
 - **`color`:** A `playdate.graphics` color value.
 
+### `setBackgroundPattern(pattern)`
+
+Sets a background pattern which gets rendered behind this one. Setting a background pattern is substantially
+more performant than drawing one pattern atop another, as only the 8x8 pattern gets composited (and only frames
+when it changes). All other drawing is only done once.
+
+Given that you can set another `EasyPattern` as a background, you can also create chains to compose 3 or more
+patterns and achieve more complex interference effects.
+
+#### Params
+
+- **`pattern`:** The background pattern, either in the same form as that provided to `setPattern`, or another
+  `EasyPattern` instance. Although you cannot specify a dither pattern as a background, you can achieve the same
+  result by providing an `EasyPattern` with a dither pattern and a duration of 0 (to prevent animation).
+
 ### `setInverted(flag)`
 
 Inverts the resulting pattern, causing any white pixels to appear black and any black pixels to appear white.
@@ -503,17 +576,17 @@ The alpha channel is not affected.
 ### `getLoopDuration()`
 
 Returns the total effective loop duration of the pattern in seconds, taking into account the duration of
-the animation in each axis including speed and reversal.
+the animation in each axis including speed and reversal, as well as any background pattern.
 
 ### `getXLoopDuration()`
 
 Returns the total effective loop duration of the pattern in the X axis in seconds, taking into account its
-speed and reversal.
+speed and reversal as well as any background pattern.
 
 ### `getYLoopDuration()`
 
 Returns the total effective loop duration of the pattern in the Y axis in seconds, taking into account its
-speed and reversal.
+speed and reversal as well as any background pattern.
 
 ## Examples
 
