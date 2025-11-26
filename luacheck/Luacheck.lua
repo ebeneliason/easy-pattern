@@ -25,6 +25,7 @@ return {
                 init = {},
                 setColor = {},
                 setBackgroundColor = {},
+                setBackgroundPattern = {},
                 setPattern = {},
                 setDitherPattern = {},
                 setRotated = {},
