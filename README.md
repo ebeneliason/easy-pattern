@@ -386,13 +386,27 @@ a new instance, instead enabling use of `{` and `}` by themselves.)
 Most parameters come in pairs to enable setting independent values for the X and Y axes. For
 example, `xDuration` and `yDuration`. However, when initializing a new `EasyPattern`, any
 of the axis-specific values may be set for both axes at once by dropping the `x` or `y` prefix
-from the parameter name, e.g. `duration = 1, scale = 2, reverses = true, ...` and so on.
+from the parameter name, e.g. `duration = 1, scale = 2, reverses = true, ...` and so on. For example:
+
+```lua
+local myEasyPattern = EasyPattern {
+  pattern   = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }, -- checkerboard
+  duration  = 1,
+  yEase     = playdate.easingFunctions.inOutSine,
+  yReverses = true,
+}
+```
 
 ### `apply()`
 
 _This is where the magic happens._ `apply` takes no arguments and returns a 3-tuple matching the
 signature of `playdate.graphics.setPattern()`. This enables you to pass the result of a call to
-`apply` directly to the `setPattern` function without intermediate storage in a local variable.
+`apply` directly to the `setPattern` function without intermediate storage in a local variable:
+
+```lua
+gfx.setPattern(myPattern:apply())
+-- draw using your pattern…
+```
 
 #### Returns
 
@@ -408,6 +422,13 @@ Indicates whether the pattern needs to be redrawn based on a change in the phase
 last time `apply` was called. In practice, this means you can check to see if the pattern is dirty
 in `update` and call `markDirty()` on your sprite to ensure `draw` gets called that frame. This
 will work no matter how many sprites use the same pattern for drawing.
+
+```lua
+-- e.g. in `sprite:update()`
+if myPattern:isDirty() then
+  self:markDirty()
+end
+```
 
 #### Returns
 
