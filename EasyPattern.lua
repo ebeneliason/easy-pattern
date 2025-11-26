@@ -248,6 +248,10 @@ function EasyPattern:init(params)
     -- indicates whether the entire pattern is rotated by 90º producing an orthogonal result
     self.rotated        = params.rotated                                or false
 
+    -- registers callback that fire when the pattern loops; loopCallback is distinct, not shorthand for both x and y
+    self.loopCallback   = params.loopCallback                           or nil
+    self.xLoopCallback  = params.xLoopCallback                          or nil
+    self.yLoopCallback  = params.yLoopCallback                          or nil
 
     -- the previously computed time values for each axis, used to determine when to reverse animations
     self._ptx = 0
@@ -468,16 +472,26 @@ function EasyPattern:getPhases()
     self._yPhase = yPhase
     self._pt = t
 
+    -- update background if either we or it changed
+    if self.bgPattern then
+        if self._isDirty or (self.bgPattern.isDirty ~= nil and self.bgPattern:isDirty()) then
+            self:_updatePatternImage()
+            self._isDirty = true
+        end
+    end
+
     -- call loop callbacks if defined
     if self.xLoopCallback then
-        local xLoops = (t / self:getXLoopDuration()) // 1
+        local xld = self:getXLoopDuration()
+        local xLoops = (t + self.xOffset%xld) / xld // 1
         if xLoops > self._xLoops then
             self.xLoopCallback(self, xLoops)
             self._xLoops = xLoops
         end
     end
     if self.yLoopCallback then
-        local yLoops = (t / self:getYLoopDuration()) // 1
+        local yld = self:getYLoopDuration()
+        local yLoops = (t + self.yOffset%yld) / yld // 1
         if yLoops > self._yLoops then
             self.yLoopCallback(self, yLoops)
             self._yLoops = yLoops
