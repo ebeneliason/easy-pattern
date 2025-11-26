@@ -872,6 +872,201 @@ function TestPhases:testRotation()
 end
 
 
+TestLoops = {}
+
+function TestLoops:setUp()
+    -- animate in both axes
+    self.CACHE_EXP = 1/60
+    self.p = EasyPattern {
+        duration = 1
+    }
+
+    -- track loop callbacks
+    self.loops  = 0
+    self.xLoops = 0
+    self.yLoops = 0
+
+    self.loopCBs  = 0
+    self.xLoopCBs = 0
+    self.yLoopCBs = 0
+
+    self.p.loopCallback  = function(_, n) self.loopCBs += 1  self.loops  = n end
+    self.p.xLoopCallback = function(_, n) self.xLoopCBs += 1 self.xLoops = n end
+    self.p.yLoopCallback = function(_, n) self.yLoopCBs += 1 self.yLoops = n end
+
+    -- mock our timer
+    self.p._getTime = function() return self.p.mockTime end
+    self.p.mockTime = 0
+end
+
+function TestLoops:testXLoopDuration()
+    local p = self.p
+    p.mockTime = 0
+    p.xDuration = 2
+    p.yDuration = 3
+    lu.assertEquals(p:getXLoopDuration(), 2)
+
+    -- double speed
+    p.xSpeed = 2
+    lu.assertEquals(p:getXLoopDuration(), 1)
+
+    -- half speed
+    p.xSpeed = 0.5
+    lu.assertEquals(p:getXLoopDuration(), 4)
+
+    -- reverses
+    p.xReverses = true
+    lu.assertEquals(p:getXLoopDuration(), 8)
+end
+
+function TestLoops:testYLoopDuration()
+    local p = self.p
+    p.mockTime = 0
+    p.xDuration = 2
+    p.yDuration = 3
+    lu.assertEquals(p:getYLoopDuration(), 3)
+
+    -- double speed
+    p.ySpeed = 2
+    lu.assertEquals(p:getYLoopDuration(), 1.5)
+
+    -- half speed
+    p.ySpeed = 0.5
+    lu.assertEquals(p:getYLoopDuration(), 6)
+
+    -- reverses
+    p.yReverses = true
+    lu.assertEquals(p:getYLoopDuration(), 12)
+end
+
+function TestLoops:testLoopDuration()
+    local p = self.p
+    p.mockTime = 0
+    p.xDuration = 2
+    p.yDuration = 2
+    lu.assertEquals(p:getLoopDuration(), 2)
+
+    p.xDuration = 2
+    p.yDuration = 3
+    lu.assertEquals(p:getLoopDuration(), 6)
+
+    p.xDuration = 0.25
+    p.yDuration = 3
+    lu.assertEquals(p:getLoopDuration(), 3)
+end
+
+function TestLoops:testBasicLoopCallback()
+    local p = self.p
+    p.xDuration = 2
+    p.yDuration = 3
+
+    -- no loops yet
+    for i = 0, 5 do
+        p.mockTime = i
+        p:apply()
+        lu.assertEquals(self.loops, 0)
+        lu.assertEquals(self.loopCBs, 0)
+    end
+
+    -- just before first loop
+    p.mockTime = 5.95
+    p:apply()
+    lu.assertEquals(self.loops, 0)
+    lu.assertEquals(self.loopCBs, 0)
+
+    -- at first loop
+    p.mockTime = 6.00
+    p:apply()
+    lu.assertEquals(self.loops, 1)
+    lu.assertEquals(self.loopCBs, 1)
+
+    -- applied a second time, still just one callback
+    p.mockTime = 6.00
+    p:apply()
+    lu.assertEquals(self.loops, 1)
+    lu.assertEquals(self.loopCBs, 1)
+
+    -- just after first loop
+    p.mockTime = 6.05
+    p:apply()
+    lu.assertEquals(self.loops, 1)
+    lu.assertEquals(self.loopCBs, 1)
+
+    -- after several loops
+    p.mockTime = 19
+    p:apply()
+    lu.assertEquals(self.loops, 3)
+    lu.assertEquals(self.loopCBs, 2) -- skipped ahead in time, missed second call
+end
+
+function TestLoops:testXYLoopCallbacks()
+    local p = self.p
+    p.xDuration = 2
+    p.yDuration = 3
+
+    lu.assertEquals(self.xLoops, 0)
+    lu.assertEquals(self.xLoopCBs, 0)
+    lu.assertEquals(self.yLoops, 0)
+    lu.assertEquals(self.yLoopCBs, 0)
+    lu.assertEquals(self.loops, 0)
+    lu.assertEquals(self.loopCBs, 0)
+
+    p.mockTime = 1
+    p:apply()
+    lu.assertEquals(self.xLoops, 0)
+    lu.assertEquals(self.xLoopCBs, 0)
+    lu.assertEquals(self.yLoops, 0)
+    lu.assertEquals(self.yLoopCBs, 0)
+    lu.assertEquals(self.loops, 0)
+    lu.assertEquals(self.loopCBs, 0)
+
+    p.mockTime = 2
+    p:apply()
+    lu.assertEquals(self.xLoops, 1)
+    lu.assertEquals(self.xLoopCBs, 1)
+    lu.assertEquals(self.yLoops, 0)
+    lu.assertEquals(self.yLoopCBs, 0)
+    lu.assertEquals(self.loops, 0)
+    lu.assertEquals(self.loopCBs, 0)
+
+    p.mockTime = 3
+    p:apply()
+    lu.assertEquals(self.xLoops, 1)
+    lu.assertEquals(self.xLoopCBs, 1)
+    lu.assertEquals(self.yLoops, 1)
+    lu.assertEquals(self.yLoopCBs, 1)
+    lu.assertEquals(self.loops, 0)
+    lu.assertEquals(self.loopCBs, 0)
+
+    p.mockTime = 4
+    p:apply()
+    lu.assertEquals(self.xLoops, 2)
+    lu.assertEquals(self.xLoopCBs, 2)
+    lu.assertEquals(self.yLoops, 1)
+    lu.assertEquals(self.yLoopCBs, 1)
+    lu.assertEquals(self.loops, 0)
+    lu.assertEquals(self.loopCBs, 0)
+
+    p.mockTime = 5
+    p:apply()
+    lu.assertEquals(self.xLoops, 2)
+    lu.assertEquals(self.xLoopCBs, 2)
+    lu.assertEquals(self.yLoops, 1)
+    lu.assertEquals(self.yLoopCBs, 1)
+    lu.assertEquals(self.loops, 0)
+    lu.assertEquals(self.loopCBs, 0)
+
+    p.mockTime = 6
+    p:apply()
+    lu.assertEquals(self.xLoops, 3)
+    lu.assertEquals(self.xLoopCBs, 3)
+    lu.assertEquals(self.yLoops, 2)
+    lu.assertEquals(self.yLoopCBs, 2)
+    lu.assertEquals(self.loops, 1)
+    lu.assertEquals(self.loopCBs, 1)
+end
+
+
 TestBitPattern = {}
 
 function TestBitPattern:testWithoutAlpha()

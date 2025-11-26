@@ -35,6 +35,9 @@ return {
                 getPhases = {},
                 setPhaseShifts = {},
                 shiftPhasesBy = {},
+                getLoopDuration = {},
+                getXLoopDuration = {},
+                getYLoopDuration = {},
                 isDirty = {},
                 apply = {}
             }

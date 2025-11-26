@@ -150,7 +150,22 @@ class('EasyPattern').extends(Object)
 --                          orthogonal result. Rotation is applied following any reflections.
 --                          Default: false.
 --
-
+--  CALLBACKS
+--
+--        loopCallback      A function to be called when the pattern loops, taking into account the effective
+--                          duration of the animation in each axis including speed and reversal. The `EasyPattern`
+--                          and total loop count are passed as parameters to the function.
+--                          Default: nil.
+--
+--        xLoopCallback     A function to be called when the pattern loops in the X axis, taking into account all
+--                          considerations noted above. The `EasyPattern` and X loop count are passed as
+--                          parameters to the function.
+--                          Default: nil.
+--
+--        yLoopCallback     A function to be called when the pattern loops in the Y axis, taking into account all
+--                          considerations noted above. The `EasyPattern` and Y loop count are passed as
+--                          parameters to the function.
+--                          Default: nil.
 --! INIT
 
 function EasyPattern:init(params)
@@ -240,6 +255,11 @@ function EasyPattern:init(params)
 
     -- the previous phase calculation timestamp, used for caching computed phase offsets
     self._pt = 0
+
+    -- the number of loops run in each axis and overall
+    self._xLoops = 0
+    self._yLoops = 0
+    self._loops  = 0
 
     -- a flag indicating whether the pattern is dirty and needs to be redrawn
     self._dirty = false
@@ -358,6 +378,30 @@ function EasyPattern:_getTime() -- luacheck: ignore
     return playdate.getCurrentTimeMilliseconds() / 1000
 end
 
+local function gcd(a, b)
+    while b ~= 0 do a, b = b, a % b end
+    return a
+end
+
+local function lcm(a, b)
+    if a == 0 or b == 0 then
+        return math.max(a, b) -- technically 0, but for our purposes we want the non-zero value if there is one
+    end
+    return math.abs(a * b) / gcd(a, b)
+end
+
+function EasyPattern:getLoopDuration()
+    return lcm(self:getXLoopDuration(), self:getYLoopDuration())
+end
+
+function EasyPattern:getXLoopDuration()
+    return self.xDuration * (self.xReverses and 2 or 1) / self.xSpeed
+end
+
+function EasyPattern:getYLoopDuration()
+    return self.yDuration * (self.yReverses and 2 or 1) / self.ySpeed
+end
+
 --! PHASE COMPUTATION
 
 function EasyPattern:getPhases()
@@ -423,6 +467,29 @@ function EasyPattern:getPhases()
     self._xPhase = xPhase
     self._yPhase = yPhase
     self._pt = t
+
+    -- call loop callbacks if defined
+    if self.xLoopCallback then
+        local xLoops = (t / self:getXLoopDuration()) // 1
+        if xLoops > self._xLoops then
+            self.xLoopCallback(self, xLoops)
+            self._xLoops = xLoops
+        end
+    end
+    if self.yLoopCallback then
+        local yLoops = (t / self:getYLoopDuration()) // 1
+        if yLoops > self._yLoops then
+            self.yLoopCallback(self, yLoops)
+            self._yLoops = yLoops
+        end
+    end
+    if self.loopCallback then
+        local loops = (t / self:getLoopDuration()) // 1
+        if loops > self._loops then
+            self.loopCallback(self, loops)
+            self._loops = loops
+        end
+    end
 
     -- return the newly computed phase offsets and indicate whether they have changed
     return xPhase, yPhase, self._isDirty

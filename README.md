@@ -106,9 +106,13 @@ Parameters are grouped into the following categories:
 
 1. [Pattern Parameters](#pattern-parameters): Define the overall appearance of your pattern.
 2. [Animation Parameters](#animation-parameters): Define the animation behaviors of your pattern.
-3. [Transformation Parameters](#transformation-parameters): Apply simple transformations to your pattern, such as translation, reflection, and rotation.
+3. [Transformation Parameters](#transformation-parameters): Apply simple transformations to your pattern,
+   such as translation, reflection, and rotation.
+4. [Callback Parameters](#callback-parameters)): Set functions to be called when the pattern loops.
 
-The [animation](#animation-parameters) and [transformation](#transformation-parameters) may also be set directly on your `EasyPattern` instance at any time after initialization, e.g.
+The [animation](#animation-parameters), [transformation](#transformation-parameters), and
+[callback](callback-parameters) parameters may also be set directly on your `EasyPattern` instance at any
+time after initialization, e.g.
 
 ```lua
 easyCheckerboard.xDuration = 0.5
@@ -310,6 +314,30 @@ Rotation is applied following any reflections.
 
 Default: `false`
 
+### Callback Parameters
+
+#### `loopCallback`
+
+A function to be called when the pattern loops, taking into account the effective duration of the animation
+in each axis including speed and reversal. The `EasyPattern` and total loop count are passed as parameters
+to the function.
+
+Default: `nil`
+
+#### `xLoopCallback`
+
+A function to be called when the pattern loops in the X axis, taking into account speed and reversal.
+The `EasyPattern` and X loop count are passed as parameters to the function.
+
+Default: `nil`
+
+#### `yLoopCallback`
+
+A function to be called when the pattern loops in the Y axis, taking into account speed and reversal.
+The `EasyPattern` and Y loop count are passed as parameters to the function.
+
+Default: `nil`
+
 ## Functions
 
 ### `init([params])`
@@ -471,6 +499,21 @@ The alpha channel is not affected.
 #### Params
 
 - **`flag`:** A `boolean` indicating whether the pattern is inverted.
+
+### `getLoopDuration()`
+
+Returns the total effective loop duration of the pattern in seconds, taking into account the duration of
+the animation in each axis including speed and reversal.
+
+### `getXLoopDuration()`
+
+Returns the total effective loop duration of the pattern in the X axis in seconds, taking into account its
+speed and reversal.
+
+### `getYLoopDuration()`
+
+Returns the total effective loop duration of the pattern in the Y axis in seconds, taking into account its
+speed and reversal.
 
 ## Examples
 
