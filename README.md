@@ -120,6 +120,11 @@ columns 8
 
 **↓ BOTTOM**
 
+> [!NOTE]
+> The current fully-composited pattern image is accessible via the `patternImage` property. Note that this image
+> represents the raw pattern, before any phase shifts have been applied. However, you should rarely need to access
+> this—it's easiest to draw with your pattern by calling [`apply()`](#apply).
+
 ## Supported Parameters
 
 A full list of supported parameters follows below. Pass a single table containing one or more of these

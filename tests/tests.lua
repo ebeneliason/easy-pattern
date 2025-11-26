@@ -242,13 +242,20 @@ function TestInit:testDitherPatternParams()
     local p = EasyPattern {
         ditherType = gfx.image.kDitherTypeDiagonalLine,
         alpha = rnd[1],
-        color = gfx.kColorWhite,
-        bgColor = gfx.kColorBlack
     }
     lu.assertEquals(p.ditherType, gfx.image.kDitherTypeDiagonalLine)
     lu.assertEquals(p.alpha, rnd[1])
+end
+
+function TestInit:testBackgroundParams()
+    local p = EasyPattern {
+        color = gfx.kColorWhite,
+        bgColor = gfx.kColorBlack,
+        bgPattern = checkerboard,
+    }
     lu.assertEquals(p.color, gfx.kColorWhite)
     lu.assertEquals(p.bgColor, gfx.kColorBlack)
+    lu.assertEquals(p.bgPattern, checkerboard)
 end
 
 function TestInit:testInvertedParam()
@@ -513,6 +520,74 @@ function TestPatterns:testSetPatternWithAlpha()
     lu.assertEquals(before, expectedBefore)
 
     p:setPattern(stripestripe)
+
+    local after = sampleImage(p.patternImage, 6)
+    lu.assertEquals(after, expectedAfter)
+end
+
+function TestPatterns:testSetStaticBackgroundPattern()
+    local p = EasyPattern {
+        pattern = stripestripe
+    }
+
+    local expectedBefore = {
+        W, B, W, B, W, B,
+        C, C, C, C, C, C,
+        W, B, W, B, W, B,
+        C, C, C, C, C, C,
+        W, B, W, B, W, B,
+        C, C, C, C, C, C,
+    }
+
+    local expectedAfter = {
+        W, B, W, B, W, B,
+        W, W, W, W, B, B,
+        W, B, W, B, W, B,
+        W, W, W, W, B, B,
+        W, B, W, B, W, B,
+        B, B, B, B, W, W,
+    }
+
+    local before = sampleImage(p.patternImage, 6)
+    lu.assertEquals(before, expectedBefore)
+
+    p:setBackgroundPattern(checkerboard)
+    lu.assertNotNil(p.bgPattern)
+    lu.assertEquals(p.bgPattern.className, nil)
+
+    local after = sampleImage(p.patternImage, 6)
+    lu.assertEquals(after, expectedAfter)
+end
+
+function TestPatterns:testSetBackgroundEasyPattern()
+    local p = EasyPattern {
+        pattern = stripestripe
+    }
+
+    local expectedBefore = {
+        W, B, W, B, W, B,
+        C, C, C, C, C, C,
+        W, B, W, B, W, B,
+        C, C, C, C, C, C,
+        W, B, W, B, W, B,
+        C, C, C, C, C, C,
+    }
+
+    local expectedAfter = {
+        W, B, W, B, W, B,
+        W, W, W, W, B, B,
+        W, B, W, B, W, B,
+        W, W, W, W, B, B,
+        W, B, W, B, W, B,
+        B, B, B, B, W, W,
+    }
+
+    local before = sampleImage(p.patternImage, 6)
+    lu.assertEquals(before, expectedBefore)
+
+    p:setBackgroundPattern(EasyPattern { pattern = checkerboard })
+    lu.assertNotNil(p.bgPattern)
+    lu.assertEquals(p.bgPattern.className, "EasyPattern")
 
     local after = sampleImage(p.patternImage, 6)
     lu.assertEquals(after, expectedAfter)
@@ -887,6 +962,96 @@ function TestPhases:testRotation()
     lu.assertEquals(y, 0)
 end
 
+function TestPhases:testAnimatedBackgroundPattern()
+    local p = self.p
+    p.xDuration = 0
+    p.yDuration = 0
+    p:setPattern(stripestripe)
+
+    local bg = EasyPattern {
+        pattern = checkerboard,
+        xDuration = 1
+    }
+    p:setBackgroundPattern(bg)
+
+    -- mock bg timer
+    bg._getTime = function() return p.mockTime end
+
+    local unshifted = {
+        W, B, W, B, W, B,
+        W, W, W, W, B, B,
+        W, B, W, B, W, B,
+        W, W, W, W, B, B,
+        W, B, W, B, W, B,
+        B, B, B, B, W, W,
+    }
+
+    local shiftedOne = {
+        W, B, W, B, W, B,
+        W, W, W, B, B, B,
+        W, B, W, B, W, B,
+        W, W, W, B, B, B,
+        W, B, W, B, W, B,
+        B, B, B, W, W, W
+    }
+
+    p.mockTime = 0
+    p:apply()
+    sample = sampleImage(p.patternImage, 6)
+    lu.assertEquals(sample, unshifted)
+
+    p.mockTime = 1/8
+    p:apply()
+    sample = sampleImage(p.patternImage, 6)
+    lu.assertEquals(sample, shiftedOne)
+end
+
+function TestPhases:testAnimatedForegroundPattern()
+    local p = self.p
+    p:setPattern(stripestripe)
+    p.xDuration = 0
+    p.yDuration = 1
+
+    local bg = EasyPattern {
+        pattern = checkerboard
+    }
+    p:setBackgroundPattern(bg)
+
+    -- mock bg timer
+    bg._getTime = function() return p.mockTime end
+
+    local unshifted = {
+        W, B, W, B, W, B,
+        W, W, W, W, B, B,
+        W, B, W, B, W, B,
+        W, W, W, W, B, B,
+        W, B, W, B, W, B,
+        B, B, B, B, W, W,
+    }
+
+    -- This is subtle. We expect the visual result to have a fixed bgPattern, while the pattern itself
+    -- moves in the Y axis. However, because the patternImage has the phase shifts applied to it, the
+    -- net result here is that the bgPattern appears to shift in the Y axis in the opposite direction,
+    -- while the pattern remains fixed.
+    local shiftedTwo = {
+        W, B, W, B, W, B, --B, B, B, B, W, W,
+        B, B, B, B, W, W,
+        W, B, W, B, W, B, --W, W, W, W, B, B,
+        W, W, W, W, B, B,
+        W, B, W, B, W, B, --W, W, W, W, B, B,
+        W, W, W, W, B, B,
+    }
+
+    p.mockTime = 0
+    p:apply()
+    sample = sampleImage(p.patternImage, 6)
+    lu.assertEquals(sample, unshifted)
+
+    p.mockTime = 2/8
+    p:apply()
+    sample = sampleImage(p.patternImage, 6)
+    lu.assertEquals(sample, shiftedTwo)
+end
 
 TestLoops = {}
 
@@ -933,6 +1098,14 @@ function TestLoops:testXLoopDuration()
     -- reverses
     p.xReverses = true
     lu.assertEquals(p:getXLoopDuration(), 8)
+
+    -- bgPattern in opposite axis has no effect
+    p:setBackgroundPattern(EasyPattern { yDuration = 12 })
+    lu.assertEquals(p:getXLoopDuration(), 8)
+
+    -- bgPattern in same axis
+    p:setBackgroundPattern(EasyPattern { xDuration = 12 })
+    lu.assertEquals(p:getXLoopDuration(), 24)
 end
 
 function TestLoops:testYLoopDuration()
@@ -953,6 +1126,14 @@ function TestLoops:testYLoopDuration()
     -- reverses
     p.yReverses = true
     lu.assertEquals(p:getYLoopDuration(), 12)
+
+    -- bgPattern in opposite axis has no effect
+    p:setBackgroundPattern(EasyPattern { xDuration = 18 })
+    lu.assertEquals(p:getYLoopDuration(), 12)
+
+    -- bgPattern in same axis
+    p:setBackgroundPattern(EasyPattern { yDuration = 18 })
+    lu.assertEquals(p:getYLoopDuration(), 36)
 end
 
 function TestLoops:testLoopDuration()
@@ -969,6 +1150,14 @@ function TestLoops:testLoopDuration()
     p.xDuration = 0.25
     p.yDuration = 3
     lu.assertEquals(p:getLoopDuration(), 3)
+
+    -- bgPattern with no duration
+    p:setBackgroundPattern(EasyPattern {})
+    lu.assertEquals(p:getLoopDuration(), 3)
+
+    -- bgPattern in same axis
+    p:setBackgroundPattern(EasyPattern { xDuration = 5, yDuration = 2 })
+    lu.assertEquals(p:getLoopDuration(), 30)
 end
 
 function TestLoops:testBasicLoopCallback()

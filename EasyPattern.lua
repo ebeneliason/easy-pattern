@@ -348,7 +348,7 @@ function EasyPattern:_updatePatternImage()
                 self.bgPattern:setPhaseShifts(-self._xPhase, -self._yPhase) -- must subtract our own phase!
                 gfx.setPattern(self.bgPattern:apply())
             else
-                gfx.setPattern(self.bgPattern, -self.xPhase, -self.yPhase)
+                gfx.setPattern(self.bgPattern, -self._xPhase, -self._yPhase)
             end
             gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
         end
