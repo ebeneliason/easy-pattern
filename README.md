@@ -86,19 +86,7 @@ end
 
 ```
 
-### Notes on Initialization
-
-EasyPattern takes a single argument — a table of named parameters that define both the pattern and
-animation properties. (This is also why no parentheses are required when defining a new instance,
-instead enabling use of `{` and `}` by themselves.)
-
-Most parameters come in pairs to enable setting independent values for the X and Y axes. For
-example, `xDuration` and `yDuration`. However, when initializing a new `EasyPattern`, any
-of the axis-specific values may be set for both axes at once by dropping the `x` or `y` prefix
-from the parameter name, e.g. `..., scale = 2, reverses = true, ...` and so on. The usage example
-above demonstrates this by setting the `duration` and `ease` for both axes at once.
-
-### Notes on Animation Timing
+### Animation Timing
 
 EasyPatterns are designed to loop continuously. They do so with respect to an absolute clock that
 starts the moment the program runs. _They do not depend on timers._ This approach means that two
@@ -109,11 +97,18 @@ different patterns with the same duration) to animate out of phase with each oth
 
 ## Supported Parameters
 
-A full list of supported parameters follows below. Technically speaking, none of these are required.
-In practice, you'll want to set either `pattern` or `ditherType`, and a `duration` for at least
-one axis as shown in the example above.
+A full list of supported parameters follows below. Pass a single table containing one or more of these
+parameters to [`init()`](#initparams) to define your pattern. Technically speaking, none of these are required.
+In practice, you'll want to set either `pattern` or `ditherType`, and a `duration` for at least one axis
+as shown in the example above.
 
-The animation parameters may also be set directly on your EasyPattern instance at any time, e.g.
+Parameters are grouped into the following categories:
+
+1. [Pattern Parameters](#pattern-parameters): Define the overall appearance of your pattern.
+2. [Animation Parameters](#animation-parameters): Define the animation behaviors of your pattern.
+3. [Transformation Parameters](#transformation-parameters): Apply simple transformations to your pattern, such as translation, reflection, and rotation.
+
+The [animation](#animation-parameters) and [transformation](#transformation-parameters) may also be set directly on your `EasyPattern` instance at any time after initialization, e.g.
 
 ```lua
 easyCheckerboard.xDuration = 0.5
@@ -282,6 +277,8 @@ the Y axis. Non-integer values may result in discontinuity when looping.
 
 Default: `1`
 
+### Transformation Parameters
+
 #### `xShift`
 
 The number of pixels to shift the final pattern phase by in the X axis.
@@ -314,6 +311,17 @@ Rotation is applied following any reflections.
 Default: `false`
 
 ## Functions
+
+### `init([params])`
+
+EasyPattern takes a single argument — a table of [named parameters](#supported-parameters) that define
+both the pattern and animation properties. (This is also why no parentheses are required when defining
+a new instance, instead enabling use of `{` and `}` by themselves.)
+
+Most parameters come in pairs to enable setting independent values for the X and Y axes. For
+example, `xDuration` and `yDuration`. However, when initializing a new `EasyPattern`, any
+of the axis-specific values may be set for both axes at once by dropping the `x` or `y` prefix
+from the parameter name, e.g. `duration = 1, scale = 2, reverses = true, ...` and so on.
 
 ### `apply()`
 
@@ -354,8 +362,11 @@ returned instead.
 
 ### `setPhaseShifts(xShift, [yShift])`
 
-Explicitly sets the X and Y phase shift values. If `yShift` is omitted, both X and Y phases are set to the
-same value. This can be used to enable dynamic pattern behaviors driven by external game logic. Here are
+Sets the X and Y phase shift values. If `yShift` is omitted, both X and Y phases are set to the same value.
+These phase shifts are _additive_ to (rather than override) any shifts in phase resulting from the animation
+parameters applied to your pattern.
+
+This can be used to enable dynamic pattern behaviors driven by external game logic. Here are
 a few examples:
 
 1. A conveyor belt pattern which animates according to the crank speed
@@ -369,8 +380,14 @@ and spinning as it travels down the lane.
 
 ![Driftpin Example](images/driftpin.gif)
 
-Note that this method is provided solely for convenience. You may also set the `xShift` and `yShift`
-properties directly.
+#### Params
+
+- **`xShift`:** The phase shift to set for the X axis
+- **`yShift`:** The phase shift to set for the Y axis
+
+Note that these values may also be set directly on an `EasyPattern` instance. However, calling this function
+ensures that the resulting phase values are correct immediately, rather than lazily computed the next time
+the pattern is applied.
 
 #### Returns
 
@@ -381,9 +398,14 @@ properties directly.
 A convenience function that sets the phase shifts by offsetting them by the specified amount from their
 current values. If `yShift` is omitted, both X and Y phases are shifted the same amount.
 
+#### Params
+
+- **`xShift`:** The amount to to shift the phase by in the X axis
+- **`yShift`:** The amount to to shift the phase by in the Y axis
+
 #### Returns
 
-- **`dirty`**: A boolean indicating whether the set caused the phase values to update.
+- **`dirty`**: A boolean indicating whether the shift caused the phase values to update.
 
 ### `setPattern(pattern)`
 
@@ -420,6 +442,8 @@ If the second argument is omitted, both axes are set to the same value.
 
 Sets the `rotated` property, indicating whether the pattern should be rotated 90º to produce an
 orthogonal result.
+
+#### Params
 
 - **`flag`:** A boolean indicating whether the pattern is rotated.
 
