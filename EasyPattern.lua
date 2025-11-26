@@ -340,7 +340,7 @@ function EasyPattern:setPhaseShifts(xShift, _yShift)
     self.xShift = xShift
     self.yShift = _yShift or xShift
     self._pt = 0 -- invalidate cache
-    _, _, dirty = self:getPhases()
+    local _, _, dirty = self:getPhases()
     return dirty
 end
 
@@ -349,7 +349,7 @@ function EasyPattern:shiftPhasesBy(xShift, _yShift)
     self.xShift += xShift
     self.yShift += _yShift or xShift
     self._pt = 0 -- invalidate cache
-    _, _, dirty = self:getPhases()
+    local _, _, dirty = self:getPhases()
     return dirty
 end
 
