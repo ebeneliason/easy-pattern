@@ -633,7 +633,7 @@ The alpha channel is not affected.
 
 - **`flag`:** A `boolean` indicating whether the pattern is inverted.
 
-## Transformation
+### Transformation
 
 #### `setPhaseShifts(xShift, [yShift])`
 
