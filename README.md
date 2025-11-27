@@ -530,7 +530,7 @@ gfx.setPattern(myPattern:apply())
 -- draw using your pattern…
 ```
 
-#### Returns
+**Returns:**
 
 - **`patternImage`:** A `playdate.graphics.image` containing the 8x8 pattern to be drawn.
 - **`xPhase`:** The calculated phase offset for the X axis given the current time and other
@@ -552,7 +552,7 @@ if myPattern:isDirty() then
 end
 ```
 
-#### Returns
+**Returns:**
 
 - **`dirty`**: A boolean indicating whether the pattern needs to be redrawn.
 
@@ -562,7 +562,7 @@ Used to introspect the current X and Y phase offsets for the pattern. If the val
 new values will be computed when calling this function; otherwise, the cached values will be
 returned instead.
 
-#### Returns
+**Returns:**
 
 - **`xPhase`**: A number representing the current phase offset for the X axis in the range 0..7.
 - **`yPhase`**: A number representing the current phase offset for the Y axis in the range 0..7.
@@ -588,7 +588,7 @@ and spinning as it travels down the lane.
 
 ![Driftpin Example](images/driftpin.gif)
 
-#### Params
+**Params:**
 
 - **`xShift`:** The phase shift to set for the X axis
 - **`yShift`:** The phase shift to set for the Y axis
@@ -597,7 +597,7 @@ Note that these values may also be set directly on an `EasyPattern` instance. Ho
 ensures that the resulting phase values are correct immediately, rather than lazily computed the next time
 the pattern is applied.
 
-#### Returns
+**Returns:**
 
 - **`dirty`**: A boolean indicating whether the set caused the phase values to update.
 
@@ -606,12 +606,12 @@ the pattern is applied.
 A convenience function that sets the phase shifts by offsetting them by the specified amount from their
 current values. If `yShift` is omitted, both X and Y phases are shifted the same amount.
 
-#### Params
+**Params:**
 
 - **`xShift`:** The amount to to shift the phase by in the X axis
 - **`yShift`:** The amount to to shift the phase by in the Y axis
 
-#### Returns
+**Returns:**
 
 - **`dirty`**: A boolean indicating whether the shift caused the phase values to update.
 
@@ -619,7 +619,7 @@ current values. If `yShift` is omitted, both X and Y phases are shifted the same
 
 Sets a new pattern, retaining all animation properties.
 
-#### Params
+**Params:**
 
 - **`pattern`:** An array of 8 numbers describing the bitmap for each row, with an optional
   additional 8 for a bitmap alpha channel, as would be supplied to
@@ -630,7 +630,7 @@ Sets a new pattern, retaining all animation properties.
 Sets a new dither pattern, retaining all animation properties. Calling this function will
 implicitly set `pattern` to `nil`.
 
-#### Params
+**Params:**
 
 - **`alpha`:** A value in the range [0, 1] describing the opacity of the dither effect.
 - **`ditherType`:** (_optional_) A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
@@ -641,7 +641,7 @@ implicitly set `pattern` to `nil`.
 Sets the `xReflected` and `yReflected` properties indicating in which axes the pattern should be inverted.
 If the second argument is omitted, both axes are set to the same value.
 
-#### Params
+**Params:**
 
 - **`horizontal`:** A `boolean` indicating whether the pattern is reflected horizontally across the Y axis.
 - **`horizontal`:** A `boolean` indicating whether the pattern is reflected vertically across the X axis.
@@ -651,7 +651,7 @@ If the second argument is omitted, both axes are set to the same value.
 Sets the `rotated` property, indicating whether the pattern should be rotated 90º to produce an
 orthogonal result.
 
-#### Params
+**Params:**
 
 - **`flag`:** A boolean indicating whether the pattern is rotated.
 
@@ -659,7 +659,7 @@ orthogonal result.
 
 Sets the color used for drawing the dither pattern.
 
-#### Params
+**Params:**
 
 - **`color`:** A `playdate.graphics` color value.
 
@@ -667,7 +667,7 @@ Sets the color used for drawing the dither pattern.
 
 Sets the background color used for drawing the dither pattern.
 
-#### Params
+**Params:**
 
 - **`color`:** A `playdate.graphics` color value.
 
@@ -680,7 +680,7 @@ when it changes). All other drawing is only done once.
 Given that you can set another `EasyPattern` as a background, you can also create chains to compose 3 or more
 patterns and achieve more complex interference effects.
 
-#### Params
+**Params:**
 
 - **`pattern`:** The background pattern, either in the same form as that provided to `setPattern`, or another
   `EasyPattern` instance. Although you cannot specify a dither pattern as a background, you can achieve the same
@@ -691,7 +691,7 @@ patterns and achieve more complex interference effects.
 Inverts the resulting pattern, causing any white pixels to appear black and any black pixels to appear white.
 The alpha channel is not affected.
 
-#### Params
+**Params:**
 
 - **`flag`:** A `boolean` indicating whether the pattern is inverted.
 
