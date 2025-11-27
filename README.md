@@ -13,7 +13,7 @@ simple declarative syntax for creating animated patterns. Specify an 8x8 pattern
 any of a variety of easing parameters, and let EasyPattern take care of the rest. Under the
 hood it will automatically phase shift your pattern in the horizontal and/or vertical axes to
 create a seamless looping pattern texture that can be used with any
-[PlayDate drawing calls](https://sdk.play.date/1.13.2/Inside%20Playdate.html#_drawing).
+[PlayDate drawing calls](https://sdk.play.date/3.0.1/Inside%20Playdate.html#_drawing).
 
 _Playdate is a registered trademark of [Panic](https://panic.com)._
 
@@ -75,9 +75,11 @@ local easyCheckerboard = EasyPattern {
 }
 ```
 
+See the docs for [`init()`](#initparams) and the [list of supported parameters](#supported-parameters).
+
 ### Draw With Your Pattern
 
-Set the pattern for drawing (e.g. in your sprite's `draw()` function):
+Set the pattern for drawing with [`apply()`](#apply) (e.g. in your sprite's `draw()` function):
 
 ```lua
 playdate.graphics.setPattern(easyCheckerboard:apply())
@@ -92,7 +94,7 @@ sprites, make sure your sprite has a chance to draw in order to animate the patt
 You'll need to redraw whenever your pattern changes, but you'll also want to avoid redrawing when
 you don't need to. Depending on the speed of your animation, chances are the pattern won't actually
 update every frame. You can check to see whether the phase values for the pattern have changed with
-`isDirty()` in order to know when to redraw. If using sprites, you can mark them dirty when the
+[`isDirty()`](#isdirty) in order to know when to redraw. If using sprites, you can mark them dirty when the
 pattern changes in your sprite's `update()` function:
 
 ```lua
@@ -131,16 +133,17 @@ EasyPatterns can be thought of in two parts:
 This section provides context for each of these to help you understand how EasyPattern works, which in turn
 will help you reason about how to construct your patterns. The pattern properties converge to define an 8x8
 pixel pattern, and the animation properties converge to define the phase offsets for the pattern in each axis
-at the given point in time. These converged values are returned by each call to `apply()`, enabling you to
-pass them directly to `setPattern()` and draw using the animated pattern.
+at the given point in time. These converged values are returned by each call to [`apply()`](#apply), enabling
+you to pass them directly to `playdate.graphics.setPattern()` and draw using the animated pattern.
 
 ### Types and Compatibility
 
 The types of the core pattern and animation properties match those used elsewhere in the Playdate
 SDK to maximize compatibility.
 
-- All easing functions are defined in the `playdate.easingFunction` format. You can use these functions directly,
-  or specify custom functions of your own, or those provided by another library.
+- All easing functions are defined in the
+  [`playdate.easingFunctions`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#M-easingFunctions) format. You
+  can use these functions directly, specify custom functions of your own, or use another library.
 - All patterns are defined either as a `ditherType` (as would be passed to
   [`playdate.graphics.setDitherPattern`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setDitherPattern)),
   or an 8x8 pixel pattern as an array of 8 numbers describing the bitmap for each row (as would be passed
@@ -226,15 +229,15 @@ its layers. For example:
   an orthogonal result.
 - **Translation/Phase**: Set the [`xShift`](#xshift) and [`yShift`](#yshift) properties to additively adjust
   the phase offsets of the pattern in each axis. This can be used to make patterns respond dynamically to
-  inputs or game states, as described in [`setPhaseShifts`](#setphaseshifts).
+  inputs or game states, as described in [`setPhaseShifts`](#setphaseshiftsxshift-yshift).
 - **Inversion**: Set the [`inverted`](#inverted) property to cause all white pixels to appear black, and vice-versa.
 
 ## Supported Parameters
 
 A full list of supported parameters follows below. Pass a single table containing one or more of these
 parameters to [`init()`](#initparams) to define your pattern. Technically speaking, none of these are required.
-In practice, you'll want to set either `pattern` or `ditherType`, and a `duration` for at least one axis
-as shown in the example above.
+In practice, you'll want to set either [`pattern`](#pattern) or [`ditherType`](#dithertype), and a
+[`duration`](#xDuration) for at least one axis as shown in the basic usage example above.
 
 Parameters are grouped into the following categories:
 
@@ -242,7 +245,7 @@ Parameters are grouped into the following categories:
 2. [Animation Parameters](#animation-parameters): Define the animation behaviors of your pattern.
 3. [Transformation Parameters](#transformation-parameters): Apply simple transformations to your pattern,
    such as translation, reflection, and rotation.
-4. [Callback Parameters](#callback-parameters)): Set functions to be called when the pattern loops.
+4. [Callback Parameters](#callback-parameters): Set functions to be called when the pattern loops.
 
 The [animation](#animation-parameters), [transformation](#transformation-parameters), and
 [callback](callback-parameters) parameters may also be set directly on your `EasyPattern` instance at any
@@ -312,7 +315,7 @@ Default: `false`
 #### `xEase`
 
 An easing function that defines the animation pattern in the X axis. The function should follow the
-signature of the [`playdate.easingFunctions`](https://sdk.play.date/1.13.2/Inside%20Playdate.html#M-easingFunctions):
+signature of the [`playdate.easingFunctions`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#M-easingFunctions):
 
 - **`t`**: elapsed time, in the range [0, `duration`]
 - **`b`**: the beginning value (always 0)
@@ -458,13 +461,13 @@ Default: `false`
 ### Callback Parameters
 
 > [!NOTE]
-> Because EasyPattern does not use timers nor have an `update` function that gets called each frame, these
+> Because EasyPattern does not use timers nor have an update function that gets called each frame, these
 > callbacks trigger lazily the when the pattern crosses a loop boundary while computing new phase offsets
 > (such as when checking `isDirty()`, or when calling `apply()`). If you check for dirty and/or draw using
 > your pattern each frame, you can ignore this fact. If you do not, then be aware that:
 >
 > 1. The time between loop callbacks may not be exact, especially if the frame rate is lower.
-> 2. EasyPatterns will not trigger any callbacks at all while not actively being used.
+> 2. EasyPattern callbacks will not be called at all if the pattern is not being used.
 
 #### `loopCallback`
 
@@ -518,9 +521,9 @@ local myEasyPattern = EasyPattern {
 
 ### `apply()`
 
-_This is where the magic happens._ `apply` takes no arguments and returns a 3-tuple matching the
+_This is where the magic happens._ `apply()` takes no arguments and returns a 3-tuple matching the
 signature of `playdate.graphics.setPattern()`. This enables you to pass the result of a call to
-`apply` directly to the `setPattern` function without intermediate storage in a local variable:
+`apply` directly to the `setPattern()` function without intermediate storage in a local variable:
 
 ```lua
 gfx.setPattern(myPattern:apply())
@@ -538,8 +541,8 @@ gfx.setPattern(myPattern:apply())
 ### `isDirty()`
 
 Indicates whether the pattern needs to be redrawn based on a change in the phase values since the
-last time `apply` was called. In practice, this means you can check to see if the pattern is dirty
-in `update` and call `markDirty()` on your sprite to ensure `draw` gets called that frame. This
+last time `apply()` was called. In practice, this means you can check to see if the pattern is dirty
+in `update()` and call `markDirty()` on your sprite to ensure `draw()` gets called that frame. This
 will work no matter how many sprites use the same pattern for drawing.
 
 ```lua
@@ -1236,8 +1239,8 @@ on [defining your patterns](#defining-your-patterns) is provided in the previous
 
 1. First, make sure you've properly specified an `xDuration` and/or `yDuration`, without
    which your pattern will remain static.
-2. Ensure that `draw` gets called as necessary to reflect the rendered pattern. If you're using a
-   sprite, you can call `self:markDirty()` from your `update` function. See the
+2. Ensure that `draw()` gets called as necessary to reflect the rendered pattern. If you're using a
+   sprite, you can call `self:markDirty()` from your `update()` function. See the
    [notes on performance](#what-about-performance) to optimize drawing. If you're not using sprites,
    just be sure to call your draw method as needed each frame.
 
@@ -1257,11 +1260,11 @@ end
 
 ```
 
-When `isDirty` is called, `EasyPattern` will compute the phase offsets for the current time and
+When `isDirty()` is called, `EasyPattern` will compute the phase offsets for the current time and
 determine whether they have changed since the pattern was last applied. It also caches those
-values so that they can be used when you do call `apply`, avoiding the need to compute them twice
+values so that they can be used when you do call `apply()`, avoiding the need to compute them twice
 in a single frame. The caching also ensures that there's no performance hit for calling
-`apply` more than once in a given frame, so you can set the pattern multiple times in your draw
+`apply()` more than once in a given frame, so you can set the pattern multiple times in your draw
 function as needed, or reuse the same pattern across several sprite instances with no penalty.
 
 This demonstration illustrates how patterns update only as needed. The orange flashes indicate the
