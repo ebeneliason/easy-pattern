@@ -61,7 +61,9 @@ _Playdate is a registered trademark of [Panic](https://panic.com)._
 
 ## Basic Usage
 
-Define your pattern:
+### Define Your Pattern
+
+Create an EasyPattern using a simple declarative syntax:
 
 ```lua
 local checkerboard <const> = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }
@@ -73,28 +75,30 @@ local easyCheckerboard = EasyPattern {
 }
 ```
 
-Set the pattern for drawing (e.g. in your sprite's `draw` function):
+### Draw With Your Pattern
+
+Set the pattern for drawing (e.g. in your sprite's `draw()` function):
 
 ```lua
 playdate.graphics.setPattern(easyCheckerboard:apply())
--- draw using your pattern here
+-- draw with your pattern here, using any of the SDKs drawing APIs
 ```
 
-That's it! The pattern will automatically animate according to the parameters provided. The only
-thing left to do is to make sure your sprite has a chance to draw in order to animate the pattern.
-If it isn't naturally marked dirty (by e.g. moving each frame, etc.), you'll need to call
-`markDirty()` yourself each frame.
+That's it! The pattern will automatically animate according to the parameters provided. If using
+sprites, make sure your sprite has a chance to draw in order to animate the pattern (see below).
 
-Depending on the speed of your animation, chances are the pattern won't actually update every
-frame. To improve performance, you can check to see whether the phase values for the pattern have
-changed in order to know when to mark your sprite dirty. You can do this from your sprite's
-`update` function:
+### Detect Changes in Your Pattern
+
+You'll need to redraw whenever your pattern changes, but you'll also want to avoid redrawing when
+you don't need to. Depending on the speed of your animation, chances are the pattern won't actually
+update every frame. You can check to see whether the phase values for the pattern have changed with
+`isDirty()` in order to know when to redraw. If using sprites, you can mark them dirty when the
+pattern changes in your sprite's `update()` function:
 
 ```lua
 if myEasyPattern:isDirty() then
     self:markDirty()
 end
-
 ```
 
 ## Gallery
