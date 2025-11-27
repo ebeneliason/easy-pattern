@@ -122,7 +122,7 @@ Click on any pattern to jump to a complete example with code, or use the provide
 [![Steam Thumbnail](images/steam-over-image@3x.gif)](#steam)
 [![Reflected Thumbnail](images/reflected@3x.gif)](#reflected-patterns)
 [![Ooze Over Image Thumbnail](images/ooze-over-image@3x.gif)](#composite-patterns)
-[![Ooze Over Ooze Image Thumbnail](images/ooze-over-image@3x.gif)](#composite-patterns)
+[![Ooze Over Ooze Image Thumbnail](images/ooze-over-ooze@3x.gif)](#composite-patterns)
 
 ## Understanding EasyPattern
 
