@@ -464,7 +464,7 @@ Default: `false`
 
 > [!NOTE]
 > Because EasyPattern does not use timers nor have an update function that gets called each frame, these
-> callbacks trigger lazily the when the pattern crosses a loop boundary while computing new phase offsets
+> callbacks trigger lazily when the pattern crosses a loop boundary while computing new phase offsets
 > (such as when checking `isDirty()`, or when calling `apply()`). If you check for dirty and/or draw using
 > your pattern each frame, you can ignore this fact. If you do not, then be aware that:
 >
@@ -562,9 +562,9 @@ end
 
 #### `getPhases()`
 
-Used to introspect the current X and Y phase offsets for the pattern. If the values are stale,
-new values will be computed when calling this function; otherwise, the cached values will be
-returned instead.
+Inspects the current X and Y phase offsets for the pattern. If the values are stale, new values are
+computed when this function is called; otherwise, cached values are returned. You generally won't need
+to call this function directly; it is called internally every time you call `isDirty()` or `apply()`.
 
 **Returns:**
 
