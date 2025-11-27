@@ -17,6 +17,19 @@ create a seamless looping pattern texture that can be used with any
 
 _Playdate is a registered trademark of [Panic](https://panic.com)._
 
+### Table of Contents
+
+1. [Installation](#installation)
+2. [Basic Usage](#basic-usage)
+3. [Pattern Gallery](#gallery)
+4. [Understanding EasyPattern](#understanding-easypattern)
+5. [Parameter Reference](#supported-parameters)
+6. [Function Reference](#functions)
+7. [Examples](#examples)
+8. [Demo Swatch](#demo-swatch)
+9. [Defining Patterns](#defining-your-patterns)
+10. [Troubleshooting & Performance](#troubleshooting)
+
 ## Installation
 
 ### Installing Manually
@@ -46,9 +59,7 @@ _Playdate is a registered trademark of [Panic](https://panic.com)._
     import '../toyboxes/toyboxes.lua'
     ```
 
-## Usage
-
-### The Basics
+## Basic Usage
 
 Define your pattern:
 
@@ -86,21 +97,96 @@ end
 
 ```
 
+## Gallery
+
+Click on any pattern to jump to a complete example with code, or use the provided
+[demo swatch](#demo-swatch) to easily try them out for yourself.
+
+[![Conveyor Thumbnail](images/conveyor@3x.gif)](#conveyor)
+[![Scanline Thumbnail](images/scanline-over-image@3x.gif)](#scanline)
+[![Ooze Thumbnail](images/ooze@3x.gif)](#ooze)
+[![Marching Ants Over Image Thumbnail](images/ants-over-image@3x.gif)](#marching-ants)
+[![Bounce Thumbnail](images/bounce@3x.gif)](#vertical-bounce)
+[![Waves Thumbnail](images/waves@3x.gif)](#waves)
+[![Circular Pan Thumbnail](images/circle@3x.gif)](#circular-pan)
+[![Sway Thumbnail](images/sway@3x.gif)](#sway)
+[![Vibrate Thumbnail](images/vibrate@3x.gif)](#vibrate)
+[![Perlin Thumbnail](images/perlin@3x.gif)](#perlin-noise)
+[![Dot Matrix Thumbnail](images/dot-matrix@3x.gif)](#dot-matrix)
+[![Steam Thumbnail](images/steam-over-image@3x.gif)](#steam)
+[![Reflected Thumbnail](images/reflected@3x.gif)](#reflected-patterns)
+[![Ooze Over Image Thumbnail](images/ooze-over-image@3x.gif)](#composite-patterns)
+
+## Understanding EasyPattern
+
+EasyPatterns can be thought of in two parts:
+
+1. **Pattern**: A collection of properties that define its overall appearance
+2. **Animation**: A collection of properties that define its overall behavior
+
+This section provides context for each of these to help you understand how EasyPattern works, which in turn
+will help you reason about how to construct your patterns. The pattern properties converge to define an 8x8
+pixel pattern, and the animation properties converge to define the phase offsets for the pattern in each axis
+at the given point in time. These converged values are returned by each call to `apply()`, enabling you to
+pass them directly to `setPattern()` and draw using the animated pattern.
+
+### Types and Compatibility
+
+The types of the core pattern and animation properties match those used elsewhere in the Playdate
+SDK to maximize compatibility.
+
+- All easing functions are defined in the `playdate.easingFunction` format. You can use these functions directly,
+  or specify custom functions of your own, or those provided by another library.
+- All patterns are defined either as a `ditherType` (as would be passed to
+  [`playdate.graphics.setDitherPattern`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setDitherPattern)),
+  or an 8x8 pixel pattern as an array of 8 numbers describing the bitmap for each row (as would be passed
+  to [playdate.graphics.setPattern](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)). See
+  [Defining Your Patterns](#defining-your-patterns) for more details and tools to help you specify patterns easily.
+
 ### Animation Timing
 
 EasyPatterns are designed to loop continuously. They do so with respect to an absolute clock that
-starts the moment the program runs. _They do not depend on timers._ This approach means that two
-instances of the same EasyPattern will run in sync with each other regardless of when they were
-initialized or any other timing conditions. If you'd like two of the same EasyPatterns (or two
-different patterns with the same duration) to animate out of phase with each other, adjust the
-`xOffset` and `yOffset` for one of them.
+starts the moment the program runs (specifically `playdate.getCurrentTimeMilliseconds()`). _They do not depend on
+timers._ Instead, the appropriate axis phase shifts for the current point in time are computed in closed-form based
+on the system clock and the animation properties for each axis.
 
-## Pattern Composition
+> [!NOTE]
+> This approach means that two instances of the same EasyPattern will run in sync with each other regardless
+> of when they were initialized or any other timing conditions. If you'd like two of the same EasyPatterns
+> (or two different patterns with the same duration) to animate out of phase with each other, adjust the `xOffset`
+> and/or `yOffset` for one of them.
+
+To understand how these properties affect the animation, let's look at how the phase is computed at a given
+point in time:
+
+```lua
+-- assuming time t, ease ~= nil, and duration > 0...
+local tx = (t * self.xSpeed + self.xOffset) % self.xDuration
+local xPhase = self.xEase(tx, 0, PTTRN_SIZE, self.xDuration, table.unpack(self.xEaseArgs)) * self.xScale % PTTRN_SIZE // 1
+```
+
+First, note the time scaling. `tx` is computed based on the current time `t` by scaling it by `xSpeed` (thus slowing
+or speeding up time), adding the `xOffset` (thus offsetting the start time), and then modding by `xDuration` (so the
+value passed to the easing function is always in the range [0, `xDuration`]).
+
+The adjusted time value is then passed to the specified easing function, which then interpolates between 0 and 8
+(`PTTRN_SIZE`) over the specified `xDuration`. That result is then multiplied by `xScale` to amplify the phase
+shift (for example, setting `xScale` to 2 will cause the pattern to move 16px per loop). Lastly, the result is
+integer-divided by 1 to truncate the final phase to an integer value.
+
+You can also define other properties that affect the final animation in addition to those that define core timing:
+
+- **Reverses**: Set the [`xReverses`](#xreverses) or [`yReverses`](#yreverses) properties to cause the animation to
+  reverse directions at each end. The `xReversed` boolean property will flip with each reversal.
+- **Reversed**: Set the [`xReversed`](#xreversed) or [`yReversed`](#yreversed) to cause the animation to run in the
+  opposite direction. This may be used with or without "reverses".
+
+### Pattern Composition
 
 EasyPatterns support several parameters representing distinct layers—all of which support transparency—
-that get composited to create the final pattern. This list describes their order. Because the `bgPattern`
+that get composited to create the final pattern. This diagram describes their order. Because the `bgPattern`
 property may be set to another `EasyPattern` instance, it's possible to create recursive stacks which
-composite several patterns together as one.
+compose several patterns together as one.
 
 **↑ TOP**
 
@@ -124,6 +210,20 @@ columns 8
 > The current fully-composited pattern image is accessible via the `patternImage` property. Note that this image
 > represents the raw pattern, before any phase shifts have been applied. However, you should rarely need to access
 > this—it's easiest to draw with your pattern by calling [`apply()`](#apply).
+
+### Pattern Transformation
+
+You can also define other properties to affect the final composited pattern in addition to those that define
+its layers. For example:
+
+- **Reflection**: Set the [`xReflected`](#xreflected) and [`yReflected`](#yreflected) properties to mirror the
+  fully-composited pattern in the horizontal and vertical axes, respectively.
+- **Rotation**: Set the [`rotated`](#rotated) property to rotate the fully-composited pattern by 90º, producing
+  an orthogonal result.
+- **Translation/Phase**: Set the [`xShift`](#xshift) and [`yShift`](#yshift) properties to additively adjust
+  the phase offsets of the pattern in each axis. This can be used to make patterns respond dynamically to
+  inputs or game states, as described in [`setPhaseShifts`](#setphaseshifts).
+- **Inversion**: Set the [`inverted`](#inverted) property to cause all white pixels to appear black, and vice-versa.
 
 ## Supported Parameters
 
@@ -353,11 +453,26 @@ Default: `false`
 
 ### Callback Parameters
 
+> [!NOTE]
+> Because EasyPattern does not use timers nor have an `update` function that gets called each frame, these
+> callbacks trigger lazily the when the pattern crosses a loop boundary while computing new phase offsets
+> (such as when checking `isDirty()`, or when calling `apply()`). If you check for dirty and/or draw using
+> your pattern each frame, you can ignore this fact. If you do not, then be aware that:
+>
+> 1. The time between loop callbacks may not be exact, especially if the frame rate is lower.
+> 2. EasyPatterns will not trigger any callbacks at all while not actively being used.
+
 #### `loopCallback`
 
 A function to be called when the pattern loops, taking into account the effective duration of the animation
 in each axis including speed and reversal, as well as any animated background pattern. The `EasyPattern` and
 total loop count are passed as parameters to the function.
+
+```lua
+myEasyPattern.loopCallback = function(p, n)
+  print("Looped " .. n .. " times!", p)
+end
+```
 
 Default: `nil`
 
