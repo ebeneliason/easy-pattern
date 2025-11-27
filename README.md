@@ -499,7 +499,9 @@ Default: `nil`
 
 ## Functions
 
-### `init([params])`
+### Core
+
+#### `init([params])`
 
 EasyPattern takes a single argument — a table of [named parameters](#supported-parameters) that define
 both the pattern and animation properties. (This is also why no parentheses are required when defining
@@ -519,7 +521,7 @@ local myEasyPattern = EasyPattern {
 }
 ```
 
-### `apply()`
+#### `apply()`
 
 _This is where the magic happens._ `apply()` takes no arguments and returns a 3-tuple matching the
 signature of `playdate.graphics.setPattern()`. This enables you to pass the result of a call to
@@ -538,7 +540,7 @@ gfx.setPattern(myPattern:apply())
 - **`yPhase`:** The calculated phase offset for the Y axis given the current time and other
   animation properties.
 
-### `isDirty()`
+#### `isDirty()`
 
 Indicates whether the pattern needs to be redrawn based on a change in the phase values since the
 last time `apply()` was called. In practice, this means you can check to see if the pattern is dirty
@@ -556,7 +558,7 @@ end
 
 - **`dirty`**: A boolean indicating whether the pattern needs to be redrawn.
 
-### `getPhases()`
+#### `getPhases()`
 
 Used to introspect the current X and Y phase offsets for the pattern. If the values are stale,
 new values will be computed when calling this function; otherwise, the cached values will be
@@ -568,7 +570,72 @@ returned instead.
 - **`yPhase`**: A number representing the current phase offset for the Y axis in the range 0..7.
 - **`recomputed`**: A boolean indicating whether the values were newly computed.
 
-### `setPhaseShifts(xShift, [yShift])`
+### Pattern
+
+#### `setPattern(pattern)`
+
+Sets a new pattern, retaining all animation properties.
+
+**Params:**
+
+- **`pattern`:** An array of 8 numbers describing the bitmap for each row, with an optional
+  additional 8 for a bitmap alpha channel, as would be supplied to
+  `playdate.graphics.setPattern()`.
+
+#### `setDitherPattern(alpha, [ditherType])`
+
+Sets a new dither pattern, retaining all animation properties. Calling this function will
+implicitly set `pattern` to `nil`.
+
+**Params:**
+
+- **`alpha`:** A value in the range [0, 1] describing the opacity of the dither effect.
+- **`ditherType`:** (_optional_) A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
+  `playdate.graphics.image.kDitherTypeVerticalLine`.
+
+#### `setColor(color)`
+
+Sets the color used for drawing the dither pattern.
+
+**Params:**
+
+- **`color`:** A `playdate.graphics` color value.
+
+#### `setBackgroundColor(color)`
+
+Sets the background color used for drawing the dither pattern.
+
+**Params:**
+
+- **`color`:** A `playdate.graphics` color value.
+
+#### `setBackgroundPattern(pattern)`
+
+Sets a background pattern which gets rendered behind this one. Setting a background pattern is substantially
+more performant than drawing one pattern atop another, as only the 8x8 pattern gets composited (and only frames
+when it changes). All other drawing is only done once.
+
+Given that you can set another `EasyPattern` as a background, you can also create chains to compose 3 or more
+patterns and achieve more complex interference effects.
+
+**Params:**
+
+- **`pattern`:** The background pattern, either in the same form as that provided to `setPattern`, or another
+  `EasyPattern` instance. Although you cannot specify a dither pattern as a background, you can achieve the same
+  result by providing an `EasyPattern` with a dither pattern and a duration of 0 (to prevent animation).
+
+#### `setInverted(flag)`
+
+Inverts the resulting pattern, causing any white pixels to appear black and any black pixels to appear white.
+The alpha channel is not affected.
+
+**Params:**
+
+- **`flag`:** A `boolean` indicating whether the pattern is inverted.
+
+## Transformation
+
+#### `setPhaseShifts(xShift, [yShift])`
 
 Sets the X and Y phase shift values. If `yShift` is omitted, both X and Y phases are set to the same value.
 These phase shifts are _additive_ to (rather than override) any shifts in phase resulting from the animation
@@ -601,7 +668,7 @@ the pattern is applied.
 
 - **`dirty`**: A boolean indicating whether the set caused the phase values to update.
 
-### `shiftPhasesBy(xShift, [yShift])`
+#### `shiftPhasesBy(xShift, [yShift])`
 
 A convenience function that sets the phase shifts by offsetting them by the specified amount from their
 current values. If `yShift` is omitted, both X and Y phases are shifted the same amount.
@@ -615,28 +682,7 @@ current values. If `yShift` is omitted, both X and Y phases are shifted the same
 
 - **`dirty`**: A boolean indicating whether the shift caused the phase values to update.
 
-### `setPattern(pattern)`
-
-Sets a new pattern, retaining all animation properties.
-
-**Params:**
-
-- **`pattern`:** An array of 8 numbers describing the bitmap for each row, with an optional
-  additional 8 for a bitmap alpha channel, as would be supplied to
-  `playdate.graphics.setPattern()`.
-
-### `setDitherPattern(alpha, [ditherType])`
-
-Sets a new dither pattern, retaining all animation properties. Calling this function will
-implicitly set `pattern` to `nil`.
-
-**Params:**
-
-- **`alpha`:** A value in the range [0, 1] describing the opacity of the dither effect.
-- **`ditherType`:** (_optional_) A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
-  `playdate.graphics.image.kDitherTypeVerticalLine`.
-
-### `setReflected(horizontal, [vertical])`
+#### `setReflected(horizontal, [vertical])`
 
 Sets the `xReflected` and `yReflected` properties indicating in which axes the pattern should be inverted.
 If the second argument is omitted, both axes are set to the same value.
@@ -646,7 +692,7 @@ If the second argument is omitted, both axes are set to the same value.
 - **`horizontal`:** A `boolean` indicating whether the pattern is reflected horizontally across the Y axis.
 - **`horizontal`:** A `boolean` indicating whether the pattern is reflected vertically across the X axis.
 
-### `setRotated(flag)`
+#### `setRotated(flag)`
 
 Sets the `rotated` property, indicating whether the pattern should be rotated 90º to produce an
 orthogonal result.
@@ -655,57 +701,19 @@ orthogonal result.
 
 - **`flag`:** A boolean indicating whether the pattern is rotated.
 
-### `setColor(color)`
+### Looping
 
-Sets the color used for drawing the dither pattern.
-
-**Params:**
-
-- **`color`:** A `playdate.graphics` color value.
-
-### `setBackgroundColor(color)`
-
-Sets the background color used for drawing the dither pattern.
-
-**Params:**
-
-- **`color`:** A `playdate.graphics` color value.
-
-### `setBackgroundPattern(pattern)`
-
-Sets a background pattern which gets rendered behind this one. Setting a background pattern is substantially
-more performant than drawing one pattern atop another, as only the 8x8 pattern gets composited (and only frames
-when it changes). All other drawing is only done once.
-
-Given that you can set another `EasyPattern` as a background, you can also create chains to compose 3 or more
-patterns and achieve more complex interference effects.
-
-**Params:**
-
-- **`pattern`:** The background pattern, either in the same form as that provided to `setPattern`, or another
-  `EasyPattern` instance. Although you cannot specify a dither pattern as a background, you can achieve the same
-  result by providing an `EasyPattern` with a dither pattern and a duration of 0 (to prevent animation).
-
-### `setInverted(flag)`
-
-Inverts the resulting pattern, causing any white pixels to appear black and any black pixels to appear white.
-The alpha channel is not affected.
-
-**Params:**
-
-- **`flag`:** A `boolean` indicating whether the pattern is inverted.
-
-### `getLoopDuration()`
+#### `getLoopDuration()`
 
 Returns the total effective loop duration of the pattern in seconds, taking into account the duration of
 the animation in each axis including speed and reversal, as well as any background pattern.
 
-### `getXLoopDuration()`
+#### `getXLoopDuration()`
 
 Returns the total effective loop duration of the pattern in the X axis in seconds, taking into account its
 speed and reversal as well as any background pattern.
 
-### `getYLoopDuration()`
+#### `getYLoopDuration()`
 
 Returns the total effective loop duration of the pattern in the Y axis in seconds, taking into account its
 speed and reversal as well as any background pattern.
