@@ -79,7 +79,7 @@ See the docs for [`init()`](#initparams) and the [list of supported parameters](
 
 ### Draw With Your Pattern
 
-Set the pattern for drawing with [`apply()`](#apply) (e.g. in your sprite's `draw()` function):
+Set the pattern for drawing with [`apply()`](#apply), for example in your sprite's `draw()` function):
 
 ```lua
 playdate.graphics.setPattern(easyCheckerboard:apply())
@@ -91,14 +91,12 @@ sprites, make sure your sprite has a chance to draw in order to animate the patt
 
 ### Detect Changes in Your Pattern
 
-You'll need to redraw whenever your pattern changes, but you'll also want to avoid redrawing when
-you don't need to. Depending on the speed of your animation, chances are the pattern won't actually
-update every frame. You can check to see whether the phase values for the pattern have changed with
-[`isDirty()`](#isdirty) in order to know when to redraw. If using sprites, you can mark them dirty when the
-pattern changes in your sprite's `update()` function:
+Depending on the speed of your animation, chances are the pattern won't update every frame. You can check to see
+whether the phase values for the pattern have changed with [`isDirty()`](#isdirty) in order to know when to redraw.
+If using sprites, you can mark them dirty when the pattern changes in your sprite's `update()` function:
 
 ```lua
-if myEasyPattern:isDirty() then
+if easyCheckerboard:isDirty() then
     self:markDirty()
 end
 ```
@@ -123,7 +121,7 @@ Click on any pattern to jump to a complete example with code, or use the provide
 [![Reflected Thumbnail](images/reflected@3x.gif)](#reflected-patterns)
 [![Ooze Over Image Thumbnail](images/ooze-over-image@3x.gif)](#composite-patterns)
 [![Ooze Over Ooze Image Thumbnail](images/ooze-over-ooze@3x.gif)](#composite-patterns)
-[![Waterfall 75% Thumbnail](images/waterfall-50@3x.gif)](#tranlucent-patterns)
+[![Waterfall 75% Thumbnail](images/waterfall-50@3x.gif)](#translucent-patterns)
 [![Dashing Thumbnail](images/dashing@3x.gif)](#animated-patterns)
 [![Spiral Thumbnail](images/spiral@3x.gif)](#self-mutating-patterns)
 
@@ -134,9 +132,9 @@ EasyPatterns can be thought of in two parts:
 1. **Pattern**: A collection of properties that define its overall appearance
 2. **Animation**: A collection of properties that define its overall behavior
 
-This section provides context for each of these to help you understand how EasyPattern works, which in turn
-will help you reason about how to construct your patterns. The pattern properties converge to define an 8x8
-pixel pattern, and the animation properties converge to define the phase offsets for the pattern in each axis
+This section provides context for each of these to help you understand how EasyPattern works, which will
+help you reason about how to construct your patterns. The pattern properties converge to define an 8x8
+pixel pattern image, and the animation properties converge to define the phase offsets for the pattern in each axis
 at the given point in time. These converged values are returned by each call to [`apply()`](#apply), enabling
 you to pass them directly to `playdate.graphics.setPattern()` and draw using the animated pattern.
 
@@ -145,19 +143,56 @@ you to pass them directly to `playdate.graphics.setPattern()` and draw using the
 The types of the core pattern and animation properties match those used elsewhere in the Playdate
 SDK to maximize compatibility.
 
+- Patterns are defined in one of several formats, including an array of 8 numbers describing
+  the bitmap for each row, with an optional additional 8 for a bitmap alpha channel (as would be passed to
+  [`playdate.graphics.setPattern()`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)).
 - Easing functions are defined in the
   [`playdate.easingFunctions`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#M-easingFunctions) format. You
   can use these functions directly, specify custom functions of your own, or use another library.
-- Patterns are defined as 8x8 pixel patterns in one of several formats, including an array of 8 numbers describing
-  the bitmap for each row, with an optional additional 8 for a bitmap alpha channel (as would be passed to
-  [`playdate.graphics.setPattern()`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)).
+
+### Pattern Composition
+
+EasyPatterns support several parameters representing distinct layers—all of which support transparency—
+that get composited to create the final pattern. This diagram describes their order.
+
+**↑ TOP**
+
+```mermaid
+block-beta
+columns 8
+  M["alpha dither"]:8
+  A["pattern"]:8
+  B["bgPattern"]:2
+  block:bgPattern:6
+    columns 1
+    W["alpha dither"]
+    X["pattern"]
+    Y["bgPattern…"]
+    Z["bgColor"]
+  end
+  C["bgColor"]:8
+```
+
+**↓ BOTTOM**
+
+Because the [`bgPattern`](#bgpattern) property may be set to another `EasyPattern` instance, it's possible to
+create recursive stacks which compose two or more patterns together as one.
+
+Patterns may also apply an opacity effect via the [`alpha`](#alpha) and [`ditherType`](#dithertype) properties.
+This mask remains fixed even as the pattern itself shifts in phase, and applies to the pattern its defined on and
+all layers beneath it.
+
+> [!NOTE]
+> The current fully-composited pattern image is accessible via the `compositePatternImage` property. Note that this
+> represents the raw pattern, before any phase shifts have been applied. However, you should rarely need to access
+> this—it's easiest to draw with your pattern by calling [`apply()`](#apply).
 
 ### Animation Timing
 
 EasyPatterns are designed to loop continuously. They do so with respect to an absolute clock that
 starts the moment the program runs (specifically `playdate.getCurrentTimeMilliseconds()`). _They do not depend on
-timers._ Instead, the appropriate axis phase shifts for the current point in time are computed in closed-form based
-on the system clock and the animation properties for each axis.
+timers._ Instead, the phase shifts for each axis at the current point in time are computed in closed-form based
+on the system clock and their animation properties.
 
 > [!NOTE]
 > This approach means that two instances of the same EasyPattern will run in sync with each other regardless
@@ -169,19 +204,19 @@ To understand how these properties affect the animation, let's look at how the p
 point in time:
 
 ```lua
--- assuming time t, ease ~= nil, and duration > 0...
+-- assuming time t, xEase ~= nil, and xDuration > 0...
 local tx = (t * self.xSpeed + self.xOffset) % self.xDuration
 local xPhase = self.xEase(tx, 0, PTTRN_SIZE, self.xDuration, table.unpack(self.xEaseArgs)) * self.xScale % PTTRN_SIZE // 1
 ```
 
 First, note the time scaling. `tx` is computed based on the current time `t` by scaling it by `xSpeed` (thus slowing
-or speeding up time), adding the `xOffset` (thus offsetting the start time), and then modding by `xDuration` (so the
+or speeding up time), adding the `xOffset` (thus adjusting the start time), and then modding by `xDuration` (so the
 value passed to the easing function is always in the range [0, `xDuration`]).
 
-The adjusted time value is then passed to the specified easing function, which then interpolates between 0 and 8
+The adjusted time value is then passed to the specified easing function, which interpolates between 0 and 8
 (`PTTRN_SIZE`) over the specified `xDuration`. That result is then multiplied by `xScale` to amplify the phase
 shift (for example, setting `xScale` to 2 will cause the pattern to move 16px per loop). Lastly, the result is
-integer-divided by 1 to truncate the final phase to an integer value.
+modded by 8 and integer-divided by 1 to truncate the final phase to an integer value in the range [0,7].
 
 You can also define other properties that affect the final animation in addition to those that define core timing:
 
@@ -190,40 +225,11 @@ You can also define other properties that affect the final animation in addition
 - **Reversed**: Set the [`xReversed`](#xreversed) or [`yReversed`](#yreversed) to cause the animation to run in the
   opposite direction. This may be used with or without "reverses".
 
-### Pattern Composition
-
-EasyPatterns support several parameters representing distinct layers—all of which support transparency—
-that get composited to create the final pattern. This diagram describes their order. Because the `bgPattern`
-property may be set to another `EasyPattern` instance, it's possible to create recursive stacks which
-compose several patterns together as one.
-
-**↑ TOP**
-
-```mermaid
-block-beta
-columns 8
-  A["pattern (or dither)"]:8
-  B["bgPattern"]:2
-  block:bgPattern:6
-    columns 1
-    X["pattern (or dither)"]
-    Y["bgPattern…"]
-    Z["bgColor"]
-  end
-  C["bgColor"]:8
-```
-
-**↓ BOTTOM**
-
-> [!NOTE]
-> The current fully-composited pattern image is accessible via the `compositePatternImage` property. Note that this
-> represents the raw pattern, before any phase shifts have been applied. However, you should rarely need to access
-> this—it's easiest to draw with your pattern by calling [`apply()`](#apply).
-
 ### Pattern Transformation
 
-You can also define other properties to affect the final composited pattern in addition to those that define
-its layers. For example:
+Transformation properties apply to both the fully composited pattern _and its easing animations_. These properties
+make it easy to make holistic changes to your patterns without needing to calculate adjustments for each individual
+pattern or animation property.
 
 - **Reflection**: Set the [`xReflected`](#xreflected) and [`yReflected`](#yreflected) properties to mirror the
   fully-composited pattern in the horizontal and vertical axes, respectively.
@@ -237,7 +243,7 @@ its layers. For example:
 ## Supported Parameters
 
 A full list of supported parameters follows below. Pass a single table containing one or more of these
-parameters to [`init()`](#initparams) to define your pattern. Only the `pattern` parameter is required.
+parameters to [`init()`](#initparams) to define your pattern.
 
 Parameters are grouped into the following categories:
 
@@ -247,9 +253,8 @@ Parameters are grouped into the following categories:
    such as translation, reflection, and rotation.
 4. [Callback Parameters](#callback-parameters): Set functions to be called when the pattern loops.
 
-The [animation](#animation-parameters), [transformation](#transformation-parameters), and
-[callback](callback-parameters) parameters may also be set directly on your `EasyPattern` instance at any
-time after initialization, e.g.
+The animation and callback parameters may also be set directly on your `EasyPattern` instance at any time after
+initialization, e.g.
 
 ```lua
 easyCheckerboard.xDuration = 0.5
@@ -259,21 +264,30 @@ easyCheckerboard.xDuration = 0.5
 
 #### `pattern`
 
-An 8x8 pixel pattern in one of these formats:
+An 8x8 pixel pattern specified in one of these formats:
 
-1. **Bit Pattern:** An array of 8 numbers describing the bitmap for each row, with an optional 8 additional for a bitmap alpha
-   channel (as would be passed to
+1. **Bit Pattern:** An array of 8 numbers describing the bitmap for each row, with an optional 8 additional for a
+   bitmap alpha channel (as would be passed to
    [`playdate.graphics.setPattern()`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)).
    See [Defining Your Patterns](#defining-your-patterns) for additional detail on how to construct valid arguments
    for the pattern parameter in this format.
 
+Example: `pattern = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }` (checkerboard)
+
 2. **Dither Pattern:** A table containing:
 
-   - A `ditherType` (as would be passed to `playdate.graphics.setDitherPattern()`,
-     e.g. `playdate.graphics.image.kDitherTypeVerticalLine`).
+   - A `ditherType` (as would be passed to `playdate.graphics.setDitherPattern()`. Default: `nil`.
    - An optional `alpha` value in the range [0,1]. Default: `0.5`.
-   - An optional `color` value in which to render the dither (e.g. `playdate.graphics.kColorWhite`).
-     Default: `playdate.graphics.kColorBlack`.
+   - An optional `color` value in which to render the dither. Default: `playdate.graphics.kColorBlack`.
+
+   Example:
+
+   ```lua
+    pattern = {
+      ditherType = playdate.graphics.image.kDitherTypeDiagonalLine,
+      alpha = 0.75,
+    }
+   ```
 
    As a convenience, if you want the pattern rendered in black at 50% alpha you can assign a bare dither type
    constant to the pattern parameter, skipping the table syntax, e.g.,
@@ -281,8 +295,12 @@ An 8x8 pixel pattern in one of these formats:
 
 3. **Image:** An 8x8 pixel `playdate.graphics.image`.
 
+   Example: `pattern = playdate.graphics.image.new("images/myPattern")`
+
 4. **Image Table:** An 8x8 pixel `playdate.graphics.imagetable` (for animated patterns).
    See also: [`tickDuration`](#tickduration).
+
+   Example: `pattern = playdate.graphics.imagetable.new("images/myPattern") -- filename: "myPattern-table-8-8"`
 
 Default: `{ 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }` (checkerboard)
 
@@ -299,8 +317,8 @@ Default: `nil`
 
 #### `bgColor`
 
-The color to use as a background. This is especially useful when specifying a pattern with `ditherType` and `alpha`,
-but may be used with any transparent pattern.
+The color to use as a background. This is especially useful when specifying a dither pattern, but may be used
+with any transparent pattern.
 
 Default: `playdate.graphics.kColorClear`
 
@@ -310,13 +328,14 @@ An alpha value indicating the opacity at which to render the pattern. Adjusting 
 similar to that provided by `playdate.graphics.image:drawFaded()`. The dither pattern used can be changed via the
 `ditherType` property. The alpha dither remains fixed with respect to the screen even as the pattern itself shifts
 in phase, causing the pattern to appear to move "beneath" the alpha mask.
+See [Translucent Patterns](#translucent-patterns) for an example.
 
 Default `1.0`
 
 #### `ditherType`
 
-A dither type used to render the pattern with reduced opacity when `alpha` is less than 1. This accepts any values
-supported by `playdate.graphics.setDitherPattern()`, e.g. `playdate.graphics.image.kDitherTypeVerticalLine`.
+A dither type used to render the pattern with reduced opacity when `alpha` is less than 1. This property accepts any
+values supported by `playdate.graphics.setDitherPattern()`.
 
 Default: `playdate.graphics.image.kDitherTypeBayer8x8`
 
@@ -330,7 +349,8 @@ Default: `false`
 #### `tickDuration`
 
 The number of seconds per "tick", used to determine how long each image of the sequence is shown when either the
-pattern and/or background pattern is set to an `imagetable` animation.
+pattern and/or background pattern is an `imagetable`.
+See [Animated Patterns](#animated-patterns) for an example.
 
 Default: The target FPS, i.e. `1 / playdate.display.getRefreshRate()`
 
@@ -347,6 +367,9 @@ signature of the [`playdate.easingFunctions`](https://sdk.play.date/3.0.1/Inside
 - **`d`**: the duration (`duration`)
 
 Default: `playdate.easingFunctions.linear`
+
+> [!NOTE]
+> Although a linear ease is set by default, it has no effect unless you provide a duration for one or both axes.
 
 #### `yEase`
 
@@ -385,13 +408,13 @@ Default: `0`
 
 #### `xOffset`
 
-An absolute time offset for the X axis animation (relative to Y), in seconds.
+An absolute time offset for the X axis animation, in seconds.
 
 Default: `0`
 
 #### `yOffset`
 
-An absolute time offset for the Y axis animation (relative to X), in seconds.
+An absolute time offset for the Y axis animation, in seconds.
 
 Default: `0`
 
@@ -423,15 +446,13 @@ Default: `false`
 
 #### `xSpeed`
 
-A multiplier for the overall speed of the animation in the X axis, relative to the timings
-specified for its duration and offset.
+A multiplier for the overall speed of the animation in the X axis.
 
 Default: `1`
 
 #### `ySpeed`
 
-A multiplier for the overall speed of the animation in the Y axis, relative to the timings
-specified for its duration and offset.
+A multiplier for the overall speed of the animation in the Y axis.
 
 Default: `1`
 
@@ -457,25 +478,29 @@ Default: `1`
 
 #### `xShift`
 
-The number of pixels to shift the final pattern phase by in the X axis.
+The number of pixels to shift the pattern's phase by in the X axis. This is additive to any computed
+phase based on other animation properties.
 
 Default: `0`
 
 #### `yShift`
 
-The number of pixels to shift the final pattern phase by in the Y axis.
+The number of pixels to shift the pattern's phase by in the Y axis. This is additive to any computed
+phase based on other animation properties.
 
 Default: `0`
 
 #### `xReflected`
 
 A boolean indicating whether the entire pattern should be reflected across the vertical (Y) axis.
+See [Reflected Patterns](#reflected-patterns) for an example.
 
 Default: `false`
 
 #### `yReflected`
 
 A boolean indicating whether the entire pattern should be reflected across the horizontal (X) axis.
+See [Reflected Patterns](#reflected-patterns) for an example.
 
 Default: `false`
 
@@ -487,6 +512,10 @@ Rotation is applied following any reflections.
 Default: `false`
 
 ### Callback Parameters
+
+These callbacks trigger when the pattern loops—in the X axis, the Y axis, or overall. You can use these
+callbacks to modify the pattern itself, or to trigger other effects in sync with its movement.
+See [Self-Mutating Patterns](#self-mutating-patterns) for an example.
 
 > [!IMPORTANT]
 > Because EasyPattern does not use timers nor have an update function that gets called each frame, these
@@ -527,9 +556,9 @@ Default: `nil`
 
 ## Functions
 
-### Core
+### Core Functions
 
-#### `init([params])`
+#### `init(params)`
 
 EasyPattern takes a single argument — a table of [named parameters](#supported-parameters) that define
 both the pattern and animation properties. (This is also why no parentheses are required when defining
@@ -541,7 +570,7 @@ of the axis-specific values may be set for both axes at once by dropping the `x`
 from the parameter name, e.g. `duration = 1, scale = 2, reverses = true, ...` and so on. For example:
 
 ```lua
-local myEasyPattern = EasyPattern {
+local myPattern = EasyPattern {
   pattern   = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }, -- checkerboard
   duration  = 1,
   yEase     = playdate.easingFunctions.inOutSine,
@@ -562,7 +591,7 @@ gfx.setPattern(myPattern:apply())
 
 **Returns:**
 
-- **`patternImage`:** A `playdate.graphics.image` containing the 8x8 pattern to be drawn.
+- **`patternImage`:** A `playdate.graphics.image` containing the pattern to be drawn.
 - **`xPhase`:** The calculated phase offset for the X axis given the current time and other
   animation properties.
 - **`yPhase`:** The calculated phase offset for the Y axis given the current time and other
@@ -598,7 +627,7 @@ to call this function directly; it is called internally every time you call `isD
 - **`yPhase`**: A number representing the current phase offset for the Y axis in the range 0..7.
 - **`recomputed`**: A boolean indicating whether the values were newly computed.
 
-### Pattern
+### Pattern Functions
 
 The pattern and background pattern may be set with the functions below. The provided overrides to `setPattern(...)`
 and `setBackgroundPattern(...)` taken together allow setting new patterns using any of the formats supported
@@ -729,6 +758,16 @@ Sets the background color used for drawing the dither pattern.
 
 - **`color`:** A `playdate.graphics` color value.
 
+#### `setAlpha(alpha, [ditherType])`
+
+Sets the opacity of the fully-composited pattern.
+
+**Params:**
+
+- **`alpha`:** The desired opacity, in the range [0, 1].
+- **`[ditherType]`:** The dither type used as an alpha mask, which may be any value supported by
+  `playdate.graphics.setDitherPattern()`.
+
 #### `setInverted(flag)`
 
 Inverts the resulting pattern, causing any white pixels to appear black and any black pixels to appear white.
@@ -738,7 +777,7 @@ The alpha channel is not affected.
 
 - **`flag`:** A `boolean` indicating whether the pattern is inverted.
 
-### Transformation
+### Transformation Functions
 
 #### `setPhaseShifts(xShift, [yShift])`
 
@@ -806,7 +845,7 @@ orthogonal result.
 
 - **`flag`:** A boolean indicating whether the pattern is rotated.
 
-### Looping
+### Looping Functions
 
 #### `getLoopDuration()`
 
@@ -831,7 +870,7 @@ pattern intended to illustrate a potential application.
 
 You can try these examples yourself using the included [EasyPatternDemoSwatch](EasyPatternDemoSwatch.lua).
 [See below](#demo-swatch) for instructions, as well as docs for [BitPattern](#defining-your-patterns) which
-enables the ASCII pattern representations seen in these examples.
+enables the ASCII pattern representations seen in many of these examples.
 
 ### Conveyor Belt
 
