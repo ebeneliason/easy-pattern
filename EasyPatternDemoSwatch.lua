@@ -66,17 +66,12 @@ function EasyPatternDemoSwatch:draw(x, y, w, h)
             gfx.fillRect(x, y, w, h)
         end
 
-        -- special cases for a couple of multi-pattern swatches
+        -- special case for a reflected example
         if self.id == "reflected" then
             self.pattern:setReflected(false, false)
             gfx.setPattern(self.pattern:apply())
             gfx.fillRect(x, y, w/2, h)
             self.pattern:setReflected(true, false)
-        elseif self.id == "oozeOverlay" then
-            gfx.setPattern(patterns.ooze:apply())
-            gfx.fillRect(x, y, w, h)
-            gfx.setPattern(self.pattern:apply())
-            gfx.fillRect(x, y, w, h)
         end
     gfx.popContext()
 end
@@ -89,30 +84,23 @@ end
 
 patterns = {
     checker = EasyPattern {
-        pattern = BitPattern {
-            ' X X X X . . . . ',
-            ' X X X X . . . . ',
-            ' X X X X . . . . ',
-            ' X X X X . . . . ',
-            ' . . . . X X X X ',
-            ' . . . . X X X X ',
-            ' . . . . X X X X ',
-            ' . . . . X X X X ',
-        },
+        pattern = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F },
         duration = 0.25,
     },
 
     conveyor = EasyPattern {
-        ditherType = playdate.graphics.image.kDitherTypeVerticalLine,
+        pattern    = playdate.graphics.image.kDitherTypeVerticalLine,
         xDuration  = 0.5,
         bgColor    = playdate.graphics.kColorWhite,
     },
 
     scanline = EasyPattern {
-        ditherType = playdate.graphics.image.kDitherTypeHorizontalLine,
-        color = gfx.kColorWhite,
-        alpha = 0.8,
-        duration = 0.4,
+        pattern = {
+            ditherType = playdate.graphics.image.kDitherTypeHorizontalLine,
+            color      = gfx.kColorWhite,
+            alpha      = 0.8,
+        },
+        duration  = 0.4,
         yReversed = true,
     },
 
@@ -129,26 +117,6 @@ patterns = {
         },
         yDuration = 1,
         yReversed = true,
-    },
-
-    -- try drawing this pattern atop ooze!
-    oozeOverlay = EasyPattern {
-        pattern = BitPattern {
-            -- pattern --------     -- alpha ----------
-            ' X X X X X X X X ',    ' . . . . . . . . ',
-            ' X X X X X X X X ',    ' . . . . . . . . ',
-            ' X X X X X X X X ',    ' . . . . . . . . ',
-            ' . . X X X X X . ',    ' . . . . . . . . ',
-            ' X . . X X X . . ',    ' . X . . . . . X ',
-            ' X X . . . . . X ',    ' . . X . X . X . ',
-            ' X X X X X X X X ',    ' . . . . . . . . ',
-            ' X X X X X X X X ',    ' . . . . . . . . ',
-        },
-        yEase     = playdate.easingFunctions.inOutSine,
-        yDuration = 0.5,
-        yReversed = true,
-        xDuration = 1,
-        shift     = 3,
     },
 
     -- use this pattern with `drawRect` instead of a fill!
@@ -303,6 +271,49 @@ patterns = {
         xDuration  = 1,
         xReflected = true,
         bgColor    = gfx.kColorWhite,
+    },
+
+    waterfall = EasyPattern {
+        pattern = BitPattern {
+            -- pattern --------     -- alpha ----------
+            ' . . . . . . . . ',    ' . . . . . . . . ',
+            ' . . . . . . . . ',    ' . . . . . . . . ',
+            ' . . . . . . . . ',    ' . . . . . . . . ',
+            ' . . . . . . . . ',    ' . X . . . . . . ',
+            ' . . . . . . . . ',    ' . . X . . . . X ',
+            ' . . . . . . . . ',    ' . . . . X . X . ',
+            ' . . . . . . . . ',    ' . . . . . . . . ',
+            ' . . . . . . . . ',    ' . . . . . . . . ',
+        },
+        bgPattern = EasyPattern {
+            pattern = BitPattern {
+                ' X X X X X X X X ',
+                ' X X X X X X X X ',
+                ' X X X X X X X X ',
+                ' . . X X X X X . ',
+                ' X . . X X X . . ',
+                ' X X . . . . . X ',
+                ' X X X X X X X X ',
+                ' X X X X X X X X ',
+            },
+            yDuration = 1,
+            yReversed = true,
+        },
+        duration = 1.25,
+        yReversed = true,
+        yEase     = playdate.easingFunctions.inOutSine,
+        yScale    = 2,
+        xShift    = 2,
+        alpha     = 1,
+    },
+
+    dashing = EasyPattern {
+        pattern = gfx.imagetable.new("images/hdashes"),
+        xDuration = 2,
+        ease = playdate.easingFunctions.outExpo,
+        reverses = true,
+        tickDuration = 1/8,
+        scale = 6,
     },
 }
 

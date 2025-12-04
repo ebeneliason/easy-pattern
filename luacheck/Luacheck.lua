@@ -23,22 +23,45 @@ return {
                 },
                 className = {},
                 init = {},
-                setColor = {},
+
+                setAlpha = {},
                 setBackgroundColor = {},
-                setBackgroundPattern = {},
+
                 setPattern = {},
-                setDitherPattern = {},
+                setBitPattern ={},
+                setDitherPattern ={},
+                setPatternImage ={},
+                setPatternImageTable = {},
+
+                setBackgroundPattern = {},
+                setBackgroundBitPattern ={},
+                setBackgroundDitherPattern ={},
+                setBackgroundPatternImage ={},
+                setBackgroundPatternImageTable = {},
+                setBackgroundEasyPattern = {},
+
+                _setPattern = {},
+                _setBackgroundPattern = {},
+                _setBitPattern ={},
+                _setDitherPattern ={},
+                _setPatternImage ={},
+                _setPatternImageTable ={},
+                _resetPatternProperties = {},
+                _resetBackgroundProperties = {},
+                _updateCompositePatternImage = {},
+
                 setRotated = {},
                 setReflected = {},
                 setInverted = {},
-                _updatePatternImage = {},
-                _getTime = {},
-                getPhases = {},
                 setPhaseShifts = {},
                 shiftPhasesBy = {},
+
                 getLoopDuration = {},
                 getXLoopDuration = {},
                 getYLoopDuration = {},
+
+                _getTime = {},
+                getPhases = {},
                 isDirty = {},
                 apply = {}
             }

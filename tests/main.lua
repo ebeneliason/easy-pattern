@@ -16,7 +16,20 @@ luaunit.PRINT_TABLE_REF_IN_ERROR_MSG = true
 -- process the command line args (if any)
 local testOutputFilename = "test_output"
 local outputType = "text"
-local luaunit_args = {'--output', 'text', '--verbose', '-r'}
+local luaunit_args = {'--output', 'text', '--verbose', '-r',}
+
+-- limit tests to run (specify as `TestSuite` or `TestSuite.testName`)
+local testsToRun = {
+	-- "TestPatterns.testSetPatternWithAlpha"
+	-- "TestInit.testDefaults"
+	-- "TestInit.testBackgroundParams"
+	-- "TestPatterns.testSetPatternImage"
+	-- "TestPatterns.testSetPatternImageTable"
+	-- "TestPatterns.testBackgroundPatternRemoval"
+}
+for _, test in ipairs(testsToRun) do
+	table.insert(luaunit_args, test)
+end
 
 -- run the tests
 local runner = luaunit.LuaUnit.new()

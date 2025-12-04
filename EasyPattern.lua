@@ -8,6 +8,8 @@ local geom <const> = playdate.geometry
 local PTTRN_SIZE <const> = 8
 local CACHE_EXP <const> = 1 / 60 -- max FPS
 
+local checkerboard <const> = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }
+
 -- luacheck: ignore 214 (ignore use of variables beginning with underscore)
 
 -- Animated patterns with easing, made easy.
@@ -32,9 +34,9 @@ class('EasyPattern').extends(Object)
 -- Create a new animated EasyPattern.
 -- @param params            A table containing one or more of the elements listed below.
 --
---                          With the exception of the pattern properties, these properties may also be
+--                          With the exception of `pattern` and `bgPattern`, these properties may also be
 --                          set directly on an `EasyPattern` instance at any time, e.g.
---                          `myEasyPattern.xDuration = 0.5`. (Use `:setPattern()` or `:setDitherPattern()`
+--                          `myEasyPattern.xDuration = 0.5`. (Use `:setPattern()` or `:setBackgroundPattern()`
 --                          to change the pattern itself.)
 --
 --                          Additionally, when initializing an `EasyPattern`, any of the axis-specific
@@ -43,33 +45,39 @@ class('EasyPattern').extends(Object)
 --
 --  PATTERN PROPERTIES
 --
---        pattern           The pattern to animate, specified as an array of 8 numbers describing the
---                          bitmap for each row, with an optional additional 8 for a bitmap alpha
---                          channel, as would be supplied to `playdate.graphics.setPattern()`.
+--        pattern           The pattern to animate, specified in one of the following formats:
+--                           1. An array of 8 numbers describing the bitmap for each row, with an optional
+--                              additional 8 for a bitmap alpha channel, as would be supplied to
+--                              `playdate.graphics.setPattern()`
+--                           2. A table containing an `alpha` value, `ditherType` (as would be passed to
+--                              `playdate.graphics.setDitherPattern()`, e.g.
+--                              `playdate.graphics.image.kDitherTypeVerticalLine`), and an optional `color`
+--                              value in which to render the dither (e.g. `playdate.graphics.kColorWhite`)
+--                           3. An 8x8 pixel `playdate.graphics.image`
+--                           4. An 8x8 pixel `playdate.graphics.imagetable` (see also: `tickDuration`)
+--                          Default: checkerboard.
 --
---        ditherType        A dither type as would be passed to `playdate.graphics.setDitherPattern()`,
---                          e.g. `playdate.graphics.image.kDitherTypeVerticalLine`. This setting only
---                          applies when the `pattern` parameter is omitted or `nil`.
---                          Default: nil.
+--        bgPattern         A pattern to render behind the this one. This may be a any static pattern as may be
+--                          passed for the `pattern` parameter, or another `EasyPattern` instance.
 --
---        alpha             An alpha value for a dither pattern, which can either be the default
---                          Playdate dither effect, or one specified by `ditherType`. This setting only
---                          applies when the `pattern` parameter is omitted or `nil`.
---                          Default 0.5.
---
---        color             The color to use when rendering the dither pattern. This setting only
---                          applies when the `pattern` parameter is omitted or `nil`.
---                          Default: `playdate.graphics.kColorBlack`
---
---        bgColor           The color to use as a background when rendering a dither pattern or a
---                          pattern with an alpha channel.
+--        bgColor           The color to use as a background. This is especially useful when specifying a
+--                          pattern using `alpha` and `ditherType`, but may be used with any transparent pattern.
 --                          Default: `playdate.graphics.kColorClear`
 --
---        bgPattern         A pattern to render behind the this one. This may be a static pattern as may be
---                          passed for the `pattern` parameter, or another EasyPattern instance.
+--        alpha             An alpha value representing the opacity at which to render the pattern.
+--                          Default 1.0.
+--
+--        ditherType        A dither type as would be passed to `playdate.graphics.setDitherPattern()`,
+--                          e.g. `playdate.graphics.image.kDitherTypeVerticalLine`, to use when the pattern
+--                          is rendered at partial opacity with an alpha value less than 1.
+--                          Default: `playdate.graphics.image.kDitherTypeBayer8x8`.
 --
 --        inverted          A boolean indicating whether the pattern is inverted, with white pixels appearing
 --                          as black and black pixels appearing as white. The alpha channel is not affected.
+--
+--        tickDuration      The duration of each tick, in seconds, used to dictate advancement when the pattern
+--                          and/or background pattern is specified as an `imagetable`.
+--                          Default: The target FPS, i.e. `1 / playdate.display.getRefreshRate()`
 --
 --  ANIMATION PROPERTIES
 --
@@ -175,26 +183,23 @@ class('EasyPattern').extends(Object)
 function EasyPattern:init(params)
     EasyPattern.super.init(self)
 
-    -- the pattern to be animated
-    self.pattern = params.pattern or nil
+    -- CORE PATTERN PROPERTIES
 
-    -- the alpha value to use when animating a dither pattern (and `pattern` itself is `nil`)
-    self.alpha = params.alpha or 0.5
+    -- the overall opacity value
+    self.alpha = params.alpha or 1
 
-    -- the dither type to use when `pattern` is `nil`
-    self.ditherType = params.ditherType or nil
+    -- the dither type used when opacity is less than 1
+    self.ditherType = params.ditherType or gfx.image.kDitherTypeBayer8x8
 
-    -- the color to use for the dither pattern when `pattern` is `nil`
-    self.color = params.color or gfx.kColorBlack
-
-    -- the color to use for a background for a dither pattern or a pattern with an alpha channel
+    -- the color to use as a background behind the provided pattern
     self.bgColor = params.bgColor or gfx.kColorClear
-
-    -- a pattern to draw behind this one, which can be static or an EasyPattern instance
-    self.bgPattern = params.bgPattern or nil
 
     -- a boolean indicating whether the pattern is drawn with black and white pixels inverted
     self.inverted = params.inverted or false
+
+    -- tick duration used when pattern and/or background pattern is an `imagetable`
+    self.tickDuration = params.tickDuration or 1 / playdate.display.getRefreshRate()
+
 
     -- OBJECT PROPERTY  | SINGLE AXIS SET        | DUAL AXIS FALLBACK    | DEFAULT VALUE
 
@@ -264,96 +269,190 @@ function EasyPattern:init(params)
     self._xPhase = 0
     self._yPhase = 0
 
+    -- previously recorded tick value
+    self._ptick = 0
 
     -- the pattern image to use for drawing, at twice the pattern size to support looping animation
-    self.patternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2)
+    self._patternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2) -- the raw, non-composited pattern image
+    self.compositePatternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2) -- scratch for rendering alpha
+    self._compositePatternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2) -- final composited pattern
 
-    -- pre-render the pattern image
-    self:_updatePatternImage()
+    -- lastly, initialize the provided pattern(s)
+    self:setPattern(params.pattern or checkerboard)
+    self:setBackgroundPattern(params.bgPattern)
 end
 
 --! SETTERS
 
-function EasyPattern:setColor(color)
-    self.color = color
-    self:_updatePatternImage()
+function EasyPattern:setPattern(a, b, c)
+    if not a then return end
+    self:_setPattern(self._patternImage, a, b, c)
 end
 
-function EasyPattern:setBackgroundColor(color)
-    self.bgColor = color
-    self:_updatePatternImage()
+function EasyPattern:setBackgroundPattern(a, b, c)
+    self:_resetBackgroundProperties()
+    -- allow removal of the background pattern
+    if not a then
+        self._bgPatternImage = nil
+        self:_updateCompositePatternImage()
+        return
+    end
+    self:_setPattern(self._bgPatternImage, a, b, c)
 end
 
-function EasyPattern:setBackgroundPattern(pattern)
-    self.bgPattern = pattern
-    self:_updatePatternImage()
+function EasyPattern:_setPattern(img, a, b, c)
+    if type(a) == "number" then
+        self:_setDitherPattern(img, b or 0.5, a, c)
+    elseif type(a) == "userdata" and a.getImage then
+        self:_setPatternImageTable(img, a, b or self.tickDuration)
+    elseif type(a) == "userdata" and a.draw then
+        self:_setPatternImage(img, a)
+    elseif a.isa and a:isa(EasyPattern) then
+        if img == self._bgPatternImage then
+            self:setBackgroundEasyPattern(a)
+        else
+            print("ERROR: EasyPatterns may only be set as a background pattern")
+        end
+    elseif #a == 8 or #a == 16 then
+        self:_setBitPattern(img, a)
+    elseif a.alpha or a.ditherType then
+        self:_setPattern(img, a.ditherType, a.alpha or 0.5, a.color)
+    else
+        print("ERROR: Invalid pattern definition")
+    end
 end
 
-function EasyPattern:setPattern(pattern)
-    self.pattern = pattern
-    self:_updatePatternImage()
+function EasyPattern:setBitPattern(pattern)
+    self:_resetPatternProperties()
+    self:_setBitPattern(self._patternImage, pattern)
 end
 
-function EasyPattern:setDitherPattern(alpha, ditherType)
-    self.alpha = alpha
-    self.ditherType = ditherType
+function EasyPattern:setBackgroundBitPattern(pattern)
+    self:_resetBackgroundProperties()
+    self:_setBitPattern(self._bgPatternImage, pattern)
+end
+
+function EasyPattern:_setBitPattern(img, pattern)
+    if img == self._patternImage then
+        self.pattern = pattern
+    else
+        self.bgPattern = pattern
+    end
+    img:clear(gfx.kColorClear)
+    gfx.pushContext(img)
+        gfx.setPattern(pattern)
+        gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
+    gfx.popContext()
+    self:_updateCompositePatternImage()
+end
+
+function EasyPattern:setDitherPattern(alpha, ditherType, color)
+    self:_resetPatternProperties()
+    self:_setDitherPattern(self._patternImage, alpha, ditherType, color)
+end
+
+function EasyPattern:setBackgroundDitherPattern(alpha, ditherType, color)
+    self:_resetBackgroundProperties()
+    self:_setDitherPattern(self._bgPatternImage, alpha, ditherType, color)
+end
+
+function EasyPattern:_setDitherPattern(img, alpha, ditherType, color)
+    img:clear(gfx.kColorClear)
+    gfx.pushContext(img)
+        gfx.setColor(color or gfx.kColorBlack)
+        gfx.setDitherPattern(alpha, ditherType or gfx.image.kDitherTypeBayer8x8)
+        gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
+    gfx.popContext()
+    self:_updateCompositePatternImage()
+end
+
+function EasyPattern:setPatternImage(img)
+    self:_resetPatternProperties()
+    self:_setPatternImage(self._patternImage, img)
+end
+
+function EasyPattern:setBackgroundPatternImage(img)
+    self:_resetBackgroundProperties()
+    self:_setPatternImage(self._bgPatternImage, img)
+end
+
+function EasyPattern:_setPatternImage(img, patternImg)
+    img:clear(gfx.kColorClear)
+    gfx.pushContext(img)
+        patternImg:draw(0, 0)
+        patternImg:draw(0, PTTRN_SIZE)
+        patternImg:draw(PTTRN_SIZE, 0)
+        patternImg:draw(PTTRN_SIZE, PTTRN_SIZE)
+    gfx.popContext()
+    self:_updateCompositePatternImage()
+end
+
+function EasyPattern:setPatternImageTable(imageTable, tickDuration)
+    self:_resetPatternProperties()
+    self:_setPatternImageTable(self._patternImage, imageTable, tickDuration or self.tickDuration)
+end
+
+function EasyPattern:setBackgroundPatternImageTable(imageTable, tickDuration)
+    self:_resetBackgroundProperties()
+    self:_setPatternImageTable(self._bgPatternImage, imageTable, tickDuration or self.tickDuration)
+end
+
+function EasyPattern:_setPatternImageTable(img, imageTable, tickDuration)
+    if img == self._patternImage then
+        self._patternTable = imageTable
+    else
+        self._bgPatternTable = imageTable
+    end
+    self.tickDuration = tickDuration
+    local frame = (self:_getTime() // tickDuration) % imageTable:getLength() + 1
+    self:_setPatternImage(img, imageTable:getImage(frame))
+end
+
+function EasyPattern:setBackgroundEasyPattern(pattern)
+    self:_resetBackgroundProperties()
+    self._bgEasyPattern = pattern
+    self:_updateCompositePatternImage()
+end
+
+function EasyPattern:_resetPatternProperties()
     self.pattern = nil
-    self:_updatePatternImage()
+    self._patternTable = nil
 end
 
-function EasyPattern:setInverted(inverted)
-    self.inverted = inverted
-    self:_updatePatternImage()
+function EasyPattern:_resetBackgroundProperties()
+    self.bgPattern = nil
+    self._bgPatternTable = nil
+    self._bgPatternImage = nil
+    self._bgEasyPattern = nil
+    if not self._bgPatternImage then
+        self._bgPatternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2)
+    end
 end
 
-function EasyPattern:setRotated(flag)
-    self.rotated = flag
-    self._pt = 0 -- invalidate cache
-    self:_updatePatternImage()
-    self:getPhases()
-end
+function EasyPattern:_updateCompositePatternImage()
+    -- clear to background color
+    self.compositePatternImage:clear(self.bgColor)
 
-function EasyPattern:setReflected(horizontal, vertical)
-    if vertical == nil then vertical = horizontal end
-    self.xReflected = horizontal
-    self.yReflected = vertical
-    self._pt = 0 -- invalidate cache
-    self:_updatePatternImage()
-    self:getPhases()
-end
-
-function EasyPattern:_updatePatternImage()
-    self.patternImage:clear(self.bgColor)
-
-    -- draw the pattern image
-    gfx.pushContext(self.patternImage)
-        -- draw the background pattern first
-        if self.bgPattern then
-            if self.bgPattern.apply then
-                self.bgPattern:setPhaseShifts(-self._xPhase, -self._yPhase) -- must subtract our own phase!
-                gfx.setPattern(self.bgPattern:apply())
-            else
-                gfx.setPattern(self.bgPattern, -self._xPhase, -self._yPhase)
-            end
+    -- draw the pattern
+    gfx.pushContext(self.compositePatternImage)
+        -- draw the background pattern first, negating our own phase shift
+        if self._bgEasyPattern then
+            self._bgEasyPattern:setPhaseShifts(-self._xPhase, -self._yPhase)
+            gfx.setPattern(self._bgEasyPattern:apply())
+            gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
+        elseif self._bgPatternImage then
+            gfx.setPattern(self._bgPatternImage, -self._xPhase % PTTRN_SIZE, -self._yPhase % PTTRN_SIZE)
             gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
         end
-        -- draw our own pattern second
-        gfx.setColor(self.color)
-        if self.pattern then
-            gfx.setPattern(self.pattern)
-        elseif self.ditherType then
-            gfx.setDitherPattern(self.alpha, self.ditherType)
-        else
-            gfx.setDitherPattern(self.alpha)
-        end
-        gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
+        -- draw our own pattern next
+        self._patternImage:draw(0, 0)
     gfx.popContext()
 
     -- invert as needed
     if self.inverted then
-        gfx.pushContext(self.patternImage)
+        gfx.pushContext(self.compositePatternImage)
             gfx.setImageDrawMode(gfx.kDrawModeInverted)
-            self.patternImage:draw(0, 0)
+            self.compositePatternImage:draw(0, 0)
         gfx.popContext()
     end
 
@@ -363,8 +462,58 @@ function EasyPattern:_updatePatternImage()
         if self.xReflected then xform:scale(-1, 1) end
         if self.yReflected then xform:scale(1, -1) end
         if self.rotated then xform:rotate(90) end
-        self.patternImage = self.patternImage:transformedImage(xform)
+        self.compositePatternImage = self.compositePatternImage:transformedImage(xform)
     end
+
+    -- apply transparency
+    if self.alpha < 1 then
+        gfx.pushContext(self.compositePatternImage)
+            gfx.setPattern(self.compositePatternImage, self._xPhase, self._yPhase)
+            gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
+        gfx.popContext()
+        self._compositePatternImage:clear(gfx.kColorClear)
+        gfx.pushContext(self._compositePatternImage)
+            self.compositePatternImage:drawFaded(0, 0, self.alpha, self.ditherType)
+        gfx.popContext()
+        self.compositePatternImage:clear(gfx.kColorClear)
+        gfx.pushContext(self.compositePatternImage)
+            gfx.setPattern(self._compositePatternImage, -self._xPhase%8, -self._yPhase%8)
+            gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
+        gfx.popContext()
+    end
+end
+
+function EasyPattern:setBackgroundColor(color)
+    self.bgColor = color
+    self:_updateCompositePatternImage()
+end
+
+function EasyPattern:setAlpha(alpha, ditherType, color)
+    self.alpha = alpha
+    self.ditherType = ditherType or self.ditherType or gfx.image.kDitherTypeBayer8x8
+    self.color = color or self.color or gfx.kColorBlack
+    self:_updateCompositePatternImage()
+end
+
+function EasyPattern:setInverted(inverted)
+    self.inverted = inverted
+    self:_updateCompositePatternImage()
+end
+
+function EasyPattern:setRotated(flag)
+    self.rotated = flag
+    self._pt = 0 -- invalidate cache
+    self:_updateCompositePatternImage()
+    self:getPhases()
+end
+
+function EasyPattern:setReflected(horizontal, vertical)
+    if vertical == nil then vertical = horizontal end
+    self.xReflected = horizontal
+    self.yReflected = vertical
+    self._pt = 0 -- invalidate cache
+    self:_updateCompositePatternImage()
+    self:getPhases()
 end
 
 -- set phase shifts which offset the pattern
@@ -385,6 +534,9 @@ function EasyPattern:shiftPhasesBy(xShift, _yShift)
     return dirty
 end
 
+
+--! GETTERS
+
 -- this exists primarily to enable mocking in tests
 function EasyPattern:_getTime() -- luacheck: ignore
     return playdate.getCurrentTimeMilliseconds() / 1000
@@ -402,13 +554,11 @@ local function lcm(a, b)
     return math.abs(a * b) / gcd(a, b)
 end
 
---! GETTERS
-
 function EasyPattern:getLoopDuration()
     -- compute our own total duration
     local duration = lcm(self:getXLoopDuration(), self:getYLoopDuration())
     -- consider any background pattern duration
-    local bgDuration = (self.bgPattern and self.bgPattern.getLoopDuration) and self.bgPattern:getLoopDuration() or 0
+    local bgDuration = self._bgEasyPattern and self._bgEasyPattern:getLoopDuration() or 0
     return lcm(duration, bgDuration)
 end
 
@@ -416,7 +566,7 @@ function EasyPattern:getXLoopDuration()
     -- compute our own X duration
     local duration = self.xDuration * (self.xReverses and 2 or 1) / self.xSpeed
     -- consider any background pattern X duration
-    local bgDuration = (self.bgPattern and self.bgPattern.getXLoopDuration) and self.bgPattern:getXLoopDuration() or 0
+    local bgDuration = self._bgEasyPattern and self._bgEasyPattern:getXLoopDuration() or 0
     return lcm(duration, bgDuration)
 end
 
@@ -424,7 +574,7 @@ function EasyPattern:getYLoopDuration()
     -- compute our own total duration
     local duration = self.yDuration * (self.yReverses and 2 or 1) / self.ySpeed
     -- consider any background pattern Y duration
-    local bgDuration = (self.bgPattern and self.bgPattern.getYLoopDuration) and self.bgPattern:getYLoopDuration() or 0
+    local bgDuration = self._bgEasyPattern and self._bgEasyPattern:getYLoopDuration() or 0
     return lcm(duration, bgDuration)
 end
 
@@ -440,8 +590,8 @@ function EasyPattern:getPhases()
     end
 
     -- calculate the effective time param for each axis accounting for offsets, speed scaling, and looping
-    local tx = (t * self.xSpeed + self.xOffset) % self.xDuration
-    local ty = (t * self.ySpeed + self.yOffset) % self.yDuration
+    local tx = self.xDuration > 0 and (t * self.xSpeed + self.xOffset) % self.xDuration or 0
+    local ty = self.yDuration > 0 and (t * self.ySpeed + self.yOffset) % self.yDuration or 0
 
     -- handle animation reversal when crossing the animation duration bounds
     if self.xReverses and self._ptx > tx then
@@ -494,12 +644,34 @@ function EasyPattern:getPhases()
     self._yPhase = yPhase
     self._pt = t
 
+    -- update pattern and background pattern image tables every tick
+    if self._patternTable or self._bgPatternTable then
+        local tick = self:_getTime() // self.tickDuration
+        if tick ~= self._ptick then
+            self._ptick = tick
+            self._isDirty = true
+            if self._patternTable then
+                local n = tick % self._patternTable:getLength() + 1
+                self:_setPatternImage(self._patternImage, self._patternTable:getImage(n))
+            end
+            if self._bgPatternTable then
+                local n = tick % self._bgPatternTable:getLength() + 1
+                self:_setBackgroundPatternImage(self._bgPatternImage, self._bgPatternTable:getImage(n))
+            end
+        end
+    end
+
     -- update background if either we or it changed
-    if self.bgPattern then
-        if self._isDirty or (self.bgPattern.isDirty ~= nil and self.bgPattern:isDirty()) then
-            self:_updatePatternImage()
+    if self._bgEasyPattern or self._bgPatternImage then
+        if self._isDirty or (self._bgEasyPattern and self._bgEasyPattern:isDirty()) then
+            self:_updateCompositePatternImage()
             self._isDirty = true
         end
+    end
+
+    -- update the pattern if we're semi-transparent to ensure the transparency mask remains fixed
+    if self._isDirty and (self.xDuration > 0 or self.yDuration > 0) then
+        self:_updateCompositePatternImage()
     end
 
     -- call loop callbacks if defined
@@ -541,7 +713,7 @@ function EasyPattern:apply()
     local xPhase, yPhase = self:getPhases()
     self._isDirty = false
     -- return a 3-tuple to be used as arguments to `playdate.graphics.setPattern()`
-    return self.patternImage, xPhase, yPhase
+    return self.compositePatternImage, xPhase, yPhase
 end
 
 --! BIT PATTERN

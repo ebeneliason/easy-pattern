@@ -142,14 +142,12 @@ you to pass them directly to `playdate.graphics.setPattern()` and draw using the
 The types of the core pattern and animation properties match those used elsewhere in the Playdate
 SDK to maximize compatibility.
 
-- All easing functions are defined in the
+- Easing functions are defined in the
   [`playdate.easingFunctions`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#M-easingFunctions) format. You
   can use these functions directly, specify custom functions of your own, or use another library.
-- All patterns are defined either as a `ditherType` (as would be passed to
-  [`playdate.graphics.setDitherPattern`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setDitherPattern)),
-  or an 8x8 pixel pattern as an array of 8 numbers describing the bitmap for each row (as would be passed
-  to [playdate.graphics.setPattern](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)). See
-  [Defining Your Patterns](#defining-your-patterns) for more details and tools to help you specify patterns easily.
+- Patterns are defined as 8x8 pixel patterns in one of several formats, including an array of 8 numbers describing
+  the bitmap for each row, with an optional additional 8 for a bitmap alpha channel (as would be passed to
+  [`playdate.graphics.setPattern()`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)).
 
 ### Animation Timing
 
@@ -202,20 +200,20 @@ compose several patterns together as one.
 block-beta
 columns 8
   A["pattern (or dither)"]:8
-  X["bgPattern"]:2
+  B["bgPattern"]:2
   block:bgPattern:6
     columns 1
-    B["pattern (or dither)"]
-    I["bgPattern…"]
-    D["bgColor"]
+    X["pattern (or dither)"]
+    Y["bgPattern…"]
+    Z["bgColor"]
   end
-  F["bgColor"]:8
+  C["bgColor"]:8
 ```
 
 **↓ BOTTOM**
 
 > [!NOTE]
-> The current fully-composited pattern image is accessible via the `patternImage` property. Note that this image
+> The current fully-composited pattern image is accessible via the `compositePatternImage` property. Note that this
 > represents the raw pattern, before any phase shifts have been applied. However, you should rarely need to access
 > this—it's easiest to draw with your pattern by calling [`apply()`](#apply).
 
@@ -236,9 +234,7 @@ its layers. For example:
 ## Supported Parameters
 
 A full list of supported parameters follows below. Pass a single table containing one or more of these
-parameters to [`init()`](#initparams) to define your pattern. Technically speaking, none of these are required.
-In practice, you'll want to set either [`pattern`](#pattern) or [`ditherType`](#dithertype), and a
-[`duration`](#xDuration) for at least one axis as shown in the basic usage example above.
+parameters to [`init()`](#initparams) to define your pattern. Only the `pattern` parameter is required.
 
 Parameters are grouped into the following categories:
 
@@ -260,50 +256,63 @@ easyCheckerboard.xDuration = 0.5
 
 #### `pattern`
 
-The pattern to animate, specified as an array of 8 numbers describing the bitmap for each row, with
-an optional additional 8 for a bitmap alpha channel, as would be supplied to
-`playdate.graphics.setPattern()`. See [Defining Your Patterns](#defining-your-patterns) for details
-on how to construct valid arguments for this parameter.
+An 8x8 pixel pattern in one of these formats:
 
-Default: `nil`
+1. An array of 8 numbers describing the bitmap for each row, with an optional additional 8 for a bitmap alpha
+   channel (as would be passed to
+   [playdate.graphics.setPattern](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)).
 
-#### `ditherType`
+   See [Defining Your Patterns](#defining-your-patterns) for additional detail on how to construct valid arguments
+   for the pattern parameter in this format.
 
-A dither type as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
-`playdate.graphics.image.kDitherTypeVerticalLine`. This setting only applies when the `pattern`
-parameter is omitted or `nil`.
+2. A table containing:
 
-Default: `nil`
+   - A `ditherType` (as would be passed to `playdate.graphics.setDitherPattern()`,
+     e.g. `playdate.graphics.image.kDitherTypeVerticalLine`).
+   - An optional `alpha` value in the range [0,1]. Default: `0.5`.
+   - An optional `color` value in which to render the dither (e.g. `playdate.graphics.kColorWhite`).
+     Default: `playdate.graphics.kColorBlack`.
 
-#### `alpha`
+     As a convenience, if you want the pattern rendered in black at 50% alpha you can assign a bare dither type
+     constant to the pattern parameter, skipping the table syntax, e.g.,
+     `pattern = playdate.graphics.image.kDitherTypeHorizontalLine`.
 
-An alpha value for a dither pattern, which can either be the default Playdate dither effect, or one
-specified by `ditherType`. This setting only applies when the `pattern` parameter is omitted or `nil`.
+3. An 8x8 pixel `playdate.graphics.image`.
 
-Default `0.5`
+4. An 8x8 pixel `playdate.graphics.imagetable` (for animated patterns). See also: [`tickDuration`](#tickduration).
 
-#### `color`
-
-The color in which to draw the provided dither pattern. This setting only applies when the `pattern`
-parameter is omitted or `nil`.
-
-Default: `playdate.graphics.kColorBlack`
-
-#### `bgColor`
-
-The color to use as a background when rendering a dither pattern (or a pattern with an alpha channel,
-although in that case the background color could be baked into the pattern itself, without alpha).
-Patterns are rendered with transparency by default, but this can be used to make them opaque.
-
-Default: `playdate.graphics.kColorClear`
+Default: Checkerboard (`{ 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }`)
 
 #### `bgPattern`
 
-A pattern to render behind the this one. This may be a static pattern of the type provided for the `pattern`
-parameter, or another `EasyPattern` instance. Overlaying easy patterns can create interference patterns and
+A pattern to render behind the this one. This may be a pattern of any type supported by the `pattern`
+parameter above, or another `EasyPattern` instance. Overlaying EasyPatterns can create interference patterns and
 more complex animation behaviors. See [Composite Patterns](#composite-patterns) for an example.
 
 Default: `nil`
+
+#### `bgColor`
+
+The color to use as a background. This is especially useful when specifying a pattern with `ditherType` and `alpha`,
+but may be used with any transparent pattern.
+
+Default: `playdate.graphics.kColorClear`
+
+#### `alpha`
+
+An alpha value indicating the opacity at which to render the pattern. Adjusting this value results in an effect
+similar to that provided by `playdate.graphics.image:drawFaded()`. The dither pattern used can be changed via the
+`ditherType` property. The alpha dither remains fixed with respect to the screen even as the pattern itself shifts
+in phase, causing the pattern to appear to move "beneath" the alpha mask.
+
+Default `1.0`
+
+#### `ditherType`
+
+A dither type used to render the pattern with reduced opacity when `alpha` is less than 1. This accepts any values
+supported by `playdate.graphics.setDitherPattern()`, e.g. `playdate.graphics.image.kDitherTypeVerticalLine`.
+
+Default: `playdate.graphics.image.kDitherTypeBayer8x8`
 
 #### `inverted`
 
@@ -311,6 +320,13 @@ A boolean indicating whether the pattern is inverted, with any white pixels appe
 pixels appearing white. Inverting the pattern does not affect the alpha channel.
 
 Default: `false`
+
+#### `tickDuration`
+
+The number of seconds per "tick", used to determine how long each image of the sequence is shown when either the
+pattern and/or background pattern is set to an `imagetable` animation.
+
+Default: The target FPS, i.e. `1 / playdate.display.getRefreshRate()`
 
 ### Animation Parameters
 
@@ -415,17 +431,21 @@ Default: `1`
 
 #### `xScale`
 
-A multiplier describing the number of 8px repetitions the pattern moves by per duration cycle in
-the X axis. Non-integer values may result in discontinuity when looping.
+A multiplier describing the number of 8px repetitions the pattern moves by per cycle in the X axis.
 
 Default: `1`
+
+> [IMPORTANT!]
+> Non-integer values will result in discontinuity when looping.
 
 #### `yScale`
 
-A multiplier describing the number of 8px repetitions the pattern moves by per duration cycle in
-the Y axis. Non-integer values may result in discontinuity when looping.
+A multiplier describing the number of 8px repetitions the pattern moves by per cycle in the Y axis.
 
 Default: `1`
+
+> [IMPORTANT!]
+> Non-integer values will result in discontinuity when looping.
 
 ### Transformation Parameters
 
@@ -462,14 +482,14 @@ Default: `false`
 
 ### Callback Parameters
 
-> [!NOTE]
+> [!IMPORTANT]
 > Because EasyPattern does not use timers nor have an update function that gets called each frame, these
 > callbacks trigger lazily when the pattern crosses a loop boundary while computing new phase offsets
 > (such as when checking `isDirty()`, or when calling `apply()`). If you check for dirty and/or draw using
-> your pattern each frame, you can ignore this fact. If you do not, then be aware that:
+> your pattern each frame, you can ignore this fact. Otherwise, be aware that:
 >
 > 1. The time between loop callbacks may not be exact, especially if the frame rate is lower.
-> 2. EasyPattern callbacks will not be called at all if the pattern is not being used.
+> 2. The callbacks will not be called _at all_ if the pattern is not being used.
 
 #### `loopCallback`
 
@@ -574,34 +594,126 @@ to call this function directly; it is called internally every time you call `isD
 
 ### Pattern
 
+The pattern and background pattern may be set with the functions below. The provided overrides to `setPattern(...)`
+and `setBackgroundPattern(...)` taken together allow setting new patterns using any of the formats supported
+by the `pattern` param when passed to `init()`.
+
+> [TIP!]
+> Setting a background pattern is substantially more performant than drawing one pattern atop another, as only
+> the 8x8 pattern gets composited (and only in frames when it changes). All other drawing is only done once.
+>
+> Given that you can set another `EasyPattern` as a background, you can also create chains to compose 3 or more
+> patterns and achieve more complex effects.
+
 #### `setPattern(pattern)`
 
-Sets a new pattern, retaining all animation properties.
+Sets a new pattern with a bitmap provided as a sequence of bytes.
 
 **Params:**
 
 - **`pattern`:** An array of 8 numbers describing the bitmap for each row, with an optional
-  additional 8 for a bitmap alpha channel, as would be supplied to
-  `playdate.graphics.setPattern()`.
+  additional 8 for a bitmap alpha channel, as would be supplied to `playdate.graphics.setPattern()`.
 
-#### `setDitherPattern(alpha, [ditherType])`
+#### `setPattern(ditherType, [alpha], [color])`
 
-Sets a new dither pattern, retaining all animation properties. Calling this function will
-implicitly set `pattern` to `nil`.
-
-**Params:**
-
-- **`alpha`:** A value in the range [0, 1] describing the opacity of the dither effect.
-- **`ditherType`:** (_optional_) A constant as would be passed to `playdate.graphics.setDitherPattern()`, e.g.
-  `playdate.graphics.image.kDitherTypeVerticalLine`.
-
-#### `setColor(color)`
-
-Sets the color used for drawing the dither pattern.
+Generates a new pattern with the provided `ditherType`, as well as the optional `alpha` and `color` values.
+The pattern is rendered with transparency, by default. To obtain an opaque result, set a complementary `bgColor`
+on the `EasyPattern`.
 
 **Params:**
 
-- **`color`:** A `playdate.graphics` color value.
+- **`ditherType`:** The dither pattern to render as a pattern, which may be any value supported by
+  `playdate.graphics.setDitherPattern()`.
+- **`[alpha]`:** The opacity to render the dither pattern with. Default: `0.5`.
+- **`[color]`:** An optional color to render the pattern in. Default: `playdate.graphics.kColorBlack`.
+  (This argument is only required to render the pattern in `playdate.graphics.kColorWhite`.)
+
+#### `setPattern(image)`
+
+Sets the pattern using the provided image.
+
+**Params:**
+
+- **image:**: A `playdate.graphics.image`, which should be 8x8 pixels in size.
+
+#### `setPattern(imageTable, [tickDuration])`
+
+Sets the pattern using the provided image table. Once set, the pattern will automatically update to show
+a looping sequence of images from the image table, advancing once per tick.
+
+**Params:**
+
+- **`imageTable`:** A `playdate.graphics.imagetable`, which should be 8x8 pixels in size and may have as many
+  images as desired.
+- **`[tickDuration]`:** An optional value specifying the number of seconds between ticks at which the pattern
+  advances to the next image in the sequence. This is a convenience which sets the `tickDuration` property when
+  setting a pattern, though it may also be set directly.
+
+> [NOTE!]
+> The number of images in the provided sequence has no effect on the X, Y, or total calculated loop duration,
+> which reports only with respect to the easing animation loops.
+
+#### `setBackgroundPattern(pattern)`
+
+Sets a new background pattern with a bitmap provided as a sequence of bytes.
+
+**Params:**
+
+- **`pattern`:** An array of 8 numbers describing the bitmap for each row, with an optional
+  additional 8 for a bitmap alpha channel, as would be supplied to `playdate.graphics.setPattern()`.
+
+#### `setBackgroundPattern(ditherType, [alpha], [color])`
+
+Sets a new background pattern generated using the provided `ditherType` and `alpha` values, as well
+as an optional `color` in which to render the pattern. The pattern is rendered with transparency, by
+default. To obtain an opaque result, set a complementary `bgColor` on the `EasyPattern`.
+
+**Params:**
+
+- **`ditherType`:** The dither pattern to render as a pattern, which may be any value supported by
+  `playdate.graphics.setDitherPattern()`.
+- **`[alpha]`:** The opacity to render the dither pattern with. Default: `0.5`.
+- **`[color]`:** An optional color to render the pattern in. Default: `playdate.graphics.kColorBlack`.
+  (This argument is only required to render the pattern in `playdate.graphics.kColorWhite`.)
+
+#### `setBackgroundPattern(image)`
+
+Sets the background pattern using the provided image.
+
+**Params:**
+
+- **image:**: A `playdate.graphics.image`, which should be 8x8 pixels in size.
+
+#### `setBackgroundPattern(imageTable, [tickDuration])`
+
+Sets the background pattern using the provided image table. Once set, the pattern will automatically update to show
+a looping sequence of images from the image table, advancing once per tick.
+
+**Params:**
+
+- **`imageTable`:** A `playdate.graphics.imagetable`, which should be 8x8 pixels in size and may have as many
+  images as desired.
+- **`[tickDuration]`:** An optional value specifying the number of seconds between ticks at which the pattern
+  advances to the next image in the sequence. This is a convenience which sets the `tickDuration` property when
+  setting a pattern, though it may also be set directly.
+
+> [NOTE!]
+> The number of images in the provided sequence has no effect on the X, Y, or total calculated loop duration,
+> which reports only with respect to the easing animation loops.
+
+#### `setBackgroundPattern(easyPattern)`
+
+Sets the background pattern to another `EasyPattern` instance, enabling composition of multiple animated layers.
+The background `EasyPattern` will animate independently of its parent (its X and Y phases will not be impacted by
+those of the overlaid pattern).
+
+> [NOTE!]
+> The X, Y, and total loop durations of the parent `EasyPattern` will adjust to account for those of its background,
+> such that the reported values indicate a return of both patterns to their initial state.
+
+**Params:**
+
+- **`easyPattern`:** An `EasyPattern` instance to use as a background.
 
 #### `setBackgroundColor(color)`
 
@@ -610,21 +722,6 @@ Sets the background color used for drawing the dither pattern.
 **Params:**
 
 - **`color`:** A `playdate.graphics` color value.
-
-#### `setBackgroundPattern(pattern)`
-
-Sets a background pattern which gets rendered behind this one. Setting a background pattern is substantially
-more performant than drawing one pattern atop another, as only the 8x8 pattern gets composited (and only frames
-when it changes). All other drawing is only done once.
-
-Given that you can set another `EasyPattern` as a background, you can also create chains to compose 3 or more
-patterns and achieve more complex interference effects.
-
-**Params:**
-
-- **`pattern`:** The background pattern, either in the same form as that provided to `setPattern`, or another
-  `EasyPattern` instance. Although you cannot specify a dither pattern as a background, you can achieve the same
-  result by providing an `EasyPattern` with a dither pattern and a duration of 0 (to prevent animation).
 
 #### `setInverted(flag)`
 
@@ -727,7 +824,8 @@ is shown with a standard checkerboard pattern to compare the easing effect, and 
 pattern intended to illustrate a potential application.
 
 You can try these examples yourself using the included [EasyPatternDemoSwatch](EasyPatternDemoSwatch.lua).
-[See below](#demo-swatch) for instructions, as well as docs for [BitPattern](#defining-your-patterns) which enables the ASCII pattern representations seen in these examples.
+[See below](#demo-swatch) for instructions, as well as docs for [BitPattern](#defining-your-patterns) which
+enables the ASCII pattern representations seen in these examples.
 
 ### Conveyor Belt
 
@@ -748,11 +846,15 @@ moving in different directions by either:
 
 ```lua
 EasyPattern {
-    ditherType = playdate.graphics.image.kDitherTypeVerticalLine,
-    duration   = 0.5,
-    bgColor    = playdate.graphics.kColorWhite
+    pattern  = playdate.graphics.image.kDitherTypeVerticalLine,
+    duration = 0.5,
+    bgColor  = playdate.graphics.kColorWhite,
 }
 ```
+
+> [NOTE!]
+> Because the provided dither pattern is rendered in black at 50% alpha, we can assign the dither constant
+> directly to the pattern parameter.
 
 ### Scanline
 
@@ -769,13 +871,19 @@ scanline effect. This could be used atop an image or rendered scene to simulate 
 
 ```lua
 EasyPattern {
-    ditherType = playdate.graphics.image.kDitherTypeHorizontalLine,
-    color      = gfx.kColorWhite,
-    alpha      = 0.8,
+    pattern = {
+        ditherType = playdate.graphics.image.kDitherTypeHorizontalLine,
+        color      = gfx.kColorWhite,
+        alpha      = 0.8,
+    },
     duration   = 0.5,
     yReversed  = true,
 }
 ```
+
+> [NOTE!]
+> Unlike the previous example, a table is provided for the pattern parameter in order to adjust the color and
+> alpha values used to generate the pattern with the given the dither.
 
 ### Ooze
 
@@ -1116,40 +1224,152 @@ EasyPattern {
 Lastly, because all patterns support transparency, you can overlay them to create more complex effects.
 You can overlay an animated pattern on a static background or, as shown here, overlay two patterns with
 independent animation effects. The pattern shown below is a transparent variation on ["ooze"](#ooze). It
-can be drawn atop an image to add a subtle effect, or atop "ooze" to create a richer, more textured
-animation.
+can be drawn atop an image to add a subtle effect, or used with "ooze" as a background pattern to create
+a richer, more textured animation.
 
-![Ooze Overlay Checkerboard Example](images/ooze-overlay-checker.gif)
-![Ooze Overlay Standalone Example](images/ooze-overlay.gif)
-![Ooze Overlay Atop Ooze Example](images/ooze-over-ooze.gif)
-![Ooze Overlay Atop Image Example](images/ooze-over-image.gif)
+![Waterfall Pattern Example](images/waterfall-pattern.gif)
+![Waterfall Background Example](images/waterfall-background.gif)
+![Waterfall Composite Example](images/waterfall-100.gif)
 
-![Ooze Overlay Atop Ooze Example Zoomed](images/ooze-over-ooze@3x.gif)
-![Ooze Overlay Atop Image Example Zoomed](images/ooze-over-image@3x.gif)
+![Waterfall Example Zoomed](images/waterfall-100@3x.gif)
+![Waterfall Over Image Example Zoomed](images/waterfall-pattern-over-image@3x.gif)
 
 Consider how this could be used in conjunction with the provided ["waves"](waves) example, or any patterns
 you create yourself.
 
-**Demo Swatch Name:** `oozeOverlay`
+**Demo Swatch Name:** `waterfall`
 
 ```lua
 EasyPattern {
     pattern = BitPattern {
         -- pattern --------     -- alpha ----------
-        ' X X X X X X X X ',    ' . . . . . . . . ',
-        ' X X X X X X X X ',    ' . . . . . . . . ',
-        ' X X X X X X X X ',    ' . . . . . . . . ',
-        ' . . X X X X X . ',    ' . . . . . . . . ',
-        ' X . . X X X . . ',    ' . X . . . . . X ',
-        ' X X . . . . . X ',    ' . . X . X . X . ',
-        ' X X X X X X X X ',    ' . . . . . . . . ',
-        ' X X X X X X X X ',    ' . . . . . . . . ',
+        ' . . . . . . . . ',    ' . . . . . . . . ',
+        ' . . . . . . . . ',    ' . . . . . . . . ',
+        ' . . . . . . . . ',    ' . . . . . . . . ',
+        ' . . . . . . . . ',    ' . X . . . . . . ',
+        ' . . . . . . . . ',    ' . . X . . . . X ',
+        ' . . . . . . . . ',    ' . . . . X . X . ',
+        ' . . . . . . . . ',    ' . . . . . . . . ',
+        ' . . . . . . . . ',    ' . . . . . . . . ',
     },
-    yEase     = playdate.easingFunctions.inOutSine,
-    yDuration = 0.5,
+    bgPattern = EasyPattern {
+        pattern = BitPattern {
+            ' X X X X X X X X ',
+            ' X X X X X X X X ',
+            ' X X X X X X X X ',
+            ' . . X X X X X . ',
+            ' X . . X X X . . ',
+            ' X X . . . . . X ',
+            ' X X X X X X X X ',
+            ' X X X X X X X X ',
+        },
+        yDuration = 1,
+        yReversed = true,
+    },
+    yDuration = 1.25,
     yReversed = true,
-    xDuration = 1,
-    shift     = 3,
+    yEase     = playdate.easingFunctions.inOutSine,
+    yScale    = 2,
+    xShift    = 2,
+    alpha     = 1, -- adjust to achieve translucent results shown below
+}
+```
+
+### Translucent Patterns
+
+Consider the waterfall example just above. Now consider a situation in which a character may walk _behind_
+the waterfall. You can adjust the opacity of your pattern with the `alpha` property, allowing some of the
+content behind it to show through (even when the pattern itself is opaque). Unlike the above example where
+a single transparent layer is shown above the image, here the entire multi-layer opaque result is dithered
+to reveal the content behind.
+
+Here's what the above pattern looks like when `alpha` is set to 0.25, 0.5, 0.75, and 1.0.
+
+![Translucent Waterfall 25% Example Zoomed](images/waterfall-25@3x.gif)
+![Translucent Waterfall 50% Example Zoomed](images/waterfall-50@3x.gif)
+![Translucent Waterfall 75% Example Zoomed](images/waterfall-75@3x.gif)
+![Translucent Waterfall 100% Example Zoomed](images/waterfall-100@3x.gif)
+
+The above examples use the default dither type, but you can also change that via the `ditherType` property.
+Here's what it looks like with `graphics.image.kDitherTypeDiagonalLine` instead.
+
+![Translucent Waterfall Diagonal Dither Example Zoomed](images/waterfall-75-diagonal@3x.gif)
+
+### Animated Patterns
+
+You can also specify an `imagetable` for your pattern, enabling the pattern itself to animate, in addition
+to any easing effects added by `EasyPattern`. First, here's what that looks like without any easing applied.
+Note the `tickDuration`, which indicates how long to display each frame in the sequence:
+
+**Demo Swatch Name:** `dashing`
+
+```lua
+EasyPattern {
+    pattern = gfx.imagetable.new("images/hdashes"),
+    tickDuration = 1/16,
+}
+```
+
+![Dashing Checkerboard Without Ease Example](images/dashing-static-checker.gif)
+![Dashing Without Ease Example](images/dashing-static.gif)
+
+![Dashing Without Ease Example Zoomed](images/dashing-static@3x.gif)
+
+You can add easing to the overall pattern to amplify its effects:
+
+```lua
+EasyPattern {
+    pattern = gfx.imagetable.new("images/hdashes"),
+    tickDuration = 1/8,
+    xDuration = 2,
+    ease = playdate.easingFunctions.outExpo,
+    reverses = true,
+    scale = 6,
+},
+```
+
+![Dashing Checkerboard Example](images/dashing-checker.gif)
+![Dashing Example](images/dashing.gif)
+
+![Dashing Example Zoomed](images/dashing@3x.gif)
+
+### Self-Mutating Patterns
+
+Lastly, you can set functions to be called when the pattern loops in the X axis, Y axis, or overall in order
+to adjust the pattern itself or trigger other effects in sync with its movement. This example adds X and Y
+loop callbacks to the previous [Circular Pan](#circular-pan) example, adjusting the scale with each cycle in
+order to spiral outward then inward again repeatedly.
+
+![Spiral Checkerboard Example](images/spiral-checker.gif)
+![Spiral Example](images/spiral.gif)
+
+![Spiral Example Zoomed](images/spiral@3x.gif)
+
+**Demo Swatch Name:** `circle` (copy/paste the loop callbacks below and set the starting scale to 1)
+
+```lua
+EasyPattern {
+    pattern = BitPattern {
+        ' X X X X X X X X ',
+        ' X X . . . X X X ',
+        ' X . X X X . X X ',
+        ' X . X X X . X X ',
+        ' X . X X X . X X ',
+        ' X X . . . X X X ',
+        ' X X X X X X X X ',
+        ' X X X X X X X X ',
+    },
+    duration  = 1,
+    ease      = playdate.easingFunctions.inOutSine,
+    xOffset   = 0.5, -- half the duration
+    reverses  = true,
+    scale     = 1,
+    xLoopCallback = function(pttrn, n)
+        pttrn.xScale += n//5%2 == 0 and 1 or -1
+    end,
+    yLoopCallback = function(pttrn, n)
+        pttrn.yScale += n//5%2 == 0 and 1 or -1
+    end,
 },
 ```
 
@@ -1242,13 +1462,13 @@ BitPattern {
 
 ### What if my pattern doesn't appear?
 
-Make sure you've specified either the `pattern` or the `ditherType` parameters properly. More info
-on [defining your patterns](#defining-your-patterns) is provided in the previous section.
+Make sure you've specified the `pattern` parameter properly. More info on
+[defining your patterns](#defining-your-patterns) is provided in the previous section.
 
 ### What if my pattern doesn't animate?
 
-1. First, make sure you've properly specified an `xDuration` and/or `yDuration`, without
-   which your pattern will remain static.
+1. First, make sure you've specified an `xDuration` and/or `yDuration`, without which your pattern
+   will remain static.
 2. Ensure that `draw()` gets called as necessary to reflect the rendered pattern. If you're using a
    sprite, you can call `self:markDirty()` from your `update()` function. See the
    [notes on performance](#what-about-performance) to optimize drawing. If you're not using sprites,

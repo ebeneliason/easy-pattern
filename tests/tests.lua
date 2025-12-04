@@ -13,6 +13,13 @@ end
 
 -- a simple pattern
 local checkerboard <const> = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }
+-- fully transparent
+local transparent <const> = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+-- opaque white
+local white <const> = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
+-- opaque black
+local black <const> = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+
 
 -- the same pattern using BitPattern
 local bitCheckerboard <const> = BitPattern {
@@ -55,6 +62,35 @@ local B <const> = gfx.kColorBlack
 local W <const> = gfx.kColorWhite
 local C <const> = gfx.kColorClear
 
+-- reusable expected sample results
+
+local checker6 <const> = {
+    W, W, W, W, B, B,
+    W, W, W, W, B, B,
+    W, W, W, W, B, B,
+    W, W, W, W, B, B,
+    B, B, B, B, W, W,
+    B, B, B, B, W, W,
+}
+
+local hstripe6 <const> = {
+    W, W, W, W, W, W,
+    B, B, B, B, B, B,
+    W, W, W, W, W, W,
+    B, B, B, B, B, B,
+    W, W, W, W, W, W,
+    B, B, B, B, B, B,
+}
+
+local transparent6 <const> = {
+    C, C, C, C, C, C,
+    C, C, C, C, C, C,
+    C, C, C, C, C, C,
+    C, C, C, C, C, C,
+    C, C, C, C, C, C,
+    C, C, C, C, C, C,
+}
+
 -- return an array with pixel values from the top left size^2 area
 local function sampleImage(img, size)
     local samples = {}
@@ -70,10 +106,10 @@ TestInit = {}
 
 function TestInit:testDefaults()
     local p = EasyPattern {}
-    lu.assertEquals(p.pattern, nil)
-    lu.assertEquals(p.alpha, 0.5)
-    lu.assertEquals(p.ditherType, nil)
-    lu.assertEquals(p.color, gfx.kColorBlack)
+    lu.assertEquals(p.pattern, checkerboard)
+    lu.assertEquals(p.bgPattern, nil)
+    lu.assertEquals(p.alpha, 1.0)
+    lu.assertEquals(p.ditherType, gfx.image.kDitherTypeBayer8x8)
     lu.assertEquals(p.bgColor, gfx.kColorClear)
     lu.assertEquals(p.xDuration, 0)
     lu.assertEquals(p.yDuration, 0)
@@ -102,7 +138,7 @@ function TestInit:testDefaults()
     lu.assertEquals(p._yPhase, 0)
     lu.assertEquals(p._ptx, 0)
     lu.assertEquals(p._pty, 0)
-    lu.assertNotNil(p.patternImage)
+    lu.assertNotNil(p.compositePatternImage)
 end
 
 function TestInit:testFallbacks()
@@ -214,27 +250,37 @@ function TestInit:testPatternParams()
     local p = EasyPattern {
         pattern = checkerboard
     }
-    lu.assertEquals(p.pattern, checkerboard)
-end
+    lu.assertNotNil(p._patternImage)
+    lu.assertNil(p._bgPatternImage)
 
-function TestInit:testDitherPatternParams()
-    local p = EasyPattern {
-        ditherType = gfx.image.kDitherTypeDiagonalLine,
-        alpha = rnd[1],
-    }
-    lu.assertEquals(p.ditherType, gfx.image.kDitherTypeDiagonalLine)
-    lu.assertEquals(p.alpha, rnd[1])
+    local sample = sampleImage(p._patternImage, 6)
+    lu.assertEquals(sample, checker6)
+    sample = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(sample, checker6)
 end
 
 function TestInit:testBackgroundParams()
     local p = EasyPattern {
-        color = gfx.kColorWhite,
+        pattern = transparent,
         bgColor = gfx.kColorBlack,
         bgPattern = checkerboard,
     }
-    lu.assertEquals(p.color, gfx.kColorWhite)
     lu.assertEquals(p.bgColor, gfx.kColorBlack)
-    lu.assertEquals(p.bgPattern, checkerboard)
+    lu.assertNotNil(p._bgPatternImage)
+
+    local sample = sampleImage(p._bgPatternImage, 6)
+    lu.assertEquals(sample, checker6)
+    sample = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(sample, checker6)
+end
+
+function TestInit:testAlphaParams()
+    local p = EasyPattern {
+        alpha = 0.123,
+        ditherType = gfx.image.kDitherTypeDiagonalLine,
+    }
+    lu.assertEquals(p.alpha, 0.123)
+    lu.assertEquals(p.ditherType, gfx.image.kDitherTypeDiagonalLine)
 end
 
 function TestInit:testInvertedParam()
@@ -272,33 +318,14 @@ end
 
 TestPatterns = {}
 
-function TestPatterns:testSetColor()
-    local p = EasyPattern {
-        ditherType = gfx.image.kDitherTypeVerticalLine
-    }
-
-    local before = sampleImage(p.patternImage, 8)
-    p:setColor(gfx.kColorWhite)
-    local after = sampleImage(p.patternImage, 8)
-    for i = 1, #before do
-        -- black areas should now be white
-        if before[i] == gfx.kColorBlack then
-            lu.assertEquals(after[i], gfx.kColorWhite)
-        -- clear areas should remain clear
-        elseif before[i] == gfx.kColorClear then
-            lu.assertEquals(after[i], gfx.kColorClear)
-        end
-    end
-end
-
 function TestPatterns:testSetBackgroundColor()
     local p = EasyPattern {
         ditherType = gfx.image.kDitherTypeVerticalLine
     }
 
-    local before = sampleImage(p.patternImage, 8)
+    local before = sampleImage(p.compositePatternImage, 8)
     p:setBackgroundColor(gfx.kColorWhite)
-    local after = sampleImage(p.patternImage, 8)
+    local after = sampleImage(p.compositePatternImage, 8)
     for i = 1, #before do
         -- black areas should remain black
         if before[i] == gfx.kColorBlack then
@@ -310,50 +337,280 @@ function TestPatterns:testSetBackgroundColor()
     end
 end
 
-function TestPatterns:testSetDitherAlpha()
+function TestPatterns:testSetDitherPattern()
     local p = EasyPattern {
-        alpha = 1
+        pattern = {
+            alpha = 0.5,
+            ditherType = gfx.image.kDitherTypeVerticalLine,
+        }
     }
 
-    local before = sampleImage(p.patternImage, 8)
-    p:setDitherPattern(0)
-    local after = sampleImage(p.patternImage, 8)
-    -- all pixels should have changed
+    local vertical50 = {
+        B, B, C, C,
+        B, B, C, C,
+        B, B, C, C,
+        B, B, C, C,
+    }
+
+    local horizontal25 = {
+        B, B, B, B,
+        B, B, B, B,
+        B, B, B, B,
+        C, C, C, C,
+    }
+
+    local before = sampleImage(p.compositePatternImage, 4)
+    lu.assertEquals(before, vertical50)
+
+    p:setPattern({
+        alpha = 0.5,
+        ditherType = gfx.image.kDitherTypeVerticalLine,
+        color = gfx.kColorWhite,
+    })
+
+    local after = sampleImage(p.compositePatternImage, 4)
     for i = 1, #before do
-        lu.assertNotEquals(before[i], after[i])
+        -- black areas should now be white
+        if before[i] == gfx.kColorBlack then
+            lu.assertEquals(after[i], gfx.kColorWhite)
+        -- clear areas should remain clear
+        elseif before[i] == gfx.kColorClear then
+            lu.assertEquals(after[i], gfx.kColorClear)
+        end
     end
+
+    p:setDitherPattern(0.5, gfx.image.kDitherTypeVerticalLine, gfx.kColorWhite)
+
+    local after2 = sampleImage(p.compositePatternImage, 4)
+    lu.assertEquals(after, after2)
+
+    p:setPattern({
+        alpha = 0.25,
+        ditherType = gfx.image.kDitherTypeHorizontalLine,
+    })
+
+    local sample = sampleImage(p.compositePatternImage, 4)
+    lu.assertEquals(sample, horizontal25)
+
+    p:setDitherPattern(0.25, gfx.image.kDitherTypeHorizontalLine)
+
+    local sample2 = sampleImage(p.compositePatternImage, 4)
+    lu.assertEquals(sample, sample2)
 end
 
-function TestPatterns:testSetDitherType()
+function TestPatterns:testSetPatternImage()
     local p = EasyPattern {
-        ditherType = gfx.image.kDitherTypeVerticalLine
+        pattern = gfx.image.new("./images/checker")
     }
 
-    local expectedBefore = {
-        B, B, C, C, B, B,
-        B, B, C, C, B, B,
-        B, B, C, C, B, B,
-        B, B, C, C, B, B,
-        B, B, C, C, B, B,
-        B, B, C, C, B, B,
+    local sample = sampleImage(p._patternImage, 6)
+    lu.assertEquals(sample, checker6)
+    sample = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(sample, checker6)
+    lu.assertNil(p._bgPatternImage)
+
+    p:setPatternImage(gfx.image.new("./images/hstripe"))
+    sample = sampleImage(p._patternImage, 6)
+    lu.assertEquals(sample, hstripe6)
+    sample = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(sample, hstripe6)
+end
+
+function TestPatterns:testSetPatternImageTable()
+    self.p = EasyPattern {
+        pattern = gfx.imagetable.new("./images/hdashes"),
+        tickDuration = 1,
+    }
+    local p = self.p
+
+    local expected = {
+        B, B, B, B,
+        B, B, B, B,
+        W, B, B, B,
+        W, B, B, B,
     }
 
-    local expectedAfter = {
-        B, B, B, B, B, B,
-        B, B, B, B, B, B,
-        C, C, C, C, C, C,
-        C, C, C, C, C, C,
-        B, B, B, B, B, B,
-        B, B, B, B, B, B,
+    lu.assertNotNil(p._patternTable)
+    local sample = sampleImage(p._patternImage, 4)
+    lu.assertEquals(sample, expected)
+    sample = sampleImage(p.compositePatternImage, 4)
+    lu.assertEquals(sample, expected)
+
+    -- mock our timer
+    p._getTime = function() return p.mockTime end
+
+    local expected1 = {
+        B, B, B, B,
+        B, B, B, B,
+        W, W, B, B,
+        W, W, B, B,
     }
 
-    local before = sampleImage(p.patternImage, 6)
-    lu.assertEquals(before, expectedBefore)
+    p.mockTime = 1
+    p:apply()
+    sample = sampleImage(p._patternImage, 4)
+    lu.assertEquals(sample, expected1)
+    sample = sampleImage(p.compositePatternImage, 4)
+    lu.assertEquals(sample, expected1)
 
-    p:setDitherPattern(0.5, gfx.image.kDitherTypeHorizontalLine)
+    local expected6 = {
+        B, B, B, B,
+        B, B, B, B,
+        B, B, B, W,
+        B, B, B, W,
+    }
 
-    local after = sampleImage(p.patternImage, 6)
-    lu.assertEquals(after, expectedAfter)
+    p.mockTime = 6
+    p:apply()
+    sample = sampleImage(p._patternImage, 4)
+    lu.assertEquals(sample, expected6)
+    sample = sampleImage(p.compositePatternImage, 4)
+    lu.assertEquals(sample, expected6)
+
+    p.mockTime = p._patternTable:getLength() + 1
+    p:apply()
+    sample = sampleImage(p._patternImage, 4)
+    lu.assertEquals(sample, expected1)
+    sample = sampleImage(p.compositePatternImage, 4)
+    lu.assertEquals(sample, expected1)
+
+    p.mockTime = p._patternTable:getLength() + 6
+    p:apply()
+    sample = sampleImage(p._patternImage, 4)
+    lu.assertEquals(sample, expected6)
+    sample = sampleImage(p.compositePatternImage, 4)
+    lu.assertEquals(sample, expected6)
+end
+
+function TestPatterns:testSetEasyPatternOnlyOnBackground()
+    local p = EasyPattern { pattern = transparent }
+
+    p:setPattern(EasyPattern { pattern = stripestripe })
+
+    lu.assertNil(p._bgEasyPattern)
+    lu.assertNil(p._bgPatternImage)
+    local sample = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(sample, transparent6)
+end
+
+function TestPatterns:testBackgroundPatternRemoval()
+    local p = EasyPattern { pattern = transparent }
+
+    -- confirm starting conditions
+    lu.assertNil(p.bgPattern)
+    lu.assertNil(p._bgPatternImage)
+    lu.assertEquals(p.pattern, transparent)
+    local sample = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(sample, transparent6)
+
+    -- set a checkerboard pattern as a background
+    p:setBackgroundPattern(checkerboard)
+    lu.assertEquals(p.pattern, transparent)
+    lu.assertNotNil(p.bgPattern)
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertEquals(p.bgPattern, checkerboard)
+    sample = sampleImage(p._patternImage, 6)
+    lu.assertEquals(sample, transparent6)
+    sample = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(sample, checker6)
+
+    -- then remove it
+    p:setBackgroundPattern(nil)
+    lu.assertNil(p.bgPattern)
+    lu.assertNil(p._bgPatternImage)
+    lu.assertEquals(p.pattern, transparent)
+    sample = sampleImage(p._patternImage, 6)
+    lu.assertEquals(sample, transparent6)
+    p:_updateCompositePatternImage()
+    sample = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(sample, transparent6)
+end
+
+function TestPatterns:testPatternValuesReset()
+    local p = EasyPattern { pattern = checkerboard }
+
+    lu.assertEquals(p.pattern, checkerboard)
+    lu.assertNil(p.patternTable)
+
+    p:setDitherPattern(0.5)
+    lu.assertNil(p.pattern)
+
+    p:setBitPattern(checkerboard)
+    lu.assertEquals(p.pattern, checkerboard)
+
+    p:setPatternImage(gfx.image.new("./images/checker"))
+    lu.assertNil(p.pattern)
+
+    p:setBitPattern(checkerboard)
+    lu.assertEquals(p.pattern, checkerboard)
+
+    p:setPatternImageTable(gfx.imagetable.new("./images/hdashes"))
+    lu.assertNil(p.pattern)
+    lu.assertNotNil(p._patternTable)
+
+    p:setBitPattern(checkerboard)
+    lu.assertEquals(p.pattern, checkerboard)
+    lu.assertNil(p._patternTable)
+end
+
+function TestPatterns:testBackgroundPatternValuesReset()
+    local p = EasyPattern {
+        pattern = transparent,
+        bgPattern = checkerboard,
+    }
+
+    lu.assertEquals(p.bgPattern, checkerboard)
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertNil(p._bgPatternTable)
+    lu.assertNil(p._bgEasyPattern)
+
+    p:setBackgroundDitherPattern(0.5)
+    lu.assertNil(p.bgPattern)
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertNil(p._bgPatternTable)
+    lu.assertNil(p._bgEasyPattern)
+
+    p:setBackgroundBitPattern(checkerboard)
+    lu.assertEquals(p.bgPattern, checkerboard)
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertNil(p._bgPatternTable)
+    lu.assertNil(p._bgEasyPattern)
+
+    p:setBackgroundEasyPattern(EasyPattern {})
+    lu.assertNil(p.bgPattern)
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertNil(p._bgPatternTable)
+    lu.assertNotNil(p._bgEasyPattern)
+
+    p:setBackgroundBitPattern(checkerboard)
+    lu.assertEquals(p.bgPattern, checkerboard)
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertNil(p._bgPatternTable)
+    lu.assertNil(p._bgEasyPattern)
+
+    p:setBackgroundPatternImage(gfx.image.new("./images/checker"))
+    lu.assertNil(p.bgPattern)
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertNil(p._bgPatternTable)
+    lu.assertNil(p._bgEasyPattern)
+
+    p:setBackgroundBitPattern(checkerboard)
+    lu.assertEquals(p.bgPattern, checkerboard)
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertNil(p._bgPatternTable)
+    lu.assertNil(p._bgEasyPattern)
+
+    p:setBackgroundPatternImageTable(gfx.imagetable.new("./images/hdashes"))
+    lu.assertNil(p.bgPattern)
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertNotNil(p._bgPatternTable)
+    lu.assertNil(p._bgEasyPattern)
+
+    p:setBackgroundPattern(checkerboard)
+    lu.assertEquals(p.bgPattern, checkerboard)
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertNil(p._bgPatternTable)
+    lu.assertNil(p._bgEasyPattern)
 end
 
 function TestPatterns:testReflectionHorizontal()
@@ -375,12 +632,12 @@ function TestPatterns:testReflectionHorizontal()
         B, W, B, B,
     }
 
-    local before = sampleImage(p.patternImage, 4)
+    local before = sampleImage(p.compositePatternImage, 4)
     lu.assertEquals(before, expectedBefore)
 
     p:setReflected(true, false)
 
-    local after = sampleImage(p.patternImage, 4)
+    local after = sampleImage(p.compositePatternImage, 4)
     lu.assertEquals(after, expectedAfter)
 end
 
@@ -403,12 +660,12 @@ function TestPatterns:testReflectionVertical()
         W, B, B, B,
     }
 
-    local before = sampleImage(p.patternImage, 4)
+    local before = sampleImage(p.compositePatternImage, 4)
     lu.assertEquals(before, expectedBefore)
 
     p:setReflected(false, true)
 
-    local after = sampleImage(p.patternImage, 4)
+    local after = sampleImage(p.compositePatternImage, 4)
     lu.assertEquals(after, expectedAfter)
 end
 
@@ -431,27 +688,18 @@ function TestPatterns:testRotation()
         B, W, W, B,
     }
 
-    local before = sampleImage(p.patternImage, 4)
+    local before = sampleImage(p.compositePatternImage, 4)
     lu.assertEquals(before, expectedBefore)
 
     p:setRotated(true)
 
-    local after = sampleImage(p.patternImage, 4)
+    local after = sampleImage(p.compositePatternImage, 4)
     lu.assertEquals(after, expectedAfter)
 end
 
 function TestPatterns:testSetPattern()
     local p = EasyPattern {
         pattern = checkerboard
-    }
-
-    local expectedBefore = {
-        W, W, W, W, B, B,
-        W, W, W, W, B, B,
-        W, W, W, W, B, B,
-        W, W, W, W, B, B,
-        B, B, B, B, W, W,
-        B, B, B, B, W, W,
     }
 
     local expectedAfter = {
@@ -463,27 +711,18 @@ function TestPatterns:testSetPattern()
         W, W, B, W, W, W,
     }
 
-    local before = sampleImage(p.patternImage, 6)
-    lu.assertEquals(before, expectedBefore)
+    local before = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(before, checker6)
 
     p:setPattern(zigzag)
 
-    local after = sampleImage(p.patternImage, 6)
+    local after = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(after, expectedAfter)
 end
 
 function TestPatterns:testSetPatternWithAlpha()
     local p = EasyPattern {
         pattern = checkerboard
-    }
-
-    local expectedBefore = {
-        W, W, W, W, B, B,
-        W, W, W, W, B, B,
-        W, W, W, W, B, B,
-        W, W, W, W, B, B,
-        B, B, B, B, W, W,
-        B, B, B, B, W, W,
     }
 
     local expectedAfter = {
@@ -495,16 +734,19 @@ function TestPatterns:testSetPatternWithAlpha()
         C, C, C, C, C, C,
     }
 
-    local before = sampleImage(p.patternImage, 6)
-    lu.assertEquals(before, expectedBefore)
+    local before = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(before, checker6)
 
     p:setPattern(stripestripe)
 
-    local after = sampleImage(p.patternImage, 6)
+    local after = sampleImage(p._patternImage, 6)
+    lu.assertEquals(after, expectedAfter)
+
+    local after = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(after, expectedAfter)
 end
 
-function TestPatterns:testSetStaticBackgroundPattern()
+function TestPatterns:testSetBackgroundPattern()
     local p = EasyPattern {
         pattern = stripestripe
     }
@@ -527,15 +769,42 @@ function TestPatterns:testSetStaticBackgroundPattern()
         B, B, B, B, W, W,
     }
 
-    local before = sampleImage(p.patternImage, 6)
+    local before = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(before, expectedBefore)
 
+    lu.assertNil(p._bgPatternImage)
     p:setBackgroundPattern(checkerboard)
-    lu.assertNotNil(p.bgPattern)
-    lu.assertEquals(p.bgPattern.className, nil)
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertNil(p._bgEasyPattern)
 
-    local after = sampleImage(p.patternImage, 6)
+    local after = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(after, expectedAfter)
+end
+
+function TestPatterns:testSetBackgroundPatternImage()
+    local p = EasyPattern {
+        pattern = transparent,
+        bgPattern = gfx.image.new("./images/checker"),
+    }
+
+    local sample = sampleImage(p._patternImage, 6)
+    lu.assertEquals(sample, transparent6)
+    sample = sampleImage(p._bgPatternImage, 6)
+    lu.assertEquals(sample, checker6)
+    sample = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(sample, checker6)
+
+    p:setBackgroundPatternImage(gfx.image.new("./images/hstripe"))
+    sample = sampleImage(p._patternImage, 6)
+    lu.assertEquals(sample, transparent6)
+    sample = sampleImage(p._bgPatternImage, 6)
+    lu.assertEquals(sample, hstripe6)
+    sample = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(sample, hstripe6)
+end
+
+function TestPatterns:SKIP_testSetBackgroundPatternImageTable()
+    -- TODO
 end
 
 function TestPatterns:testSetBackgroundEasyPattern()
@@ -561,14 +830,15 @@ function TestPatterns:testSetBackgroundEasyPattern()
         B, B, B, B, W, W,
     }
 
-    local before = sampleImage(p.patternImage, 6)
+    local before = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(before, expectedBefore)
 
+    lu.assertNil(p._bgPatternImage)
     p:setBackgroundPattern(EasyPattern { pattern = checkerboard })
-    lu.assertNotNil(p.bgPattern)
-    lu.assertEquals(p.bgPattern.className, "EasyPattern")
+    lu.assertNotNil(p._bgPatternImage)
+    lu.assertNotNil(p._bgEasyPattern)
 
-    local after = sampleImage(p.patternImage, 6)
+    local after = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(after, expectedAfter)
 end
 
@@ -576,15 +846,6 @@ function TestPatterns:testInverted()
     local p = EasyPattern {
         pattern = checkerboard,
         inverted = true,
-    }
-
-    local default = {
-        W, W, W, W, B, B,
-        W, W, W, W, B, B,
-        W, W, W, W, B, B,
-        W, W, W, W, B, B,
-        B, B, B, B, W, W,
-        B, B, B, B, W, W,
     }
 
     local inverted = {
@@ -596,16 +857,16 @@ function TestPatterns:testInverted()
         W, W, W, W, B, B,
     }
 
-    local sample = sampleImage(p.patternImage, 6)
+    local sample = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(sample, inverted)
 
     p:setInverted(false)
 
-    sample = sampleImage(p.patternImage, 6)
-    lu.assertEquals(sample, default)
+    sample = sampleImage(p.compositePatternImage, 6)
+    lu.assertEquals(sample, checker6)
 
     p:setInverted(true)
-    sample = sampleImage(p.patternImage, 6)
+    sample = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(sample, inverted)
 end
 
@@ -976,12 +1237,12 @@ function TestPhases:testAnimatedBackgroundPattern()
 
     p.mockTime = 0
     p:apply()
-    sample = sampleImage(p.patternImage, 6)
+    sample = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(sample, unshifted)
 
     p.mockTime = 1/8
     p:apply()
-    sample = sampleImage(p.patternImage, 6)
+    sample = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(sample, shiftedOne)
 end
 
@@ -1009,9 +1270,9 @@ function TestPhases:testAnimatedForegroundPattern()
     }
 
     -- This is subtle. We expect the visual result to have a fixed bgPattern, while the pattern itself
-    -- moves in the Y axis. However, because the patternImage has the phase shifts applied to it, the
-    -- net result here is that the bgPattern appears to shift in the Y axis in the opposite direction,
-    -- while the pattern remains fixed.
+    -- moves in the Y axis. However, because pattern image will have any phase shifts applied to it, the
+    -- net result here is that the background image appears to shift in the Y axis in the opposite direction,
+    -- while the pattern itself remains fixed.
     local shiftedTwo = {
         W, B, W, B, W, B, --B, B, B, B, W, W,
         B, B, B, B, W, W,
@@ -1023,12 +1284,12 @@ function TestPhases:testAnimatedForegroundPattern()
 
     p.mockTime = 0
     p:apply()
-    sample = sampleImage(p.patternImage, 6)
+    sample = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(sample, unshifted)
 
     p.mockTime = 2/8
     p:apply()
-    sample = sampleImage(p.patternImage, 6)
+    sample = sampleImage(p.compositePatternImage, 6)
     lu.assertEquals(sample, shiftedTwo)
 end
 
