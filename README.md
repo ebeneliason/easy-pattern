@@ -261,13 +261,13 @@ easyCheckerboard.xDuration = 0.5
 
 An 8x8 pixel pattern in one of these formats:
 
-1. An array of 8 numbers describing the bitmap for each row, with an optional 8 additional for a bitmap alpha
+1. **Bit Pattern:** An array of 8 numbers describing the bitmap for each row, with an optional 8 additional for a bitmap alpha
    channel (as would be passed to
    [`playdate.graphics.setPattern()`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)).
    See [Defining Your Patterns](#defining-your-patterns) for additional detail on how to construct valid arguments
    for the pattern parameter in this format.
 
-2. A table containing:
+2. **Dither Pattern:** A table containing:
 
    - A `ditherType` (as would be passed to `playdate.graphics.setDitherPattern()`,
      e.g. `playdate.graphics.image.kDitherTypeVerticalLine`).
@@ -279,9 +279,10 @@ An 8x8 pixel pattern in one of these formats:
    constant to the pattern parameter, skipping the table syntax, e.g.,
    `pattern = playdate.graphics.image.kDitherTypeHorizontalLine`.
 
-3. An 8x8 pixel `playdate.graphics.image`.
+3. **Image:** An 8x8 pixel `playdate.graphics.image`.
 
-4. An 8x8 pixel `playdate.graphics.imagetable` (for animated patterns). See also: [`tickDuration`](#tickduration).
+4. **Image Table:** An 8x8 pixel `playdate.graphics.imagetable` (for animated patterns).
+   See also: [`tickDuration`](#tickduration).
 
 Default: `{ 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }` (checkerboard)
 
