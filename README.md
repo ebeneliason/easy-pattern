@@ -123,6 +123,9 @@ Click on any pattern to jump to a complete example with code, or use the provide
 [![Reflected Thumbnail](images/reflected@3x.gif)](#reflected-patterns)
 [![Ooze Over Image Thumbnail](images/ooze-over-image@3x.gif)](#composite-patterns)
 [![Ooze Over Ooze Image Thumbnail](images/ooze-over-ooze@3x.gif)](#composite-patterns)
+[![Waterfall 75% Thumbnail](images/waterfall-50@3x.gif)](#tranlucent-patterns)
+[![Dashing Thumbnail](images/dashing@3x.gif)](#animated-patterns)
+[![Spiral Thumbnail](images/spiral@3x.gif)](#self-mutating-patterns)
 
 ## Understanding EasyPattern
 
@@ -258,10 +261,9 @@ easyCheckerboard.xDuration = 0.5
 
 An 8x8 pixel pattern in one of these formats:
 
-1. An array of 8 numbers describing the bitmap for each row, with an optional additional 8 for a bitmap alpha
+1. An array of 8 numbers describing the bitmap for each row, with an optional 8 additional for a bitmap alpha
    channel (as would be passed to
-   [playdate.graphics.setPattern](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)).
-
+   [`playdate.graphics.setPattern()`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)).
    See [Defining Your Patterns](#defining-your-patterns) for additional detail on how to construct valid arguments
    for the pattern parameter in this format.
 
@@ -273,15 +275,18 @@ An 8x8 pixel pattern in one of these formats:
    - An optional `color` value in which to render the dither (e.g. `playdate.graphics.kColorWhite`).
      Default: `playdate.graphics.kColorBlack`.
 
-     As a convenience, if you want the pattern rendered in black at 50% alpha you can assign a bare dither type
-     constant to the pattern parameter, skipping the table syntax, e.g.,
-     `pattern = playdate.graphics.image.kDitherTypeHorizontalLine`.
+   As a convenience, if you want the pattern rendered in black at 50% alpha you can assign a bare dither type
+   constant to the pattern parameter, skipping the table syntax, e.g.,
+   `pattern = playdate.graphics.image.kDitherTypeHorizontalLine`.
 
 3. An 8x8 pixel `playdate.graphics.image`.
 
 4. An 8x8 pixel `playdate.graphics.imagetable` (for animated patterns). See also: [`tickDuration`](#tickduration).
 
-Default: Checkerboard (`{ 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }`)
+Default: `{ 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }` (checkerboard)
+
+> [!TIP]
+> Given the default checkerboard pattern, you can quickly test out easing behaviors before assigning a pattern.
 
 #### `bgPattern`
 
@@ -435,7 +440,7 @@ A multiplier describing the number of 8px repetitions the pattern moves by per c
 
 Default: `1`
 
-> [IMPORTANT!]
+> [!IMPORTANT]
 > Non-integer values will result in discontinuity when looping.
 
 #### `yScale`
@@ -444,7 +449,7 @@ A multiplier describing the number of 8px repetitions the pattern moves by per c
 
 Default: `1`
 
-> [IMPORTANT!]
+> [!IMPORTANT]
 > Non-integer values will result in discontinuity when looping.
 
 ### Transformation Parameters
@@ -598,7 +603,7 @@ The pattern and background pattern may be set with the functions below. The prov
 and `setBackgroundPattern(...)` taken together allow setting new patterns using any of the formats supported
 by the `pattern` param when passed to `init()`.
 
-> [TIP!]
+> [!TIP]
 > Setting a background pattern is substantially more performant than drawing one pattern atop another, as only
 > the 8x8 pattern gets composited (and only in frames when it changes). All other drawing is only done once.
 >
@@ -622,7 +627,7 @@ on the `EasyPattern`.
 
 **Params:**
 
-- **`ditherType`:** The dither pattern to render as a pattern, which may be any value supported by
+- **`ditherType`:** The dither to render as a pattern, which may be any supported by
   `playdate.graphics.setDitherPattern()`.
 - **`[alpha]`:** The opacity to render the dither pattern with. Default: `0.5`.
 - **`[color]`:** An optional color to render the pattern in. Default: `playdate.graphics.kColorBlack`.
@@ -634,7 +639,7 @@ Sets the pattern using the provided image.
 
 **Params:**
 
-- **image:**: A `playdate.graphics.image`, which should be 8x8 pixels in size.
+- **`image`:** A `playdate.graphics.image`, which should be 8x8 pixels in size.
 
 #### `setPattern(imageTable, [tickDuration])`
 
@@ -649,7 +654,7 @@ a looping sequence of images from the image table, advancing once per tick.
   advances to the next image in the sequence. This is a convenience which sets the `tickDuration` property when
   setting a pattern, though it may also be set directly.
 
-> [NOTE!]
+> [!NOTE]
 > The number of images in the provided sequence has no effect on the X, Y, or total calculated loop duration,
 > which reports only with respect to the easing animation loops.
 
@@ -682,7 +687,7 @@ Sets the background pattern using the provided image.
 
 **Params:**
 
-- **image:**: A `playdate.graphics.image`, which should be 8x8 pixels in size.
+- **`image`:** A `playdate.graphics.image`, which should be 8x8 pixels in size.
 
 #### `setBackgroundPattern(imageTable, [tickDuration])`
 
@@ -697,7 +702,7 @@ a looping sequence of images from the image table, advancing once per tick.
   advances to the next image in the sequence. This is a convenience which sets the `tickDuration` property when
   setting a pattern, though it may also be set directly.
 
-> [NOTE!]
+> [!NOTE]
 > The number of images in the provided sequence has no effect on the X, Y, or total calculated loop duration,
 > which reports only with respect to the easing animation loops.
 
@@ -707,7 +712,7 @@ Sets the background pattern to another `EasyPattern` instance, enabling composit
 The background `EasyPattern` will animate independently of its parent (its X and Y phases will not be impacted by
 those of the overlaid pattern).
 
-> [NOTE!]
+> [!NOTE]
 > The X, Y, and total loop durations of the parent `EasyPattern` will adjust to account for those of its background,
 > such that the reported values indicate a return of both patterns to their initial state.
 
@@ -852,7 +857,7 @@ EasyPattern {
 }
 ```
 
-> [NOTE!]
+> [!NOTE]
 > Because the provided dither pattern is rendered in black at 50% alpha, we can assign the dither constant
 > directly to the pattern parameter.
 
@@ -881,7 +886,7 @@ EasyPattern {
 }
 ```
 
-> [NOTE!]
+> [!NOTE]
 > Unlike the previous example, a table is provided for the pattern parameter in order to adjust the color and
 > alpha values used to generate the pattern with the given the dither.
 
