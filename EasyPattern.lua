@@ -488,10 +488,9 @@ function EasyPattern:setBackgroundColor(color)
     self:_updateCompositePatternImage()
 end
 
-function EasyPattern:setAlpha(alpha, ditherType, color)
+function EasyPattern:setAlpha(alpha, ditherType)
     self.alpha = alpha
     self.ditherType = ditherType or self.ditherType or gfx.image.kDitherTypeBayer8x8
-    self.color = color or self.color or gfx.kColorBlack
     self:_updateCompositePatternImage()
 end
 
@@ -670,7 +669,7 @@ function EasyPattern:getPhases()
     end
 
     -- update the pattern if we're semi-transparent to ensure the transparency mask remains fixed
-    if self._isDirty and (self.xDuration > 0 or self.yDuration > 0) then
+    if self._isDirty and (self.xDuration > 0 or self.yDuration > 0) and self.alpha < 1 then
         self:_updateCompositePatternImage()
     end
 
