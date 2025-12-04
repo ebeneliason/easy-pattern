@@ -293,14 +293,15 @@ An 8x8 pixel pattern specified in one of these formats:
    constant to the pattern parameter, skipping the table syntax, e.g.,
    `pattern = playdate.graphics.image.kDitherTypeHorizontalLine`.
 
-3. **Image:** An 8x8 pixel `playdate.graphics.image`.
+3. **Image:** An 8x8 pixel [`playdate.graphics.image`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#C-graphics.image).
 
    Example: `pattern = playdate.graphics.image.new("images/myPattern")`
 
-4. **Image Table:** An 8x8 pixel `playdate.graphics.imagetable` (for animated patterns).
-   See also: [`tickDuration`](#tickduration).
+4. **Image Table:** An 8x8 pixel
+   [`playdate.graphics.imagetable`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#C-graphics.imagetable)
+   (for animated patterns). See also: [`tickDuration`](#tickduration).
 
-   Example: `pattern = playdate.graphics.imagetable.new("images/myPattern") -- filename: "myPattern-table-8-8"`
+   Example: `pattern = playdate.graphics.imagetable.new("images/myPattern") -- filename: "myPattern-table-8-8.png" or "myPattern.gif"`
 
 Default: `{ 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }` (checkerboard)
 
