@@ -272,7 +272,7 @@ An 8x8 pixel pattern specified in one of these formats:
    See [Defining Your Patterns](#defining-your-patterns) for additional detail on how to construct valid arguments
    for the pattern parameter in this format.
 
-Example: `pattern = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }` (checkerboard)
+   Example: `pattern = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }` (checkerboard)
 
 2. **Dither Pattern:** A table containing:
 
