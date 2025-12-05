@@ -183,7 +183,7 @@ class('EasyPattern').extends(Object)
 --                          and the current time are passed as parameters to the function. This can be used to
 --                          dynamically update the pattern in response to inputs or game state.
 --                          Default: nil.
---
+
 --! INIT
 
 function EasyPattern:init(params)
@@ -312,11 +312,11 @@ end
 function EasyPattern:_setPattern(img, a, b, c)
     if type(a) == "number" then
         self:_setDitherPattern(img, b or 0.5, a, c)
-    elseif type(a) == "userdata" and a.getImage then
+    elseif getmetatable(a) == gfx.imagetable then
         self:_setPatternImageTable(img, a, b or self.tickDuration)
-    elseif type(a) == "userdata" and a.draw then
+    elseif getmetatable(a) == gfx.image then
         self:_setPatternImage(img, a)
-    elseif a.isa and a:isa(EasyPattern) then
+    elseif getmetatable(a) == EasyPattern then
         if img == self._bgPatternImage then
             self:setBackgroundEasyPattern(a)
         else
