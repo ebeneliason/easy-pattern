@@ -555,6 +555,20 @@ well as any background pattern. The `EasyPattern` and Y loop count are passed as
 
 Default: `nil`
 
+#### `update`
+
+A function to be called immediately before phase computation. You can use this to make any dynamic
+adjustments to the pattern based on the current time, game state, or external inputs like the crank.
+The `EasyPattern` and the current time are passed as parameters to the function.
+
+For example, the following function updates the Y axis phase shift based on crank input:
+
+```lua
+myPattern.update = function(p) p.yShift = playdate.getCrankPosition()//15 end
+```
+
+See [Dynamic Patterns](#dynamic-patterns) for a complete example with visual.
+
 ## Functions
 
 ### Core Functions
@@ -1140,9 +1154,12 @@ EasyPattern {
     },
     duration = 1, -- must be non-zero to trigger easing function, but value doesn't matter
     scale    = 2, -- adjust to change the amplitude of vibration
-    ease     = function(t, b, c, d) return math.random(0, 5) / 5 end,
+    ease     = function(_, _, _, _) return math.random(0,8)/8 end, -- note that all args are ignored
 }
 ```
+
+> [!NOTE] The same result can also be achieved using a custom `update()` function. Check out
+> [EasyPatternDemoSwatch.lua](EasyPatternDemoSwatch.lua) to see how.
 
 ### Perlin Noise
 
@@ -1267,7 +1284,7 @@ EasyPattern {
 
 ### Composite Patterns
 
-Lastly, because all patterns support transparency, you can overlay them to create more complex effects.
+Because all patterns support transparency, you can overlay them to create more complex effects.
 You can overlay an animated pattern on a static background or, as shown here, overlay two patterns with
 independent animation effects. The pattern shown below is a transparent variation on ["ooze"](#ooze). It
 can be drawn atop an image to add a subtle effect, or used with "ooze" as a background pattern to create
@@ -1381,7 +1398,7 @@ EasyPattern {
 
 ### Self-Mutating Patterns
 
-Lastly, you can set functions to be called when the pattern loops in the X axis, Y axis, or overall in order
+You can set functions to be called when the pattern loops in the X axis, Y axis, or overall in order
 to adjust the pattern itself or trigger other effects in sync with its movement. This example adds X and Y
 loop callbacks to the previous [Circular Pan](#circular-pan) example, adjusting the scale with each cycle in
 order to spiral outward then inward again repeatedly.
@@ -1417,6 +1434,28 @@ EasyPattern {
         pttrn.yScale += n//5%2 == 0 and 1 or -1
     end,
 },
+```
+
+### Dynamic Patterns
+
+Lastly, you can set an `update()` function on your pattern that gets called every time new phases are calculated.
+This function is passed the `EasyPattern` itself as well as the current time, and allows you to modify the pattern
+based on any inputs or game conditions you wish. This is a simple example that modifies the
+["Conveyor Belt"](#conveyor-belt) above, allowing it to be operated with the crank.
+
+![Crank Conveyor Example Zoomed](images/crank-conveyor@3x.gif)
+
+**Demo Swatch Name:** `conveyor` (adjust the commented lines to modify the original example)
+
+```lua
+EasyPattern {
+    pattern    = {
+        ditherType = playdate.graphics.image.kDitherTypeHorizontalLine,
+        alpha = 0.25,
+    },
+    bgColor    = playdate.graphics.kColorWhite,
+    update     = function(p) p.yShift = playdate.getCrankPosition()//15 end,
+}
 ```
 
 ## Demo Swatch

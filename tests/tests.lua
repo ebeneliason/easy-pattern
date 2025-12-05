@@ -1511,6 +1511,30 @@ function TestLoops:testXYLoopCallbacks()
     lu.assertEquals(self.loopCBs, 1)
 end
 
+function TestLoops:testUpdateCallback()
+    local p = self.p
+    local updated = false
+    local time = 0
+    local pattern = nil
+
+    p.update = function(p, t)
+        updated = true
+        pattern = p
+        time = t
+        p.xShift = t -- trigger dirty bit
+    end
+
+    p.mockTime = 2
+    p:apply()
+    lu.assertIsFalse(p:isDirty())
+    p.mockTime = 3
+    _, _, dirty = p:getPhases()
+    lu.assertIsTrue(dirty)
+    lu.assertIsTrue(updated)
+    lu.assertEquals(pattern, p)
+    lu.assertEquals(time, 3)
+end
+
 
 TestBitPattern = {}
 

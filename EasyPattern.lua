@@ -178,6 +178,12 @@ class('EasyPattern').extends(Object)
 --                          considerations noted above. The `EasyPattern` and Y loop count are passed as
 --                          parameters to the function.
 --                          Default: nil.
+--
+--        update            A function to be called immediately before new phases are calculated. The `EasyPattern`
+--                          and the current time are passed as parameters to the function. This can be used to
+--                          dynamically update the pattern in response to inputs or game state.
+--                          Default: nil.
+--
 --! INIT
 
 function EasyPattern:init(params)
@@ -199,6 +205,9 @@ function EasyPattern:init(params)
 
     -- tick duration used when pattern and/or background pattern is an `imagetable`
     self.tickDuration = params.tickDuration or 1 / playdate.display.getRefreshRate()
+
+    -- custom update function
+    self.update = params.update or nil
 
 
     -- OBJECT PROPERTY  | SINGLE AXIS SET        | DUAL AXIS FALLBACK    | DEFAULT VALUE
@@ -587,6 +596,9 @@ function EasyPattern:getPhases()
     if t - self._pt < CACHE_EXP then
         return self._xPhase, self._yPhase, false
     end
+
+    -- give our update function a chance to make any changes
+    if self.update then self:update(t) end
 
     -- calculate the effective time param for each axis accounting for offsets, speed scaling, and looping
     local tx = self.xDuration > 0 and (t * self.xSpeed + self.xOffset) % self.xDuration or 0

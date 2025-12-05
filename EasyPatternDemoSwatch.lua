@@ -90,8 +90,10 @@ patterns = {
 
     conveyor = EasyPattern {
         pattern    = playdate.graphics.image.kDitherTypeVerticalLine,
-        xDuration  = 0.5,
         bgColor    = playdate.graphics.kColorWhite,
+        xDuration  = 1,
+        -- un-comment the line below (and comment out the line above) to operate with the crank!
+        -- update     = function(p) p.xShift = playdate.getCrankPosition()//15 end,
     },
 
     scanline = EasyPattern {
@@ -244,9 +246,15 @@ patterns = {
             ' . . . X . . . . ',
             ' . . . . . . . . ',
         },
-        duration = 1,
-        scale    = 2,
-        ease     = function() return math.random(0,5)/5 end,
+        duration = 1, -- must be non-zero to trigger easing function, but value doesn't matter
+        scale    = 2, -- adjust to change the amplitude of vibration
+        ease     = function(_, _, _, _) return math.random(0, 5) / 5 end, -- note that all args are ignored
+        -- more ways than one…try commenting out the three lines above and uncommenting
+        -- this update function to achieve the same result. The last constant represents scale.
+        -- update = function(p)
+        --   p.xShift = math.random(0,8)/8 * 2
+        --   p.yShift = math.random(0,8)/8 * 2
+        -- end,
     },
 
     dotmatrix = EasyPattern {
