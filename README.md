@@ -124,6 +124,7 @@ Click on any pattern to jump to a complete example with code, or use the provide
 [![Waterfall 75% Thumbnail](images/waterfall-50@3x.gif)](#translucent-patterns)
 [![Dashing Thumbnail](images/dashing@3x.gif)](#animated-patterns)
 [![Spiral Thumbnail](images/spiral@3x.gif)](#self-mutating-patterns)
+[![Crank Conveyor Thumbnail](images/crank-conveyor@3x.gif)](#dynamic-patterns)
 
 ## Understanding EasyPattern
 
