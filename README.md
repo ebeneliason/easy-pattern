@@ -160,17 +160,20 @@ that get composited to create the final pattern. This diagram describes their or
 ```mermaid
 block-beta
 columns 8
-  M["alpha dither"]:8
+  M["alpha dither mask"]:8
   A["pattern"]:8
   B["bgPattern"]:2
   block:bgPattern:6
     columns 1
-    W["alpha dither"]
+    W["alpha dither mask"]
     X["pattern"]
     Y["bgPattern…"]
     Z["bgColor"]
   end
   C["bgColor"]:8
+classDef mask fill:#FFFFFF05, stroke-dasharray: 5 5
+class M mask
+class W mask
 ```
 
 **↓ BOTTOM**
@@ -179,8 +182,8 @@ Because the [`bgPattern`](#bgpattern) property may be set to another `EasyPatter
 create recursive stacks which compose two or more patterns together as one.
 
 Patterns may also apply an opacity effect via the [`alpha`](#alpha) and [`ditherType`](#dithertype) properties.
-This mask remains fixed even as the pattern itself shifts in phase, and applies to the pattern its defined on and
-all layers beneath it.
+This mask remains fixed even as the pattern itself shifts in phase, and applies to all layers of the pattern it's
+defined on and any more deeply nested beneath it.
 
 > [!NOTE]
 > The current fully-composited pattern image is accessible via the `compositePatternImage` property. Note that this
@@ -225,7 +228,7 @@ You can also define other properties that affect the final animation in addition
 - **Reversed**: Set the [`xReversed`](#xreversed) or [`yReversed`](#yreversed) to cause the animation to run in the
   opposite direction. This may be used with or without "reverses".
 
-### Pattern Transformation
+### Pattern Transformations
 
 Transformation properties apply to both the fully composited pattern _and its easing animations_. These properties
 make it easy to make holistic changes to your patterns without needing to calculate adjustments for each individual
@@ -359,13 +362,13 @@ Default: The target FPS, i.e. `1 / playdate.display.getRefreshRate()`
 
 #### `xEase`
 
-An easing function that defines the animation pattern in the X axis. The function should follow the
+An easing function that defines the animation in the X axis. The function should follow the
 signature of the [`playdate.easingFunctions`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#M-easingFunctions):
 
-- **`t`**: elapsed time, in the range [0, `duration`]
+- **`t`**: elapsed time, in the range [0, duration]
 - **`b`**: the beginning value (always 0)
 - **`c`**: the change in value (always 8 — the size of the pattern)
-- **`d`**: the duration (`duration`)
+- **`d`**: the duration
 
 Default: `playdate.easingFunctions.linear`
 
@@ -374,7 +377,7 @@ Default: `playdate.easingFunctions.linear`
 
 #### `yEase`
 
-An easing function that defines the animation pattern in the Y axis. The function should follow the
+An easing function that defines the animation in the Y axis. The function should follow the
 signature of the `playdate.easingFunctions` as described just above.
 
 Default: `playdate.easingFunctions.linear`
@@ -477,20 +480,6 @@ Default: `1`
 
 ### Transformation Parameters
 
-#### `xShift`
-
-The number of pixels to shift the pattern's phase by in the X axis. This is additive to any computed
-phase based on other animation properties.
-
-Default: `0`
-
-#### `yShift`
-
-The number of pixels to shift the pattern's phase by in the Y axis. This is additive to any computed
-phase based on other animation properties.
-
-Default: `0`
-
 #### `xReflected`
 
 A boolean indicating whether the entire pattern should be reflected across the vertical (Y) axis.
@@ -511,6 +500,20 @@ A boolean indicating whether the entire pattern should be rotated 90º, producin
 Rotation is applied following any reflections.
 
 Default: `false`
+
+#### `xShift`
+
+The number of pixels to shift the pattern's phase by in the X axis. This is additive to any computed
+phase based on other animation properties, and is applied following any reflections or rotations.
+
+Default: `0`
+
+#### `yShift`
+
+The number of pixels to shift the pattern's phase by in the Y axis. This is additive to any computed
+phase based on other animation properties, and is applied following any reflections or rotations.
+
+Default: `0`
 
 ### Callback Parameters
 
@@ -596,8 +599,9 @@ local myPattern = EasyPattern {
 #### `apply()`
 
 _This is where the magic happens._ `apply()` takes no arguments and returns a 3-tuple matching the
-signature of `playdate.graphics.setPattern()`. This enables you to pass the result of a call to
-`apply` directly to the `setPattern()` function without intermediate storage in a local variable:
+signature of [`playdate.graphics.setPattern()`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)).
+This enables you to pass the result of a call to `apply` directly to the `setPattern()` function without intermediate
+storage in a local variable:
 
 ```lua
 gfx.setPattern(myPattern:apply())
@@ -767,11 +771,11 @@ those of the overlaid pattern).
 
 #### `setBackgroundColor(color)`
 
-Sets the background color used for drawing the dither pattern.
+Sets the background color shown behind any transparent areas in the `pattern` and `bgPattern`.
 
 **Params:**
 
-- **`color`:** A `playdate.graphics` color value.
+- **`color`:** A `playdate.graphics` color constant.
 
 #### `setAlpha(alpha, [ditherType])`
 
@@ -816,8 +820,8 @@ and spinning as it travels down the lane.
 
 **Params:**
 
-- **`xShift`:** The phase shift to set for the X axis
-- **`yShift`:** The phase shift to set for the Y axis
+- **`xShift`:** The phase shift in the X axis
+- **`yShift`:** The phase shift in the Y axis
 
 Note that these values may also be set directly on an `EasyPattern` instance. However, calling this function
 ensures that the resulting phase values are correct immediately, rather than lazily computed the next time
@@ -876,6 +880,10 @@ speed and reversal as well as any background pattern.
 
 Returns the total effective loop duration of the pattern in the Y axis in seconds, taking into account its
 speed and reversal as well as any background pattern.
+
+> [!NOTE]
+> These functions ignore the length of any sequences set on the pattern or background pattern using an `imagetable`.
+> They only reflect the total duration of easing animations in each axis or overall.
 
 ## Examples
 
