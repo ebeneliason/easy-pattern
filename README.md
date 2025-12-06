@@ -117,6 +117,7 @@ Click on any pattern to jump to a complete example with code, or use the provide
 [![Vibrate Thumbnail](images/vibrate@3x.gif)](#vibrate)
 [![Perlin Thumbnail](images/perlin@3x.gif)](#perlin-noise)
 [![Dot Matrix Thumbnail](images/dot-matrix@3x.gif)](#dot-matrix)
+[![Blink Thumbnail](images/blink@3x.gif)](#blink)
 [![Steam Thumbnail](images/steam-over-image@3x.gif)](#steam)
 [![Reflected Thumbnail](images/reflected@3x.gif)](#reflected-patterns)
 [![Ooze Over Image Thumbnail](images/ooze-over-image@3x.gif)](#composite-patterns)
@@ -1233,9 +1234,38 @@ EasyPattern {
 }
 ```
 
+### Blink
+
+This example takes advantage of the `update` callback to create a blink effect, causing the pattern to invert
+periodically. It uses the time value passed to the callback to know which way to set the `inverted` flag. You
+can adjust the blink speed by changing the denominator.
+
+![Blink Example](images/blink.gif)
+
+![Blink Example Zoomed](images/blink@3x.gif)
+
+**Demo Swatch ID:** `blink`
+
+```lua
+EasyPattern {
+    pattern = BitPattern {
+        ' X X X X X X X X ',
+        ' X X X X X X . X ',
+        ' X X X X X . . X ',
+        ' X X X X . . . X ',
+        ' X X X . . . . X ',
+        ' X X . . . . . X ',
+        ' X . . . . . . X ',
+        ' X X X X X X X X ',
+    },
+    -- the divisor (//1000) is the blink speed in milliseconds; decrease it to strobe faster!
+    update = function(p, t) p:setInverted(t*1000//1000 % 2 == 0) end
+}
+```
+
 ### Steam
 
-This example reintroduces an alpha channel with a custom pattern. The use of adjacent white and black opaque
+This example introduces an alpha channel with a custom pattern. The use of adjacent white and black opaque
 pixels in the pattern enables it to read against either black or white background elements.
 
 ![Steam Checkerboard Example](images/steam-checker.gif)

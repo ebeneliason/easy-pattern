@@ -272,6 +272,25 @@ patterns = {
         yEase     = function(t, b, c, d) return playdate.easingFunctions.linear(math.floor(t*4)/4, b, c, d) end,
     },
 
+    blink = EasyPattern {
+        pattern = BitPattern {
+            ' X X X X X X X X ',
+            ' X X X X X X . X ',
+            ' X X X X X . . X ',
+            ' X X X X . . . X ',
+            ' X X X . . . . X ',
+            ' X X . . . . . X ',
+            ' X . . . . . . X ',
+            ' X X X X X X X X ',
+        },
+        -- the divisor is the blink speed in milliseconds; decrease it to strobe faster!
+        update = function(p, t) p:setInverted(t*1000//1000 % 2 == 0) end
+        -- more ways than one…try commenting out the line above and uncommenting those below
+        -- duration = 1,
+        -- loopCallback = function(p) p:setInverted(not p.inverted) end,
+        -- ease = function() return 0 end, -- don't actually ease, just let `duration` trigger `loopCallback`
+    },
+
     -- try drawing this pattern next to an unreflected version
     reflected = EasyPattern {
         ditherType = playdate.graphics.image.kDitherTypeDiagonalLine,
