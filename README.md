@@ -1628,14 +1628,19 @@ in a single frame. The caching also ensures that there's no performance hit for 
 `apply()` more than once in a given frame, so you can set the pattern multiple times in your draw
 function as needed, or reuse the same pattern across several sprite instances with no penalty.
 
-This demonstration illustrates how patterns update only as needed. The orange flashes indicate the
-regions of the screen that are redrawn each frame (toggle in the Simulator under the **View** menu).
-Note how each pattern updates on different intervals (even non-regular ones) as needed when the
-rendered phase of the pattern changes.
+EasyPattern also makes effort to ensure that no unnecessary work is done. For example, when multiple
+conditions would warrant updates to the pattern image or background image, the actual update only
+happens once. It also exits early from setters which modify the pattern if the value hasn't changed.
+This avoids unnecessary work if, for example, you call `setInverted(<condition>)` every frame from
+an `update()` callback.
+
+This demonstration illustrates how patterns update only as needed. The orange flashes show the
+regions of the screen that get redrawn each frame (toggle in the Simulator under the **View** menu).
+Note how each pattern updates on different intervals (even non-regular ones) only when it changes.
 
 ![Pattern Update Visualization](images/easy-pattern-screen-updates.gif)
 
-With all of that said, EasyPattern is certainly not the _best_ approach to animated patterns for
+With all of that said, EasyPattern is certainly not the _fastest_ approach to animated patterns for
 performance given the need to calculate phase offsets each frame. If you need maximal performance
 you should consider encoding each frame of the animated pattern in an `imagetable` instead. If
 you're using EasyPattern to draw sprites and need more performance, you can also use the
