@@ -66,12 +66,11 @@ _Playdate is a registered trademark of [Panic](https://panic.com)._
 Create an EasyPattern using a simple declarative syntax:
 
 ```lua
-local checkerboard <const> = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }
 local easyCheckerboard = EasyPattern {
-    pattern  = checkerboard,
+    pattern  = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }, -- checkerboard
     duration = 1.0,
     ease     = playdate.easingFunctions.inOutCubic,
-    -- <additional animation params here>
+    -- more params here…
 }
 ```
 
@@ -162,12 +161,12 @@ that get composited to create the final pattern. This diagram describes their or
 ```mermaid
 block-beta
 columns 8
-  M["alpha dither mask"]:8
+  M["alpha (dither mask)"]:8
   A["pattern"]:8
   B["bgPattern"]:2
   block:bgPattern:6
     columns 1
-    W["alpha dither mask"]
+    W["alpha (dither mask)"]
     X["pattern"]
     Y["bgPattern…"]
     Z["bgColor"]
@@ -180,12 +179,16 @@ class W mask
 
 **↓ BOTTOM**
 
-Because the [`bgPattern`](#bgpattern) property may be set to another `EasyPattern` instance, it's possible to
-create recursive stacks which compose two or more patterns together as one.
+A few notes about pattern composition:
 
-Patterns may also apply an opacity effect via the [`alpha`](#alpha) and [`ditherType`](#dithertype) properties.
-This mask remains fixed even as the pattern itself shifts in phase, and applies to all layers of the pattern it's
-defined on and any more deeply nested beneath it.
+1. Because the [`bgPattern`](#bgpattern) property may be set to another `EasyPattern` instance, it's possible to
+   create recursive stacks which compose two or more patterns together as one.
+
+2. Patterns may apply an opacity effect via the [`alpha`](#alpha) and [`ditherType`](#dithertype) properties,
+   which applies to all layers of the pattern it's defined on and any nested more deeply beneath it.
+
+3. Only the pattern layer is affected by phase adjustments. The background pattern is only subject to _its own_ phase,
+   while the background color and alpha mask remain fixed even as the pattern itself shifts in phase.
 
 > [!NOTE]
 > The current fully-composited pattern image is accessible via the `compositePatternImage` property. Note that this
@@ -253,10 +256,11 @@ parameters to [`init()`](#initparams) to define your pattern.
 Parameters are grouped into the following categories:
 
 1. [Pattern Parameters](#pattern-parameters): Define the overall appearance of your pattern.
-2. [Animation Parameters](#animation-parameters): Define the animation behaviors of your pattern.
+2. [Animation Parameters](#animation-parameters): Define the easing behaviors of your pattern.
 3. [Transformation Parameters](#transformation-parameters): Apply simple transformations to your pattern,
    such as translation, reflection, and rotation.
-4. [Callback Parameters](#callback-parameters): Set functions to be called when the pattern loops.
+4. [Callback Parameters](#callback-parameters): Set functions to be called when the pattern loops or new
+   phases get calculated.
 
 The animation and callback parameters may also be set directly on your `EasyPattern` instance at any time after
 initialization, e.g.
@@ -308,10 +312,13 @@ An 8x8 pixel pattern specified in one of these formats:
 
    Example: `pattern = playdate.graphics.imagetable.new("images/myPattern") -- filename: "myPattern-table-8-8.png" or "myPattern.gif"`
 
+You can call the overloaded [`setPattern()` or `setBackgroundPattern()`](#pattern-functions) functions with any of
+these pattern types to change the pattern after it has been instantiated.
+
 Default: `{ 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }` (checkerboard)
 
 > [!TIP]
-> Given the default checkerboard pattern, you can quickly test out easing behaviors before assigning a pattern.
+> You can quickly test out new easing behaviors with the default checkerboard pattern before creating your own.
 
 #### `bgPattern`
 
@@ -1463,7 +1470,7 @@ EasyPattern {
     },
     duration  = 1,
     ease      = playdate.easingFunctions.inOutSine,
-    xOffset   = 0.5, -- half the duration
+    xOffset   = 2, -- half the duration
     reverses  = true,
     scale     = 1,
     xLoopCallback = function(pttrn, n)

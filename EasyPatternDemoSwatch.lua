@@ -248,7 +248,7 @@ patterns = {
         },
         duration = 1, -- must be non-zero to trigger easing function, but value doesn't matter
         scale    = 2, -- adjust to change the amplitude of vibration
-        ease     = function(_, _, _, _) return math.random(0, 5) / 5 end, -- note that all args are ignored
+        ease     = function(_, _, _, _) return math.random(0,8)/8 end, -- note that all args are ignored
         -- more ways than one…try commenting out the three lines above and uncommenting
         -- this update function to achieve the same result. The last constant represents scale.
         -- update = function(p)
