@@ -20,12 +20,7 @@ local luaunit_args = {'--output', 'text', '--verbose', '-r',}
 
 -- limit tests to run (specify as `TestSuite` or `TestSuite.testName`)
 local testsToRun = {
-	-- "TestPatterns.testSetPatternWithAlpha"
-	-- "TestInit.testDefaults"
-	-- "TestInit.testBackgroundParams"
-	-- "TestPatterns.testSetPatternImage"
-	-- "TestPatterns.testSetPatternImageTable"
-	-- "TestPatterns.testBackgroundPatternRemoval"
+	-- "TestSuite.testName"
 }
 for _, test in ipairs(testsToRun) do
 	table.insert(luaunit_args, test)

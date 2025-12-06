@@ -491,25 +491,34 @@ function EasyPattern:_updateCompositePatternImage()
             gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
         gfx.popContext()
     end
+
+    -- clear the flag to indicate we're up-to-date
+    self._needsCompositePatternUpdate = false
+    -- we need to redraw any time our pattern updates
+    self._isDirty = true
 end
 
 function EasyPattern:setBackgroundColor(color)
+    if self.bgColor == color then return end
     self.bgColor = color
     self:_updateCompositePatternImage()
 end
 
 function EasyPattern:setAlpha(alpha, ditherType)
+    if self.alpha == alpha and (ditherType == nil or self.ditherType == ditherType) then return end
     self.alpha = alpha
     self.ditherType = ditherType or self.ditherType or gfx.image.kDitherTypeBayer8x8
     self:_updateCompositePatternImage()
 end
 
 function EasyPattern:setInverted(inverted)
+    if self.inverted == inverted then return end
     self.inverted = inverted
     self:_updateCompositePatternImage()
 end
 
 function EasyPattern:setRotated(flag)
+    if self.rotated == flag then return end
     self.rotated = flag
     self._pt = 0 -- invalidate cache
     self:_updateCompositePatternImage()
@@ -518,6 +527,7 @@ end
 
 function EasyPattern:setReflected(horizontal, vertical)
     if vertical == nil then vertical = horizontal end
+    if self.xReflected == horizontal and self.yReflected == vertical then return end
     self.xReflected = horizontal
     self.yReflected = vertical
     self._pt = 0 -- invalidate cache
@@ -650,11 +660,27 @@ function EasyPattern:getPhases()
         xPhase, yPhase = yPhase, xPhase
     end
 
-    -- determine if we're dirty and cache the computed phase values along with a timestamp
-    self._isDirty = xPhase ~= self._xPhase or yPhase ~= self._yPhase
+    -- determine if we're dirty and cache the computed phase values along with a timestamp, while
+    -- preserving an already-dirty state that may have resulted from an external change to the pattern itself
+    self._isDirty = self._isDirty or (xPhase ~= self._xPhase or yPhase ~= self._yPhase)
     self._xPhase = xPhase
     self._yPhase = yPhase
     self._pt = t
+
+    self._needsCompositePatternUpdate = false
+
+    -- update background if either we or it changed
+    if self._bgEasyPattern or self._bgPatternImage then
+        if self._isDirty or (self._bgEasyPattern and self._bgEasyPattern:isDirty()) then
+            self._needsCompositePatternUpdate = true
+            self._isDirty = true
+        end
+    end
+
+    -- update the pattern if we're semi-transparent to ensure the transparency mask remains fixed
+    if self._isDirty and (self.xDuration > 0 or self.yDuration > 0) and self.alpha < 1 then
+        self._needsCompositePatternUpdate = true
+    end
 
     -- update pattern and background pattern image tables every tick
     if self._patternTable or self._bgPatternTable then
@@ -668,21 +694,12 @@ function EasyPattern:getPhases()
             end
             if self._bgPatternTable then
                 local n = tick % self._bgPatternTable:getLength() + 1
-                self:_setBackgroundPatternImage(self._bgPatternImage, self._bgPatternTable:getImage(n))
+                self:_setPatternImage(self._bgPatternImage, self._bgPatternTable:getImage(n))
             end
         end
     end
 
-    -- update background if either we or it changed
-    if self._bgEasyPattern or self._bgPatternImage then
-        if self._isDirty or (self._bgEasyPattern and self._bgEasyPattern:isDirty()) then
-            self:_updateCompositePatternImage()
-            self._isDirty = true
-        end
-    end
-
-    -- update the pattern if we're semi-transparent to ensure the transparency mask remains fixed
-    if self._isDirty and (self.xDuration > 0 or self.yDuration > 0) and self.alpha < 1 then
+    if self._needsCompositePatternUpdate then
         self:_updateCompositePatternImage()
     end
 

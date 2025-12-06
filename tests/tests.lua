@@ -879,6 +879,133 @@ function TestPatterns:testInverted()
 end
 
 
+function TestPatterns:testAvoidUnnecessaryPatternUpdates()
+    local p = EasyPattern {}
+
+    -- inverted
+    p:apply()
+    p:setInverted(false)
+    lu.assertIsFalse(p:isDirty())
+    p:apply()
+    p:setInverted(true)
+    lu.assertIsTrue(p:isDirty())
+    p:apply()
+    p:setInverted(true)
+    lu.assertIsFalse(p:isDirty())
+
+    -- bgColor
+    p:apply()
+    p:setBackgroundColor(gfx.kColorClear)
+    lu.assertIsFalse(p:isDirty())
+    p:apply()
+    p:setBackgroundColor(gfx.kColorWhite)
+    lu.assertIsTrue(p:isDirty())
+    p:apply()
+    p:setBackgroundColor(gfx.kColorWhite)
+    lu.assertIsFalse(p:isDirty())
+
+    -- alpha
+    p:apply()
+    p:setAlpha(1)
+    lu.assertIsFalse(p:isDirty())
+    p:apply()
+    p:setAlpha(0.5)
+    lu.assertIsTrue(p:isDirty())
+    p:apply()
+    p:setAlpha(0.5)
+    lu.assertIsFalse(p:isDirty())
+
+    -- dither
+    p:apply()
+    p:setAlpha(0.5, gfx.image.kDitherTypeBayer8x8)
+    lu.assertIsFalse(p:isDirty())
+    p:apply()
+    p:setAlpha(0.5, gfx.image.kDitherTypeDiagonalLine)
+    lu.assertIsTrue(p:isDirty())
+    p:apply()
+    p:setAlpha(0.5, gfx.image.kDitherTypeDiagonalLine)
+    lu.assertIsFalse(p:isDirty())
+
+    -- rotated
+    p:apply()
+    p:setRotated(false)
+    lu.assertIsFalse(p:isDirty())
+    p:apply()
+    p:setRotated(true)
+    lu.assertIsTrue(p:isDirty())
+    p:apply()
+    p:setRotated(true)
+    lu.assertIsFalse(p:isDirty())
+
+    -- reflected
+    p:apply()
+    p:setReflected(false, false)
+    lu.assertIsFalse(p:isDirty())
+    p:apply()
+    p:setReflected(true, false)
+    lu.assertIsTrue(p:isDirty())
+    p:apply()
+    p:setReflected(true, false)
+    lu.assertIsFalse(p:isDirty())
+    p:apply()
+    p:setReflected(true, true)
+    lu.assertIsTrue(p:isDirty())
+    p:apply()
+    p:setReflected(true, true)
+    lu.assertIsFalse(p:isDirty())
+    p:apply()
+    p:setReflected(false)
+    lu.assertIsTrue(p:isDirty())
+    p:apply()
+    p:setReflected(false)
+    lu.assertIsFalse(p:isDirty())
+end
+
+function TestPatterns:testMinimizePatternUpdatesDuringPhaseComputation()
+    local p = EasyPattern {
+        duration = 1,
+        alpha = 0.5,
+        bgPattern = EasyPattern {
+            duration = 1
+        }
+    }
+
+    -- mock timer
+    p._getTime = function() return p.mockTime end
+    p.mockTime = 0
+
+    -- wrap the pattern update function to count the number of times it's called
+    local updates = 0
+    p.__updateCompositePatternImage = p._updateCompositePatternImage
+    p._updateCompositePatternImage = function()
+        updates += 1
+        p:__updateCompositePatternImage()
+    end
+
+    p.mockTime = 1 -- advance time
+    updates = 0 -- reset counter
+    p:apply()
+    lu.assertEquals(updates, 1)
+
+    p:setPattern(gfx.imagetable.new("./images/hdashes"), 1) -- tick every frame
+    p.mockTime = 2 -- advance time
+    updates = 0 -- reset counter
+    p:apply()
+    lu.assertEquals(updates, 1)
+
+    p:setBackgroundPattern(gfx.imagetable.new("./images/hdashes"), 1) -- tick every frame
+    p.mockTime = 3 -- advance time
+    updates = 0 -- reset counter
+    p:apply()
+    lu.assertEquals(updates, 2) -- we haven't yet optimized independent background and pattern ticks in the same frame
+
+    p:setPattern(checkerboard) -- static pattern, should no longer update composite image
+    p.mockTime = 4 -- advance time
+    updates = 0 -- reset counter
+    p:apply()
+    lu.assertEquals(updates, 1)
+end
+
 TestPhases = {}
 
 function TestPhases:setUp()
