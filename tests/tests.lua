@@ -548,7 +548,15 @@ function TestPatterns:testPatternValuesReset()
     lu.assertNil(p.pattern)
     lu.assertNotNil(p._patternTable)
 
-    p:setBitPattern(checkerboard)
+    p:setBitPattern(stripestripe)
+    lu.assertEquals(p.pattern, stripestripe)
+    lu.assertNil(p._patternTable)
+
+    p:setPatternImageTable(gfx.imagetable.new("./images/hdashes"))
+    lu.assertNil(p.pattern)
+    lu.assertNotNil(p._patternTable)
+
+    p:setPattern(nil) -- restore default
     lu.assertEquals(p.pattern, checkerboard)
     lu.assertNil(p._patternTable)
 end

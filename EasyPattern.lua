@@ -294,7 +294,8 @@ end
 --! SETTERS
 
 function EasyPattern:setPattern(a, b, c)
-    if not a then return end
+    if not a then a = checkerboard end -- restore default if set to `nil`
+    self:_resetPatternProperties()
     self:_setPattern(self._patternImage, a, b, c)
 end
 
