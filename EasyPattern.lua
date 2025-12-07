@@ -446,12 +446,14 @@ function EasyPattern:_updateCompositePatternImage()
     -- draw the pattern
     gfx.pushContext(self.compositePatternImage)
         -- draw the background pattern first, negating our own phase shift
+        local xP = self.xReflected and self._xPhase % PTTRN_SIZE or -self._xPhase % PTTRN_SIZE
+        local yP = self.yReflected and self._yPhase % PTTRN_SIZE or -self._yPhase % PTTRN_SIZE
         if self._bgEasyPattern then
-            self._bgEasyPattern:setPhaseShifts(-self._xPhase, -self._yPhase)
+            self._bgEasyPattern:setPhaseShifts(xP, yP)
             gfx.setPattern(self._bgEasyPattern:apply())
             gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
         elseif self._bgPatternImage then
-            gfx.setPattern(self._bgPatternImage, -self._xPhase % PTTRN_SIZE, -self._yPhase % PTTRN_SIZE)
+            gfx.setPattern(self._bgPatternImage, xP, yP)
             gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
         end
         -- draw our own pattern next
@@ -487,7 +489,7 @@ function EasyPattern:_updateCompositePatternImage()
         gfx.popContext()
         self.compositePatternImage:clear(gfx.kColorClear)
         gfx.pushContext(self.compositePatternImage)
-            gfx.setPattern(self._compositePatternImage, -self._xPhase%8, -self._yPhase%8)
+            gfx.setPattern(self._compositePatternImage, -self._xPhase % PTTRN_SIZE, -self._yPhase % PTTRN_SIZE)
             gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
         gfx.popContext()
     end
