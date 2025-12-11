@@ -1359,7 +1359,7 @@ EasyPattern {
 ```
 
 > [!TIP]
-> You can easily create a reflected version of an existing pattern with [`copy()`](copyoverrides) by passing overrides
+> You can easily create a reflected version of an existing pattern with [`copy()`](#copyoverrides) by passing overrides
 > to define the reflection.
 >
 > ```lua
@@ -1399,7 +1399,7 @@ a richer, more textured animation.
 ![Waterfall Example Zoomed](images/waterfall-100@3x.gif)
 ![Waterfall Over Image Example Zoomed](images/waterfall-pattern-over-image@3x.gif)
 
-Consider how this could be used in conjunction with the provided ["waves"](waves) example, or any patterns
+Consider how this could be used in conjunction with the provided ["waves"](#waves) example, or any patterns
 you create yourself.
 
 **Demo Swatch Name:** `waterfall`
