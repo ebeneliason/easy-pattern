@@ -315,6 +315,50 @@ function TestInit:testCallbackParams()
     lu.assertEquals(p.yLoopCallback, f3)
 end
 
+function TestInit:testImageObjectPersistence()
+    local p = EasyPattern {
+        pattern = zigzag,
+        bgPattern = checkerboard,
+        alpha = 0.5,
+        yReflected = true,
+    }
+
+    -- these image objects should persist indefinitely, even as new patterns are set,
+    -- transformations are applied, and compositing is performed.
+    local pImage = p._patternImage
+    local bgImage = p._bgPatternImage
+    local cImage = p.compositePatternImage
+    local _cImage = p._compositePatternImage
+
+    p:_resetPatternProperties()
+    p:_resetBackgroundProperties()
+    p:_updateCompositePatternImage()
+    p:apply()
+
+    lu.assertEquals(pImage, p._patternImage)
+    lu.assertEquals(bgImage, p._bgPatternImage)
+    lu.assertEquals(cImage, p.compositePatternImage)
+    lu.assertEquals(_cImage, p._compositePatternImage)
+
+    p:setPatternImage(gfx.image.new("images/checker"))
+    p:setBackgroundPatternImage(gfx.image.new("images/hstripe"))
+    p:apply()
+
+    lu.assertEquals(pImage, p._patternImage)
+    lu.assertEquals(bgImage, p._bgPatternImage)
+    lu.assertEquals(cImage, p.compositePatternImage)
+    lu.assertEquals(_cImage, p._compositePatternImage)
+
+    p:setPatternImageTable(gfx.imagetable.new("images/hdashes"))
+    p:setBackgroundPatternImageTable(gfx.imagetable.new("images/hdashes"))
+    p:apply()
+
+    lu.assertEquals(pImage, p._patternImage)
+    lu.assertEquals(bgImage, p._bgPatternImage)
+    lu.assertEquals(cImage, p.compositePatternImage)
+    lu.assertEquals(_cImage, p._compositePatternImage)
+end
+
 
 TestPatterns = {}
 

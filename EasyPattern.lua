@@ -283,8 +283,8 @@ function EasyPattern:init(params)
 
     -- the pattern image to use for drawing, at twice the pattern size to support looping animation
     self._patternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2) -- the raw, non-composited pattern image
-    self.compositePatternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2) -- scratch for rendering alpha
-    self._compositePatternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2) -- final composited pattern
+    self._compositePatternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2) -- scratch for rendering alpha
+    self.compositePatternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2) -- final composited pattern
 
     -- lastly, initialize the provided pattern(s)
     self:setPattern(params.pattern or checkerboard)
@@ -432,7 +432,6 @@ end
 function EasyPattern:_resetBackgroundProperties()
     self.bgPattern = nil
     self._bgPatternTable = nil
-    self._bgPatternImage = nil
     self._bgEasyPattern = nil
     if not self._bgPatternImage then
         self._bgPatternImage = gfx.image.new(PTTRN_SIZE * 2, PTTRN_SIZE * 2)
@@ -474,7 +473,14 @@ function EasyPattern:_updateCompositePatternImage()
         if self.xReflected then xform:scale(-1, 1) end
         if self.yReflected then xform:scale(1, -1) end
         if self.rotated then xform:rotate(90) end
-        self.compositePatternImage = self.compositePatternImage:transformedImage(xform)
+        self._compositePatternImage:clear(gfx.kColorClear)
+        gfx.pushContext(self._compositePatternImage)
+            self.compositePatternImage:drawWithTransform(xform, PTTRN_SIZE, PTTRN_SIZE)
+        gfx.popContext()
+        self.compositePatternImage:clear(gfx.kColorClear)
+        gfx.pushContext(self.compositePatternImage)
+            self._compositePatternImage:draw(0, 0)
+        gfx.popContext()
     end
 
     -- apply transparency
