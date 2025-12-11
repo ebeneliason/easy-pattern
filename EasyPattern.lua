@@ -747,6 +747,10 @@ function EasyPattern:isDirty()
     return self._isDirty
 end
 
+function EasyPattern:markDirty()
+    self._isDirty = true
+end
+
 function EasyPattern:apply()
     local xPhase, yPhase = self:getPhases()
     self._isDirty = false

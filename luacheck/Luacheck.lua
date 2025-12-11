@@ -63,7 +63,8 @@ return {
                 _getTime = {},
                 getPhases = {},
                 isDirty = {},
-                apply = {}
+                markDirty = {},
+                apply = {},
             }
         },
         BitPattern = {},
