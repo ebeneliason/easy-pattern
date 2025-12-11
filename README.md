@@ -8,12 +8,10 @@ _Easy animated patterns for Playdate._
 
 ## What is EasyPattern?
 
-EasyPattern is a utility for use with the [Playdate](https://play.date/) SDK that provides a
-simple declarative syntax for creating animated patterns. Specify an 8x8 pattern sequence and
-any of a variety of easing parameters, and let EasyPattern take care of the rest. Under the
-hood it will automatically phase shift your pattern in the horizontal and/or vertical axes to
-create a seamless looping pattern texture that can be used with any
-[PlayDate drawing calls](https://sdk.play.date/3.0.1/Inside%20Playdate.html#_drawing).
+EasyPattern provides a simple way to define animated patterns for use with the [Playdate](https://play.date/) SDK.
+Specify an 8x8 pattern—in one of several formats—and some easing parameters, and EasyPattern does the rest.
+It will automatically update your pattern each frame, creating a seamlessly looping pattern texture that
+you can use with any [PlayDate drawing calls](https://sdk.play.date/3.0.1/Inside%20Playdate.html#_drawing).
 
 _Playdate is a registered trademark of [Panic](https://panic.com)._
 
@@ -102,8 +100,9 @@ end
 
 ## Gallery
 
-Click on any pattern to jump to a complete example with code, or use the provided
-[demo swatch](#demo-swatch) to easily try them out for yourself.
+Click on any pattern to jump to a complete example with code, or use the provided [demo swatch](#demo-swatch) to
+easily try them out for yourself. If you come up with your own patterns, come share them in the
+[Playdate Squad Discord channel](https://discord.com/channels/675983554655551509/1442051838114533417)!
 
 [![Conveyor Thumbnail](images/conveyor@3x.gif)](#conveyor)
 [![Scanline Thumbnail](images/scanline-over-image@3x.gif)](#scanline)
