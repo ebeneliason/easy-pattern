@@ -227,16 +227,16 @@ modded by 8 and integer-divided by 1 to truncate the final phase to an integer v
 
 You can also define other properties that affect the final animation in addition to those that define core timing:
 
-- **Reverses**: Set the [`xReverses`](#xreverses) or [`yReverses`](#yreverses) properties to cause the animation to
-  reverse directions at each end. The `xReversed` boolean property will flip with each reversal.
-- **Reversed**: Set the [`xReversed`](#xreversed) or [`yReversed`](#yreversed) to cause the animation to run in the
+- **Reverses**: Set [`xReverses`](#xreverses) or [`yReverses`](#yreverses) to cause the animation to
+  reverse directions at each end. The `xReversed`/`yReversed` boolean properties will flip with each reversal.
+- **Reversed**: Set [`xReversed`](#xreversed) or [`yReversed`](#yreversed) to cause the animation to run in the
   opposite direction. This may be used with or without "reverses".
 
 ### Pattern Transformations
 
 Transformation properties apply to both the fully composited pattern _and its easing animations_. These properties
-make it easy to make holistic changes to your patterns without needing to calculate adjustments for each individual
-pattern or animation property.
+enable holistic changes to your patterns without needing to calculate adjustments for each individual pattern or
+animation property.
 
 - **Reflection**: Set the [`xReflected`](#xreflected) and [`yReflected`](#yreflected) properties to mirror the
   fully-composited pattern in the horizontal and vertical axes, respectively.
@@ -626,8 +626,8 @@ gfx.setPattern(myPattern:apply())
 
 #### `isDirty()`
 
-Indicates whether the pattern needs to be redrawn based on a change in the phase values since the
-last time `apply()` was called. In practice, this means you can check to see if the pattern is dirty
+Indicates whether the pattern needs to be redrawn based on a change in the phase values or pattern image since
+the last time `apply()` was called. In practice, this means you can check to see if the pattern is dirty
 in `update()` and call `markDirty()` on your sprite to ensure `draw()` gets called that frame. This
 will work no matter how many sprites use the same pattern for drawing.
 
@@ -637,6 +637,10 @@ if myPattern:isDirty() then
   self:markDirty()
 end
 ```
+
+> [!NOTE]
+> If you aren't using sprites and intend to apply the same pattern multiple times per frame, be sure to cache the
+> result of calling `isDirty()` each frame before you apply the pattern, or else subsequent checks will return false.
 
 **Returns:**
 
@@ -709,8 +713,8 @@ on the `EasyPattern`.
 - **`ditherType`:** The dither to render as a pattern, which may be any supported by
   `playdate.graphics.setDitherPattern()`.
 - **`[alpha]`:** The opacity to render the dither pattern with. Default: `0.5`.
-- **`[color]`:** An optional color to render the pattern in. Default: `playdate.graphics.kColorBlack`.
-  (This argument is only required to render the pattern in `playdate.graphics.kColorWhite`.)
+- **`[color]`:** An optional `playdate.graphics` color to render the pattern in.
+  Default: `playdate.graphics.kColorBlack`.
 
 #### `setPattern(image)`
 
@@ -757,8 +761,8 @@ default. To obtain an opaque result, set a complementary `bgColor` on the `EasyP
 - **`ditherType`:** The dither pattern to render as a pattern, which may be any value supported by
   `playdate.graphics.setDitherPattern()`.
 - **`[alpha]`:** The opacity to render the dither pattern with. Default: `0.5`.
-- **`[color]`:** An optional color to render the pattern in. Default: `playdate.graphics.kColorBlack`.
-  (This argument is only required to render the pattern in `playdate.graphics.kColorWhite`.)
+- **`[color]`:** An optional `playdate.graphics` color to render the pattern in.
+  Default: `playdate.graphics.kColorBlack`.
 
 #### `setBackgroundPattern(image)`
 
@@ -793,7 +797,9 @@ those of the overlaid pattern).
 
 > [!NOTE]
 > The X, Y, and total loop durations of the parent `EasyPattern` will adjust to account for those of its background,
-> such that the reported values indicate a return of both patterns to their initial state.
+> such that the reported values indicate a return of both patterns to their initial state. This may result in long
+> loop durations when their specified durations are co-prime, or essentially infinite loop durations when one is a
+> non-divisible fraction of the other.
 
 **Params:**
 
@@ -863,8 +869,8 @@ the pattern is applied.
 
 #### `shiftPhasesBy(xShift, [yShift])`
 
-A convenience function that sets the phase shifts by offsetting them by the specified amount from their
-current values. If `yShift` is omitted, both X and Y phases are shifted the same amount.
+A convenience function that sets the phase shifts by offsetting them from their current values by the specified amount.
+If `yShift` is omitted, both X and Y phases are shifted the same amount.
 
 **Params:**
 
@@ -883,7 +889,7 @@ If the second argument is omitted, both axes are set to the same value.
 **Params:**
 
 - **`horizontal`:** A `boolean` indicating whether the pattern is reflected horizontally across the Y axis.
-- **`horizontal`:** A `boolean` indicating whether the pattern is reflected vertically across the X axis.
+- **`vertical`:** A `boolean` indicating whether the pattern is reflected vertically across the X axis.
 
 #### `setRotated(flag)`
 
@@ -1015,7 +1021,7 @@ ooze = EasyPattern {
 
 This example creates a "marching ants" dotted outline effect, as is often used to indicate
 rectangular selections. To achieve the effect, use this pattern in conjunction with a call
-to `drawRect(r)`. Modulate the length of the dashes with the `alpha` parameter.
+to `drawRect()`.
 
 ![Marching Ants Checkerboard Example](images/ants-checker.gif)
 ![Marching Ants Example](images/ants.gif)
