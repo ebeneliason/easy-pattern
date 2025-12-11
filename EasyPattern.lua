@@ -487,6 +487,7 @@ function EasyPattern:_updateCompositePatternImage()
     if self.alpha < 1 then
         gfx.pushContext(self.compositePatternImage)
             gfx.setPattern(self.compositePatternImage, self._xPhase, self._yPhase)
+            self.compositePatternImage:clear(gfx.kColorClear)
             gfx.fillRect(0, 0, PTTRN_SIZE * 2, PTTRN_SIZE * 2)
         gfx.popContext()
         self._compositePatternImage:clear(gfx.kColorClear)
