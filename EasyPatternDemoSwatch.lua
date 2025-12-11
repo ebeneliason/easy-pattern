@@ -123,7 +123,7 @@ patterns = {
 
     -- use this pattern with `drawRect` instead of a fill!
     ants = EasyPattern {
-        ditherType = playdate.graphics.image.kDitherTypeDiagonalLine,
+        pattern = playdate.graphics.image.kDitherTypeDiagonalLine, -- add alpha to module the dash lengths
         xDuration  = 0.25,
         bgColor    = playdate.graphics.kColorWhite,
     },
@@ -248,7 +248,7 @@ patterns = {
         },
         duration = 1, -- must be non-zero to trigger easing function, but value doesn't matter
         scale    = 2, -- adjust to change the amplitude of vibration
-        ease     = function(_, _, _, _) return math.random(0,8)/8 end, -- note that all args are ignored
+        ease     = function() return math.random(0,8)/8 end, -- note that all args are ignored
         -- more ways than one…try commenting out the three lines above and uncommenting
         -- this update function to achieve the same result. The last constant represents scale.
         -- update = function(p)
@@ -269,7 +269,8 @@ patterns = {
             ' X X X X X X X X ',
         },
         yDuration = 1,
-        yEase     = function(t, b, c, d) return playdate.easingFunctions.linear(math.floor(t*4)/4, b, c, d) end,
+        -- the math below uses integer division to achieve the same result as math.floor(t*4)/4
+        yEase = function(t, b, c, d) return playdate.easingFunctions.linear(t*4//1/4, b, c, d) end,
     },
 
     blink = EasyPattern {
@@ -293,8 +294,10 @@ patterns = {
 
     -- try drawing this pattern next to an unreflected version
     reflected = EasyPattern {
-        ditherType = playdate.graphics.image.kDitherTypeDiagonalLine,
-        alpha      = 0.2,
+        pattern = {
+            ditherType = playdate.graphics.image.kDitherTypeDiagonalLine,
+            alpha      = 0.2,
+        },
         xDuration  = 1,
         xReflected = true,
         bgColor    = gfx.kColorWhite,
