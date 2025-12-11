@@ -1033,9 +1033,9 @@ to `drawRect()`.
 
 ```lua
 EasyPattern {
-    ditherType = playdate.graphics.image.kDitherTypeDiagonalLine,
-    xDuration  = 0.25,
-    bgColor    = playdate.graphics.kColorWhite
+    pattern   = playdate.graphics.image.kDitherTypeDiagonalLine,
+    xDuration = 0.25,
+    bgColor   = playdate.graphics.kColorWhite
 }
 ```
 
@@ -1198,7 +1198,7 @@ EasyPattern {
     },
     duration = 1, -- must be non-zero to trigger easing function, but value doesn't matter
     scale    = 2, -- adjust to change the amplitude of vibration
-    ease     = function(_, _, _, _) return math.random(0,8)/8 end, -- note that all args are ignored
+    ease     = function() return math.random(0,8)/8 end, -- note that all args are ignored
 }
 ```
 
@@ -1264,7 +1264,8 @@ EasyPattern {
         ' X X X X X X X X ',
     },
     yDuration = 1,
-    yEase     = function(t, b, c, d) return playdate.easingFunctions.linear(math.floor(t*4)/4, b, c, d) end,
+    -- the math below uses integer division to achieve the same result as math.floor(t*4)/4
+    yEase = function(t, b, c, d) return playdate.easingFunctions.linear(t*4//1/4, b, c, d) end,
 }
 ```
 
@@ -1292,7 +1293,7 @@ EasyPattern {
         ' X . . . . . . X ',
         ' X X X X X X X X ',
     },
-    -- the divisor (//1000) is the blink speed in milliseconds; decrease it to strobe faster!
+    -- the divisor is the blink speed in milliseconds; decrease it to strobe faster!
     update = function(p, t) p:setInverted(t*1000//1000 % 2 == 0) end
 }
 ```
@@ -1347,13 +1348,41 @@ pattern orthogonally.)
 
 ```lua
 EasyPattern {
-    ditherType = playdate.graphics.image.kDitherTypeDiagonalLine,
-    bgColor    = gfx.kColorWhite,
-    alpha      = 0.2,
+    pattern = {
+        ditherType = playdate.graphics.image.kDitherTypeDiagonalLine,
+        alpha      = 0.2,
+    },
     xDuration  = 1,
-    xReflected = true, -- reflect in any axis; try drawing next to an unreflected version
+    xReflected = true,
+    bgColor    = gfx.kColorWhite,
 }
 ```
+
+> [!TIP]
+> You can easily create a reflected version of an existing pattern with [`copy()`](copyoverrides) by passing overrides
+> to define the reflection.
+>
+> ```lua
+> local myPatternReflection = myPattern:copy {
+>   inverted = true, -- flip colors
+>   yReflected = true, -- mirror vertically
+> }
+> ```
+
+> [!TIP]
+> To render both reflected and unreflected versions of a _dynamic_ pattern (even one with randomness), retain a single
+> pattern instance and flip the `xReflected` or `yReflected` property before drawing the reflection:
+>
+> ```lua
+> -- draw the reflection
+> myPattern:setReflected(false, true) -- reflect vertically
+> gfx.setPattern(myPattern:apply()) -- apply the reflected version
+> gfx.fillRect(...)
+> -- draw the unreflected pattern
+> myPattern:setReflected(false) -- un-reflect to restore default state
+> gfx.setPattern(myPattern:apply()) -- apply the unreflected version
+> gfx.fillRect(...)
+> ```
 
 ### Composite Patterns
 
@@ -1426,8 +1455,8 @@ Here's what the above pattern looks like when `alpha` is set to 0.25, 0.5, 0.75,
 ![Translucent Waterfall 75% Example Zoomed](images/waterfall-75@3x.gif)
 ![Translucent Waterfall 100% Example Zoomed](images/waterfall-100@3x.gif)
 
-The above examples use the default dither type, but you can also change that via the `ditherType` property.
-Here's what it looks like with `graphics.image.kDitherTypeDiagonalLine` instead.
+You can also change the dither type used by setting the `ditherType` property. Here's what it looks like with
+`graphics.image.kDitherTypeDiagonalLine` instead.
 
 ![Translucent Waterfall Diagonal Dither Example Zoomed](images/waterfall-75-diagonal@3x.gif)
 
@@ -1442,7 +1471,7 @@ Note the `tickDuration`, which indicates how long to display each frame in the s
 ```lua
 EasyPattern {
     pattern = gfx.imagetable.new("images/hdashes"),
-    tickDuration = 1/16,
+    tickDuration = 1/8,
 }
 ```
 
@@ -1659,7 +1688,8 @@ EasyPattern also makes effort to ensure that no unnecessary work is done. For ex
 conditions would warrant updates to the pattern image or background image, the actual update only
 happens once. It also exits early from setters which modify the pattern if the value hasn't changed.
 This avoids unnecessary work if, for example, you call `setInverted(<condition>)` every frame from
-an `update()` callback.
+an `update()` callback. EasyPattern also avoids creating new temporary images to perform compositing,
+keeping the memory footprint minimal and avoiding unnecessary garbage collection.
 
 This demonstration illustrates how patterns update only as needed. The orange flashes show the
 regions of the screen that get redrawn each frame (toggle in the Simulator under the **View** menu).
