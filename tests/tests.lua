@@ -1715,6 +1715,189 @@ function TestLoops:testUpdateCallback()
 end
 
 
+TestCopy = {}
+
+function TestCopy:testIdenticalCopy()
+    local p = EasyPattern {
+        pattern = stripestripe,
+        bgPattern = zigzag,
+        update = function() end,
+        alpha = rnd[8],
+        ditherType = gfx.image.kDitherTypeDiagonalLine,
+        bgColor = gfx.kColorWhite,
+        tickDuration = rnd[9],
+        xDuration = rnd[1],
+        xOffset = rnd[2],
+        xEase = ease.inOutCubic,
+        xEaseArgs = { rnd[3], rnd[4] },
+        xReverses = true,
+        xReversed = true,
+        xSpeed = rnd[5],
+        xScale = rnd[6],
+        xShift = rnd[7],
+        xReflected = true,
+        yDuration = rnd[7],
+        yOffset = rnd[6],
+        yEase = ease.inOutCubic,
+        yEaseArgs = { rnd[4], rnd[5] },
+        yReverses = true,
+        yReversed = true,
+        ySpeed = rnd[3],
+        yScale = rnd[2],
+        yShift = rnd[1],
+        yReflected = true,
+        inverted = true,
+        rotated = true,
+        loopCallback = function() end,
+        xLoopCallback = function() end,
+        yLoopCallback = function() end,
+    }
+
+    local q = p:copy()
+
+    lu.assertEquals(p.pattern, q.pattern)
+    lu.assertEquals(p.bgPattern, q.bgPattern)
+    lu.assertEquals(p.update, q.update)
+    lu.assertEquals(p.alpha, q.alpha)
+    lu.assertEquals(p.ditherType, q.ditherType)
+    lu.assertEquals(p.bgColor, q.bgColor)
+    lu.assertEquals(p.tickDuration, q.tickDuration)
+    lu.assertEquals(p.xDuration, q.xDuration)
+    lu.assertEquals(p.yDuration, q.yDuration)
+    lu.assertEquals(p.xOffset, q.xOffset)
+    lu.assertEquals(p.yOffset, q.yOffset)
+    lu.assertEquals(p.xEase, q.xEase)
+    lu.assertEquals(p.yEase, q.yEase)
+    lu.assertEquals(p.xEaseArgs, q.xEaseArgs)
+    lu.assertEquals(p.yEaseArgs, q.yEaseArgs)
+    lu.assertEquals(p.xReverses, q.xReverses)
+    lu.assertEquals(p.yReverses, q.yReverses)
+    lu.assertEquals(p.xReversed, q.xReversed)
+    lu.assertEquals(p.yReversed, q.yReversed)
+    lu.assertEquals(p.xSpeed, q.xSpeed)
+    lu.assertEquals(p.ySpeed, q.ySpeed)
+    lu.assertEquals(p.xScale, q.xScale)
+    lu.assertEquals(p.yScale, q.yScale)
+    lu.assertEquals(p.xShift, q.xShift)
+    lu.assertEquals(p.yShift, q.yShift)
+    lu.assertEquals(p.xReflected, q.xReflected)
+    lu.assertEquals(p.yReflected, q.yReflected)
+    lu.assertEquals(p.rotated, q.rotated)
+    lu.assertEquals(p.inverted, q.inverted)
+    lu.assertEquals(p.loopCallback, q.loopCallback)
+    lu.assertEquals(p.xLoopCallback, q.xLoopCallback)
+    lu.assertEquals(p.yLoopCallback, q.yLoopCallback)
+end
+
+function TestCopy:testCopyOverrides()
+    local a = function() end
+    local b = function() end
+    local c = function() end
+    local u = function() end
+    local p = EasyPattern {
+        pattern = stripestripe,
+        bgPattern = zigzag,
+        update = u,
+        alpha = rnd[8],
+        ditherType = gfx.image.kDitherTypeDiagonalLine,
+        bgColor = gfx.kColorWhite,
+        tickDuration = rnd[9],
+        xDuration = rnd[1],
+        xOffset = rnd[2],
+        xEase = ease.inOutCubic,
+        xEaseArgs = { rnd[3], rnd[4] },
+        xReverses = true,
+        xReversed = true,
+        xSpeed = rnd[5],
+        xScale = rnd[6],
+        xShift = rnd[7],
+        xReflected = true,
+        yDuration = rnd[7],
+        yOffset = rnd[6],
+        yEase = ease.inOutCubic,
+        yEaseArgs = { rnd[4], rnd[5] },
+        yReverses = true,
+        yReversed = true,
+        ySpeed = rnd[3],
+        yScale = rnd[2],
+        yShift = rnd[1],
+        yReflected = true,
+        inverted = true,
+        rotated = true,
+        loopCallback = a,
+        xLoopCallback = b,
+        yLoopCallback = c,
+    }
+
+    local q = p:copy {
+        pattern = zigzag,
+        bgPattern = stripestripe,
+        update = u,
+        alpha = rnd[9],
+        ditherType = gfx.image.kDitherTypeVerticalLine,
+        bgColor = gfx.kColorBlack,
+        tickDuration = rnd[8],
+        xDuration = rnd[7],
+        xOffset = rnd[6],
+        xEase = ease.inOutExpo,
+        xEaseArgs = { rnd[5], rnd[4] },
+        xReverses = false,
+        xReversed = false,
+        xSpeed = rnd[3],
+        xScale = rnd[2],
+        xShift = rnd[1],
+        xReflected = false,
+        yDuration = rnd[9],
+        yOffset = rnd[8],
+        yEase = ease.inOutQuad,
+        yEaseArgs = { rnd[7], rnd[6] },
+        yReverses = false,
+        yReversed = false,
+        ySpeed = rnd[5],
+        yScale = rnd[4],
+        yShift = rnd[3],
+        yReflected = false,
+        inverted = false,
+        rotated = false,
+        loopCallback = a,
+        xLoopCallback = b,
+        yLoopCallback = c,
+    }
+
+    lu.assertEquals(q.pattern, zigzag)
+    lu.assertEquals(q.bgPattern, stripestripe)
+    lu.assertEquals(q.update, u)
+    lu.assertEquals(q.alpha, rnd[9])
+    lu.assertEquals(q.ditherType, gfx.image.kDitherTypeVerticalLine)
+    lu.assertEquals(q.bgColor, gfx.kColorBlack)
+    lu.assertEquals(q.tickDuration, rnd[8])
+    lu.assertEquals(q.xDuration, rnd[7])
+    lu.assertEquals(q.yDuration, rnd[9])
+    lu.assertEquals(q.xOffset, rnd[6])
+    lu.assertEquals(q.yOffset, rnd[8])
+    lu.assertEquals(q.xEase, ease.inOutExpo)
+    lu.assertEquals(q.yEase, ease.inOutQuad)
+    lu.assertEquals(q.xEaseArgs, { rnd[5], rnd[4] })
+    lu.assertEquals(q.yEaseArgs, { rnd[7], rnd[6] })
+    lu.assertEquals(q.xReverses, false)
+    lu.assertEquals(q.yReverses, false)
+    lu.assertEquals(q.xReversed, false)
+    lu.assertEquals(q.yReversed, false)
+    lu.assertEquals(q.xSpeed, rnd[3])
+    lu.assertEquals(q.ySpeed, rnd[5])
+    lu.assertEquals(q.xScale, rnd[2])
+    lu.assertEquals(q.yScale, rnd[4])
+    lu.assertEquals(q.xShift, rnd[1])
+    lu.assertEquals(q.yShift, rnd[3])
+    lu.assertEquals(q.xReflected, false)
+    lu.assertEquals(q.yReflected, false)
+    lu.assertEquals(q.rotated, false)
+    lu.assertEquals(q.inverted, false)
+    lu.assertEquals(p.loopCallback, q.loopCallback)
+    lu.assertEquals(p.xLoopCallback, q.xLoopCallback)
+    lu.assertEquals(p.yLoopCallback, q.yLoopCallback)
+end
+
 TestBitPattern = {}
 
 function TestBitPattern:testWithoutAlpha()

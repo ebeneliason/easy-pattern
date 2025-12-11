@@ -23,6 +23,7 @@ return {
                 },
                 className = {},
                 init = {},
+                copy = {},
 
                 setAlpha = {},
                 setBackgroundColor = {},

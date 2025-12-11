@@ -655,6 +655,28 @@ to call this function directly; it is called internally every time you call `isD
 - **`yPhase`**: A number representing the current phase offset for the Y axis in the range 0..7.
 - **`recomputed`**: A boolean indicating whether the values were newly computed.
 
+#### `copy([overrides])`
+
+Returns a new copy of the `EasyPattern` with identical properties. An optional list of parameters may be
+provided to override properties in the returned copy. For example, this can be used to quickly create inverted,
+reflected, or rotated versions of the original pattern:
+
+```lua
+local myPatternReflection = myPattern:copy {
+  inverted = true, -- flip colors
+  yReflected = true, -- mirror vertically
+}
+```
+
+**Params:**
+
+- **`overrides`**: A table containing a list of properties to override in the newly copied instance, in the same format
+  as provided to `init()`.
+
+**Returns:**
+
+- **`copy`**: The `EasyPattern` copy.
+
 ### Pattern Functions
 
 The pattern and background pattern may be set with the functions below. The provided overrides to `setPattern(...)`

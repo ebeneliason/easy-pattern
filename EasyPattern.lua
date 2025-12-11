@@ -291,6 +291,53 @@ function EasyPattern:init(params)
     self:setBackgroundPattern(params.bgPattern)
 end
 
+function EasyPattern:copy(overrides)
+    overrides = overrides or {}
+    -- allows overriding with a value of `false` (not needed for numbers because `0` is truthy)
+    local function boolOverride(value, override, fallback)
+        if override ~= nil then return override
+        elseif fallback ~= nil then return fallback
+        else return value
+        end
+    end
+    return EasyPattern {
+        pattern = overrides.pattern or self.pattern or self._patternTable or self._patternImage,
+        bgPattern = overrides.bgPattern
+            or self.bgPattern or self._bgPatternTable or self._bgEasyPattern or self._bgPatternImage,
+        update = overrides.update or self.update,
+        alpha = overrides.alpha or self.alpha,
+        ditherType = overrides.ditherType or self.ditherType,
+        bgColor = overrides.bgColor or self.bgColor,
+        tickDuration = overrides.tickDuration or self.tickDuration,
+        xDuration = overrides.xDuration or overrides.duration or self.xDuration,
+        yDuration = overrides.yDuration or overrides.duration or self.yDuration,
+        xOffset = overrides.xOffset or overrides.offset or self.xOffset,
+        yOffset = overrides.yOffset or overrides.offset or self.yOffset,
+        xEase = overrides.xEase or overrides.ease or self.xEase,
+        yEase = overrides.yEase or overrides.ease or self.yEase,
+        xEaseArgs = overrides.xEaseArgs or overrides.easeArgs or self.xEaseArgs,
+        yEaseArgs = overrides.yEaseArgs or overrides.easeArgs or self.yEaseArgs,
+        xSpeed = overrides.xSpeed or overrides.speed or self.xSpeed,
+        ySpeed = overrides.ySpeed or overrides.speed or self.ySpeed,
+        xScale = overrides.xScale or overrides.scale or self.xScale,
+        yScale = overrides.yScale or overrides.scale or self.yScale,
+        xShift = overrides.xShift or overrides.shift or self.xShift,
+        yShift = overrides.yShift or overrides.shift or self.yShift,
+        xReverses = boolOverride(self.xReverses, overrides.xReverses, overrides.reverses),
+        yReverses = boolOverride(self.yReverses, overrides.yReverses, overrides.reverses),
+        xReversed = boolOverride(self.xReversed, overrides.xReversed, overrides.reversed),
+        yReversed = boolOverride(self.yReversed, overrides.yReversed, overrides.reversed),
+        xReflected = boolOverride(self.xReflected, overrides.xReflected, overrides.reflected),
+        yReflected = boolOverride(self.yReflected, overrides.yReflected, overrides.reflected),
+        rotated = boolOverride(self.rotated, overrides.rotated),
+        inverted = boolOverride(self.inverted, overrides.inverted),
+        loopCallback = overrides.loopCallback or self.loopCallback,
+        xLoopCallback = overrides.xLoopCallback or self.xLoopCallback,
+        yLoopCallback = overrides.yLoopCallback or self.yLoopCallback,
+    }
+end
+
+
 --! SETTERS
 
 function EasyPattern:setPattern(a, b, c)
