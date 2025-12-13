@@ -89,8 +89,8 @@ sprites, make sure your sprite has a chance to draw in order to animate the patt
 ### Detect Changes in Your Pattern
 
 Depending on the speed of your animation, chances are the pattern won't update every frame. You can check to see
-whether the phase values for the pattern have changed with [`isDirty()`](#isdirty) in order to know when to redraw.
-If using sprites, you can mark them dirty when the pattern changes in your sprite's `update()` function:
+whether the pattern has changed with [`isDirty()`](#isdirty) in order to know when to redraw.
+If using sprites, you can mark them dirty in your sprite's `update()` function:
 
 ```lua
 if easyCheckerboard:isDirty() then
@@ -100,8 +100,8 @@ end
 
 ## Gallery
 
-Click on any pattern to jump to a complete example with code, or use the provided [demo swatch](#demo-swatch) to
-easily try them out for yourself. If you come up with your own patterns, come share them in the
+Click on a pattern to jump to an example with code, or use the [demo swatch](#demo-swatch) to
+try them for yourself. If you come up with your own patterns, come share them in the
 [Playdate Squad Discord channel](https://discord.com/channels/675983554655551509/1442051838114533417)!
 
 [![Conveyor Thumbnail](images/conveyor@3x.gif)](#conveyor)
@@ -135,7 +135,7 @@ EasyPatterns can be thought of in two parts:
 This section provides context for each of these to help you understand how EasyPattern works, which will
 help you reason about how to construct your patterns. The pattern properties converge to define an 8x8
 pixel pattern image, and the animation properties converge to define the phase offsets for the pattern in each axis
-at the given point in time. These converged values are returned by each call to [`apply()`](#apply), enabling
+at a given point in time. These converged values are returned by each call to [`apply()`](#apply), enabling
 you to pass them directly to `playdate.graphics.setPattern()` and draw using the animated pattern.
 
 ### Types and Compatibility
@@ -148,12 +148,12 @@ SDK to maximize compatibility.
   [`playdate.graphics.setPattern()`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)).
 - Easing functions are defined in the
   [`playdate.easingFunctions`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#M-easingFunctions) format. You
-  can use these functions directly, specify custom functions of your own, or use another library.
+  can use these functions directly, reference another library, or define custom functions of your own.
 
 ### Pattern Composition
 
-EasyPatterns support several parameters representing distinct layers—all of which support transparency—
-that get composited to create the final pattern. This diagram describes their order.
+EasyPatterns support several parameters representing distinct layers which get composited to create the final pattern.
+This diagram describes their order.
 
 **↑ TOP**
 
@@ -181,7 +181,7 @@ class W mask
 A few notes about pattern composition:
 
 1. Because the [`bgPattern`](#bgpattern) property may be set to another `EasyPattern` instance, it's possible to
-   create recursive stacks which compose two or more patterns together as one.
+   create compositions which combine two or more patterns together as one.
 
 2. Patterns may apply an opacity effect via the [`alpha`](#alpha) and [`ditherType`](#dithertype) properties,
    which applies to all layers of the pattern it's defined on and any nested more deeply beneath it.
@@ -190,7 +190,7 @@ A few notes about pattern composition:
    while the background color and alpha mask remain fixed even as the pattern itself shifts in phase.
 
 > [!NOTE]
-> The current fully-composited pattern image is accessible via the `compositePatternImage` property. Note that this
+> The fully-composited pattern image is accessible via the `compositePatternImage` property. Note that this
 > represents the raw pattern, before any phase shifts have been applied. However, you should rarely need to access
 > this—it's easiest to draw with your pattern by calling [`apply()`](#apply).
 
@@ -235,8 +235,7 @@ You can also define other properties that affect the final animation in addition
 ### Pattern Transformations
 
 Transformation properties apply to both the fully composited pattern _and its easing animations_. These properties
-enable holistic changes to your patterns without needing to calculate adjustments for each individual pattern or
-animation property.
+enable holistic changes to your pattern without needing to calculate adjustments to individual properties.
 
 - **Reflection**: Set the [`xReflected`](#xreflected) and [`yReflected`](#yreflected) properties to mirror the
   fully-composited pattern in the horizontal and vertical axes, respectively.
@@ -277,14 +276,14 @@ An 8x8 pixel pattern specified in one of these formats:
 1. **Bit Pattern:** An array of 8 numbers describing the bitmap for each row, with an optional 8 additional for a
    bitmap alpha channel (as would be passed to
    [`playdate.graphics.setPattern()`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#f-graphics.setPattern)).
-   See [Defining Your Patterns](#defining-your-patterns) for additional detail on how to construct valid arguments
-   for the pattern parameter in this format.
+   See [Defining Your Patterns](#defining-your-patterns) for additional detail on how to construct patterns
+   in this format.
 
    Example: `pattern = { 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }` (checkerboard)
 
 2. **Dither Pattern:** A table containing:
 
-   - A `ditherType` (as would be passed to `playdate.graphics.setDitherPattern()`. Default: `nil`.
+   - A `ditherType` (as would be passed to `playdate.graphics.setDitherPattern()`.
    - An optional `alpha` value in the range [0,1]. Default: `0.5`.
    - An optional `color` value in which to render the dither. Default: `playdate.graphics.kColorBlack`.
 
@@ -297,9 +296,8 @@ An 8x8 pixel pattern specified in one of these formats:
     }
    ```
 
-   As a convenience, if you want the pattern rendered in black at 50% alpha you can assign a bare dither type
-   constant to the pattern parameter, skipping the table syntax, e.g.,
-   `pattern = playdate.graphics.image.kDitherTypeHorizontalLine`.
+   As a convenience, if you intend to render the pattern in black at 50% alpha you can assign a bare dither type
+   constant to the pattern parameter, e.g., `pattern = playdate.graphics.image.kDitherTypeHorizontalLine`.
 
 3. **Image:** An 8x8 pixel [`playdate.graphics.image`](https://sdk.play.date/3.0.1/Inside%20Playdate.html#C-graphics.image).
 
@@ -312,7 +310,7 @@ An 8x8 pixel pattern specified in one of these formats:
    Example: `pattern = playdate.graphics.imagetable.new("images/myPattern") -- filename: "myPattern-table-8-8.png" or "myPattern.gif"`
 
 You can call the overloaded [`setPattern()` or `setBackgroundPattern()`](#pattern-functions) functions with any of
-these pattern types to change the pattern after it has been instantiated.
+these pattern types to change the pattern after your `EasyPattern` has been instantiated.
 
 Default: `{ 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }` (checkerboard)
 
@@ -321,7 +319,7 @@ Default: `{ 0xF0, 0xF0, 0xF0, 0xF0, 0x0F, 0x0F, 0x0F, 0x0F }` (checkerboard)
 
 #### `bgPattern`
 
-A pattern to render behind the this one. This may be a pattern of any type supported by the `pattern`
+A pattern to render behind the this one. This supports any pattern type supported by the `pattern`
 parameter above, or another `EasyPattern` instance. Overlaying EasyPatterns can create interference patterns and
 more complex animation behaviors. See [Composite Patterns](#composite-patterns) for an example.
 
@@ -530,10 +528,9 @@ callbacks to modify the pattern itself, or to trigger other effects in sync with
 See [Self-Mutating Patterns](#self-mutating-patterns) for an example.
 
 > [!IMPORTANT]
-> Because EasyPattern does not use timers nor have an update function that gets called each frame, these
-> callbacks trigger lazily when the pattern crosses a loop boundary while computing new phase offsets
-> (such as when checking `isDirty()`, or when calling `apply()`). If you check for dirty and/or draw using
-> your pattern each frame, you can ignore this fact. Otherwise, be aware that:
+> Because EasyPattern does not use timers, these callbacks trigger lazily when the pattern crosses a loop boundary
+> while computing new phase offsets (such as when checking `isDirty()`, or when calling `apply()`). If you check for
+> dirty and/or draw using your pattern each frame, you can ignore this fact. Otherwise, be aware that:
 >
 > 1. The time between loop callbacks may not be exact, especially if the frame rate is lower.
 > 2. The callbacks will not be called _at all_ if the pattern is not being used.
@@ -588,7 +585,7 @@ See [Dynamic Patterns](#dynamic-patterns) for a complete example with visual.
 
 EasyPattern takes a single argument — a table of [named parameters](#supported-parameters) that define
 both the pattern and animation properties. (This is also why no parentheses are required when defining
-a new instance, instead enabling use of `{` and `}` by themselves.)
+a new instance, enabling use of `{` and `}` alone.)
 
 Most parameters come in pairs to enable setting independent values for the X and Y axes. For
 example, `xDuration` and `yDuration`. However, when initializing a new `EasyPattern`, any
@@ -648,9 +645,9 @@ end
 
 #### `getPhases()`
 
-Inspects the current X and Y phase offsets for the pattern. If the values are stale, new values are
+Returns the current X and Y phase offsets for the pattern. If the values are stale, new values are
 computed when this function is called; otherwise, cached values are returned. You generally won't need
-to call this function directly; it is called internally every time you call `isDirty()` or `apply()`.
+to call this function directly, as it gets called every time you call `isDirty()` or `apply()`.
 
 **Returns:**
 
@@ -863,10 +860,6 @@ Note that these values may also be set directly on an `EasyPattern` instance. Ho
 ensures that the resulting phase values are correct immediately, rather than lazily computed the next time
 the pattern is applied.
 
-**Returns:**
-
-- **`dirty`**: A boolean indicating whether the set caused the phase values to update.
-
 #### `shiftPhasesBy(xShift, [yShift])`
 
 A convenience function that sets the phase shifts by offsetting them from their current values by the specified amount.
@@ -876,10 +869,6 @@ If `yShift` is omitted, both X and Y phases are shifted the same amount.
 
 - **`xShift`:** The amount to to shift the phase by in the X axis
 - **`yShift`:** The amount to to shift the phase by in the Y axis
-
-**Returns:**
-
-- **`dirty`**: A boolean indicating whether the shift caused the phase values to update.
 
 #### `setReflected(horizontal, [vertical])`
 
@@ -927,7 +916,7 @@ These examples demonstrate the range of pattern animations possible with EasyPat
 is shown with a standard checkerboard pattern to compare the easing effect, and with a custom
 pattern intended to illustrate a potential application.
 
-You can try these examples yourself using the included [EasyPatternDemoSwatch](EasyPatternDemoSwatch.lua).
+You can try these examples yourself using the [EasyPatternDemoSwatch](EasyPatternDemoSwatch.lua).
 [See below](#demo-swatch) for instructions, as well as docs for [BitPattern](#defining-your-patterns) which
 enables the ASCII pattern representations seen in many of these examples.
 
@@ -962,8 +951,8 @@ EasyPattern {
 
 ### Scanline
 
-This example utilizes the built-in horizontal line dither, including transparency, to create a simple
-scanline effect. This could be used atop an image or rendered scene to simulate an old monitor.
+This example uses a transparent horizontal line dither to create a simple scanline effect. This could be used
+atop an image or rendered scene to simulate an old display.
 
 ![Scanline Checkerboard Example](images/scanline-checker.gif)
 ![Scanline Over Image Example](images/scanline-over-image.gif)
@@ -986,8 +975,8 @@ EasyPattern {
 ```
 
 > [!NOTE]
-> Unlike the previous example, a table is provided for the pattern parameter in order to adjust the color and
-> alpha values used to generate the pattern with the given the dither.
+> Unlike the previous example, a table is provided for the `pattern` parameter in order to set the `color` and
+> `alpha` values used to generate the pattern with the given the dither.
 
 ### Ooze
 
@@ -1138,8 +1127,7 @@ EasyPattern {
 
 ### Sway
 
-This example shows how changing a few parameters can create substantially different effects.
-Subtle adjustments to the above example yield a gentle swaying motion.
+Changing just a few parameters from the above example creates a gentle swaying motion.
 
 ![Sway Checkerboard Example](images/sway-checker.gif)
 ![Sway Example](images/sway.gif)
@@ -1241,7 +1229,7 @@ EasyPattern {
 ### Dot Matrix
 
 Here's one more example showcasing a custom easing function. This foregoes the continuous motion of common
-easing functions for a stepwise shift between the start and end values. Adjust the constant (`4` by default)
+easing functions for a stepwise shift between the start and end values. Adjust the constant (`4` in this example)
 in the easing function to change the number of steps per loop.
 
 ![Dot Matrix Checkerboard Example](images/dot-matrix-checker.gif)
@@ -1335,8 +1323,8 @@ EasyPattern {
 
 You can easily create a reflection of any pattern you've already created by setting `reflected` to true
 in your pattern declaration, or on the resulting pattern once instantiated. You can reflect horizontally,
-vertically, or both. This saves the hassle of having to adjust every animation parameter accordingly to
-achieve the same effect. (The same convenience is also provided by the `rotated` flag, which rotates the
+vertically, or both. This saves the hassle of having to adjust individual animation parameters to
+achieve the same effect. (A similar convenience is provided by the `rotated` flag, which rotates the
 pattern orthogonally.)
 
 ![Reflected Checkerboard Example](images/reflected-checker.gif)
@@ -1386,11 +1374,10 @@ EasyPattern {
 
 ### Composite Patterns
 
-Because all patterns support transparency, you can overlay them to create more complex effects.
-You can overlay an animated pattern on a static background or, as shown here, overlay two patterns with
-independent animation effects. The pattern shown below is a transparent variation on ["ooze"](#ooze). It
-can be drawn atop an image to add a subtle effect, or used with "ooze" as a background pattern to create
-a richer, more textured animation.
+You can layer patterns to create more complex effects. You can overlay an animated pattern on a static background or,
+as shown here, overlay two patterns with independent easing effects. The pattern shown below is a transparent variation
+of ["ooze"](#ooze). It can be drawn atop an image to add a subtle effect, or used with "ooze" as a background pattern
+to create a richer, more textured animation.
 
 ![Waterfall Pattern Example](images/waterfall-pattern.gif)
 ![Waterfall Background Example](images/waterfall-background.gif)
@@ -1399,8 +1386,7 @@ a richer, more textured animation.
 ![Waterfall Example Zoomed](images/waterfall-100@3x.gif)
 ![Waterfall Over Image Example Zoomed](images/waterfall-pattern-over-image@3x.gif)
 
-Consider how this could be used in conjunction with the provided ["waves"](#waves) example, or any patterns
-you create yourself.
+Consider how you might use this with the provided ["waves"](#waves) example, or any patterns you create yourself.
 
 **Demo Swatch Name:** `waterfall`
 
@@ -1456,15 +1442,15 @@ Here's what the above pattern looks like when `alpha` is set to 0.25, 0.5, 0.75,
 ![Translucent Waterfall 100% Example Zoomed](images/waterfall-100@3x.gif)
 
 You can also change the dither type used by setting the `ditherType` property. Here's what it looks like with
-`graphics.image.kDitherTypeDiagonalLine` instead.
+`graphics.image.kDitherTypeDiagonalLine`.
 
 ![Translucent Waterfall Diagonal Dither Example Zoomed](images/waterfall-75-diagonal@3x.gif)
 
 ### Animated Patterns
 
-You can also specify an `imagetable` for your pattern, enabling the pattern itself to animate, in addition
-to any easing effects added by `EasyPattern`. First, here's what that looks like without any easing applied.
-Note the `tickDuration`, which indicates how long to display each frame in the sequence:
+You can specify an `imagetable` for your pattern, enabling the pattern itself to animate in addition to any easing
+effects added by `EasyPattern`. First, here's what that looks like without any easing applied. Note the `tickDuration`,
+which indicates how long to display each frame in the sequence:
 
 **Demo Swatch Name:** `dashing`
 
@@ -1480,7 +1466,7 @@ EasyPattern {
 
 ![Dashing Without Ease Example Zoomed](images/dashing-static@3x.gif)
 
-You can add easing to the overall pattern to amplify its effects:
+You can add easing on top of the image table animation to amplify its effect:
 
 ```lua
 EasyPattern {
@@ -1500,7 +1486,7 @@ EasyPattern {
 
 ### Self-Mutating Patterns
 
-You can set functions to be called when the pattern loops in the X axis, Y axis, or overall in order
+You can set callbacks that trigger when the pattern loops in the X axis, Y axis, or overall in order
 to adjust the pattern itself or trigger other effects in sync with its movement. This example adds X and Y
 loop callbacks to the previous [Circular Pan](#circular-pan) example, adjusting the scale with each cycle in
 order to spiral outward then inward again repeatedly.
@@ -1540,7 +1526,7 @@ EasyPattern {
 
 ### Dynamic Patterns
 
-Lastly, you can set an `update()` function on your pattern that gets called every time new phases are calculated.
+Lastly, you can set an `update()` function on your pattern that gets called every time new phases get calculated.
 This function is passed the `EasyPattern` itself as well as the current time, and allows you to modify the pattern
 based on any inputs or game conditions you wish. This is a simple example that modifies the
 ["Conveyor Belt"](#conveyor-belt) above, allowing it to be operated with the crank.
@@ -1562,15 +1548,15 @@ EasyPattern {
 
 ## Demo Swatch
 
-The included [EasyPatternDemoSwatch.lua](EasyPatternDemoSwatch.lua) provides a quick way to try a
-demo of `EasyPattern` in your own project. Just drop the file into your project next to `EasyPattern.lua`,
-include it in `main.lua`, and create an instance by specifying the ID of the pattern as listed above.
+[EasyPatternDemoSwatch.lua](EasyPatternDemoSwatch.lua) provides a quick way to try out `EasyPattern` in your own
+project. Just drop the file next to `EasyPattern.lua`, include it in `main.lua`, and create an instance by specifying
+the ID of a pattern listed above.
 
 ```lua
 local swatch = EasyPatternDemoSwatch("waves")
 ```
 
-Alternatively, you can quickly tile the full set of examples on screen:
+Alternatively, you can tile the examples on screen:
 
 ```lua
 EasyPatternDemoSwatch.tile()
@@ -1582,8 +1568,8 @@ A variety of tools exist to help you find or create patterns you could use with 
 instance, [GFXP](https://dev.playdate.store/tools/gfxp/) provides a library of patterns, a
 visual pattern editor, and a tool for viewing patterns on Playdate hardware.
 
-You can specify your patterns in hex as shown in the examples above. Or, for a more direct
-visual representation in your code, you can use a binary encoding as shown below.
+You can specify your patterns in hex for succinctness; or, for a more direct visual representation in your code, you
+can use a binary encoding as shown below.
 
 ```lua
 EasyPattern {
@@ -1601,10 +1587,9 @@ EasyPattern {
 }
 ```
 
-`BitPattern` is included when you import `EasyPattern` so you can use it at your convenience.
-You can also include an alpha channel for your pattern. `BitPattern` automatically swizzles the
-inputs, enabling you to place the pattern and its alpha channel side by side in a compact and legible
-format, like so:
+`BitPattern` is included when you import `EasyPattern` so you can use it at your convenience. You can also specify
+an optional alpha channel. `BitPattern` automatically swizzles the inputs, so you can place the pattern and its
+alpha channel side-by-side in a compact and legible format, like so:
 
 ```lua
 EasyPattern {
@@ -1656,10 +1641,10 @@ Make sure you've specified the `pattern` parameter properly. More info on
 
 1. First, make sure you've specified an `xDuration` and/or `yDuration`, without which your pattern
    will remain static.
-2. Ensure that `draw()` gets called as necessary to reflect the rendered pattern. If you're using a
-   sprite, you can call `self:markDirty()` from your `update()` function. See the
-   [notes on performance](#what-about-performance) to optimize drawing. If you're not using sprites,
-   just be sure to call your draw method as needed each frame.
+2. If you're drawing in a sprite, ensure that `draw()` gets called as necessary to reflect changes
+   in the pattern. You can call `self:markDirty()` from your `update()` function. Otherwise,
+   just be sure to call your draw method as needed each frame. See the
+   [notes on performance](#what-about-performance) to optimize drawing.
 
 ## What About Performance?
 
