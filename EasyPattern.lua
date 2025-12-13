@@ -578,7 +578,6 @@ function EasyPattern:setRotated(flag)
     self.rotated = flag
     self._pt = 0 -- invalidate cache
     self:_updateCompositePatternImage()
-    self:getPhases()
 end
 
 function EasyPattern:setReflected(horizontal, vertical)
@@ -588,7 +587,6 @@ function EasyPattern:setReflected(horizontal, vertical)
     self.yReflected = vertical
     self._pt = 0 -- invalidate cache
     self:_updateCompositePatternImage()
-    self:getPhases()
 end
 
 -- set phase shifts which offset the pattern
@@ -596,8 +594,6 @@ function EasyPattern:setPhaseShifts(xShift, _yShift)
     self.xShift = xShift
     self.yShift = _yShift or xShift
     self._pt = 0 -- invalidate cache
-    local _, _, dirty = self:getPhases()
-    return dirty
 end
 
 -- a convenience function for adjusting the phases by the specified offset from current values
@@ -605,8 +601,6 @@ function EasyPattern:shiftPhasesBy(xShift, _yShift)
     self.xShift += xShift
     self.yShift += _yShift or xShift
     self._pt = 0 -- invalidate cache
-    local _, _, dirty = self:getPhases()
-    return dirty
 end
 
 
