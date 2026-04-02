@@ -159,18 +159,18 @@ This diagram describes their order.
 
 ```mermaid
 block-beta
-columns 8
-  M["alpha (dither mask)"]:8
-  A["pattern"]:8
-  B["bgPattern"]:2
-  block:bgPattern:6
+columns 128
+  M["alpha (dither mask)"]:128
+  A["pattern"]:128
+  B["bgPattern"]:64
+  block:bgPattern:64
     columns 1
     W["alpha (dither mask)"]
     X["pattern"]
     Y["bgPattern…"]
     Z["bgColor"]
   end
-  C["bgColor"]:8
+  C["bgColor"]:128
 classDef mask fill:#FFFFFF05, stroke-dasharray: 5 5
 class M mask
 class W mask
